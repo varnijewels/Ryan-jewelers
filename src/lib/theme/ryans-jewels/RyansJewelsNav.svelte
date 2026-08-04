@@ -387,7 +387,7 @@
 							</span>
 						</DropdownMenu.Trigger>
 
-						<DropdownMenu.Content align="end" sideOffset={76} class="rj-guest-menu">
+						<DropdownMenu.Content align="end" sideOffset={8} class="rj-guest-menu">
 							<AuthButton class="rj-guest-signin" type="login">Sign in / Create Account</AuthButton>
 							<div class="rj-guest-rule"></div>
 							<DropdownMenu.Item class="rj-guest-item">
@@ -1057,8 +1057,8 @@
 	}
 
 	:global(.rj-guest-menu) {
-		width: 276px;
-		padding: 20px 16px 12px;
+		width: 250px;
+		padding: 14px 14px 10px;
 		border: 0;
 		border-radius: 0 0 15px 15px;
 		background: #fff;
@@ -1072,25 +1072,25 @@
 		align-items: center;
 		justify-content: center;
 		width: 100%;
-		height: 42px;
+		height: 40px;
 		border-radius: 6px;
 		background: var(--rj-gold, #cca646);
 		color: #fff;
 		font-family: 'Sarala', sans-serif;
 		font-weight: 400;
-		font-size: 20px;
-		line-height: 26px;
+		font-size: 16px;
+		line-height: 24px;
 		cursor: pointer;
 	}
 
 	:global(.rj-guest-rule) {
 		height: 1px;
-		margin: 18px 0 7px;
+		margin: 12px 0 5px;
 		background: #e8e8e8;
 	}
 
 	:global(.rj-guest-item) {
-		height: 44px;
+		height: 42px;
 		padding: 0;
 		border-radius: 0;
 		color: inherit;
@@ -1102,24 +1102,24 @@
 
 	:global(.rj-guest-row) {
 		display: grid;
-		grid-template-columns: 22px 1fr 16px;
+		grid-template-columns: 21px 1fr 15px;
 		align-items: center;
-		gap: 12px;
+		gap: 10px;
 		width: 100%;
-		height: 44px;
+		height: 42px;
 		padding: 0;
 		color: var(--rj-ink, #404040);
 		font-family: 'Sarala', sans-serif;
 		font-weight: 400;
-		font-size: 18px;
+		font-size: 16px;
 		line-height: 24px;
 		text-decoration: none;
 		cursor: pointer;
 	}
 
 	:global(.rj-guest-icon) {
-		width: 20px;
-		height: 20px;
+		width: 21px;
+		height: 21px;
 	}
 
 	:global(.rj-guest-row svg:last-child) {
