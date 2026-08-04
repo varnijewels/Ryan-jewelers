@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { Menu } from '@lucide/svelte'
+	import { ChevronRight, ClipboardList, Gift, Menu, Truck, UserRound } from '@lucide/svelte'
 	import { page } from '$app/state'
 	import CartSidebar from '$lib/components/nav/cart-sidebar.svelte'
 	import ProfileDropdown from '$lib/components/nav/profile-dropdown.svelte'
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu'
 	import { AuthButton } from '$lib/core/components/index.js'
 	import { MsSearchRenderer } from '$lib/core/composables/index.js'
 	import { priceRoundUp } from '@misiki/kitcommerce-core/utils'
@@ -352,8 +353,9 @@
 						{/snippet}
 					</ProfileDropdown>
 				{:else}
-					<AuthButton aria-label="Login" type="login">
-						<span class="rj-account">
+					<DropdownMenu.Root>
+						<DropdownMenu.Trigger aria-label="Open account menu" class="rj-guest-trigger">
+							<span class="rj-account">
 							<span class="rj-account-icon" aria-hidden="true">
 								<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
 									<path
@@ -382,8 +384,27 @@
 									</svg>
 								</span>
 							</span>
-						</span>
-					</AuthButton>
+							</span>
+						</DropdownMenu.Trigger>
+
+						<DropdownMenu.Content align="end" sideOffset={76} class="rj-guest-menu">
+							<AuthButton class="rj-guest-signin" type="login">Sign in / Create Account</AuthButton>
+							<div class="rj-guest-rule"></div>
+							<DropdownMenu.Item class="rj-guest-item">
+								<AuthButton class="rj-guest-row" type="login"><ClipboardList /><span>Order History</span><ChevronRight /></AuthButton>
+							</DropdownMenu.Item>
+							<DropdownMenu.Item class="rj-guest-item">
+								<a class="rj-guest-row" href="/order-tracking"><Truck /><span>Track Order</span><ChevronRight /></a>
+							</DropdownMenu.Item>
+							<div class="rj-guest-rule"></div>
+							<DropdownMenu.Item class="rj-guest-item">
+								<AuthButton class="rj-guest-row" type="login"><Gift /><span>Rewards</span><ChevronRight /></AuthButton>
+							</DropdownMenu.Item>
+							<DropdownMenu.Item class="rj-guest-item">
+								<AuthButton class="rj-guest-row" type="login"><UserRound /><span>My Profile</span><ChevronRight /></AuthButton>
+							</DropdownMenu.Item>
+						</DropdownMenu.Content>
+					</DropdownMenu.Root>
 				{/if}
 			</div>
 		</div>
@@ -1026,6 +1047,82 @@
 		font-size: 16px;
 		color: var(--rj-gold, #cca646);
 		white-space: nowrap;
+	}
+
+	:global(.rj-guest-trigger) {
+		padding: 0;
+		border: 0;
+		background: transparent;
+		cursor: pointer;
+	}
+
+	:global(.rj-guest-menu) {
+		width: 276px;
+		padding: 20px 16px 12px;
+		border: 0;
+		border-radius: 0 0 15px 15px;
+		background: #fff;
+		font-family: 'Afacad', var(--font-body, sans-serif);
+		color: var(--rj-ink, #404040);
+		box-shadow: 0 12px 18px rgba(0, 0, 0, 0.16);
+	}
+
+	:global(.rj-guest-signin) {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 42px;
+		border-radius: 6px;
+		background: var(--rj-gold, #cca646);
+		color: #fff;
+		font-size: 20px;
+		line-height: 26px;
+		cursor: pointer;
+	}
+
+	:global(.rj-guest-rule) {
+		height: 1px;
+		margin: 18px 0 7px;
+		background: #e8e8e8;
+	}
+
+	:global(.rj-guest-item) {
+		height: 44px;
+		padding: 0;
+		border-radius: 0;
+		color: inherit;
+	}
+
+	:global(.rj-guest-item[data-highlighted]) {
+		background: #faf6ea;
+	}
+
+	:global(.rj-guest-row) {
+		display: grid;
+		grid-template-columns: 22px 1fr 16px;
+		align-items: center;
+		gap: 12px;
+		width: 100%;
+		height: 44px;
+		padding: 0;
+		color: var(--rj-ink, #404040);
+		font-size: 18px;
+		line-height: 24px;
+		text-decoration: none;
+		cursor: pointer;
+	}
+
+	:global(.rj-guest-row svg) {
+		width: 21px;
+		height: 21px;
+		stroke-width: 1.35;
+	}
+
+	:global(.rj-guest-row svg:last-child) {
+		width: 15px;
+		height: 15px;
+		stroke-width: 1.2;
 	}
 
 	/* -------------------------------- row 2 ------------------------------- */
