@@ -134,10 +134,10 @@
 			</button>
 		</div>
 		<div class="rj-view-controls"><span>View as</span>
-			<button class:active={!listView} type="button" aria-label="Grid view" onclick={() => listView = false}>
+			<button class="rj-view-grid" class:active={!listView} type="button" aria-label="Grid view" onclick={() => listView = false}>
 				<svg viewBox="0 0 28 30" aria-hidden="true"><rect x="1" y="1" width="10" height="12" rx="2"/><rect x="17" y="1" width="10" height="12" rx="2"/><rect x="1" y="17" width="10" height="12" rx="2"/><rect x="17" y="17" width="10" height="12" rx="2"/></svg>
 			</button>
-			<button class:active={listView} type="button" aria-label="List view" onclick={() => listView = true}>
+			<button class="rj-view-list" class:active={listView} type="button" aria-label="List view" onclick={() => listView = true}>
 				<svg viewBox="0 0 28 30" aria-hidden="true"><rect x="1" y="1" width="26" height="11" rx="2"/><rect x="1" y="18" width="26" height="11" rx="2"/></svg>
 			</button>
 		</div>
@@ -260,7 +260,9 @@
 	.rj-view-controls button:first-of-type { color: #cca646; }
 	.rj-view-controls button.active { color: #cca646; }
 	.rj-view-controls button:not(.active) { color: #505050; }
-	.rj-view-controls svg { width: 100%; height: 100%; fill: currentColor; }
+	.rj-view-controls svg { width: 100%; height: 100%; }
+	.rj-view-grid svg { fill: currentColor; }
+	.rj-view-list svg { fill: none; stroke: currentColor; stroke-width: 1.5; }
 	.rj-mobile-label { display: none; }
 	.rj-products-layout { display: grid; grid-template-columns: 307px minmax(0, 1fr); column-gap: 29px; margin-top: 26px; margin-bottom: 170px; align-items: start; transition: grid-template-columns .45s cubic-bezier(.22, 1, .36, 1), column-gap .45s cubic-bezier(.22, 1, .36, 1); }
 	.rj-products-layout.filter-hidden { grid-template-columns: 0 minmax(0, 1fr); column-gap: 0; }
