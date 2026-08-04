@@ -1118,8 +1118,8 @@
 	}
 
 	:global(.rj-guest-icon) {
-		width: 16px;
-		height: 16px;
+		width: 20px;
+		height: 20px;
 	}
 
 	:global(.rj-guest-row svg:last-child) {
