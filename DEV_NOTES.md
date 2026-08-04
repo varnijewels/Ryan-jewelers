@@ -2,21 +2,17 @@
 
 ## Latest development batch
 
-- Previous base Git commit: `fd66ba8` on `main`
+- Previous base Git commit: `95c7faf` on `main`
 - Push target: `https://github.com/varnijewels/Ryan-jewelers.git`
-- Ryan Jewels mega menu:
-  - Desktop top-level items, nested items, links and thumbnails now come from the admin store's mega-menu/header-menu data.
-  - The admin `Home` item keeps the existing separate Home position and divider.
-  - Admin categories with children open a Ryan-styled dynamic panel; leaf categories remain direct links.
-  - Mobile already used the same admin category hierarchy, so desktop and responsive navigation now share the admin source.
-  - Static Ryan menu content remains only as a loading/API-failure fallback.
+- Product-list filter animation:
+  - Filter icon rotates and its slider knobs shift smoothly between Show/Hide states.
+  - Desktop sidebar slides/fades while the product grid expands or contracts smoothly.
+  - Responsive filter drawer uses the same softer easing without changing its UI.
+  - Reduced-motion preference disables the transitions.
 - Modified files:
-  - `src/lib/theme/ryans-jewels/RyansJewelsNav.svelte`
-  - `src/lib/theme/ryans-jewels/RjAdminMegaMenu.svelte`
-  - `src/lib/theme/ryans-jewels/admin-menu.ts`
-  - `tests/ryans-admin-menu.test.ts`
+  - `src/lib/theme/ryans-jewels/RyansJewelsListingPage.svelte`
   - `DEV_NOTES.md`
-- Verification: live admin API response checked, targeted Vitest passes, `git diff --check` passes, and `npm run build` passes.
+- Verification: `git diff --check` and `npm run build` pass.
 
 ## Push checklist
 

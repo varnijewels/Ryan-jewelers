@@ -109,8 +109,14 @@
 <section class="rj-plp-toolbar" aria-label="Product listing controls">
 	<div class="rj-plp-width rj-toolbar-row">
 		<div class="rj-toolbar-left">
-			<button class="rj-toolbar-button" type="button" onclick={() => { filterOpen = true; filterHidden = !filterHidden }}>
-				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6" /></svg>
+			<button
+				class="rj-toolbar-button rj-filter-toggle"
+				class:filter-hidden={filterHidden}
+				class:filter-open={filterOpen}
+				type="button"
+				onclick={() => { filterOpen = true; filterHidden = !filterHidden }}
+			>
+				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10" /><path class="rj-filter-knobs" d="M14 4v6M6 14v6" /></svg>
 				<span class="rj-hide-label">{filterHidden ? 'Show Filter' : 'Hide Filter'}</span><span class="rj-mobile-label">Filter</span>
 			</button>
 			<span class="rj-toolbar-divider"></span>
@@ -137,6 +143,7 @@
 <div class="rj-plp-width rj-products-layout" class:filter-hidden={filterHidden} class:list-view={listView}>
 	{#if filterOpen}<button class="rj-filter-backdrop" aria-label="Close filters" onclick={() => filterOpen = false}></button>{/if}
 	<aside class="rj-sidebar" class:open={filterOpen} aria-label="Product filters">
+		<div class="rj-sidebar-content">
 		<button class="rj-filter-close" type="button" aria-label="Close filters" onclick={() => filterOpen = false}>×</button>
 		<label class="rj-filter-search">
 			<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg>
@@ -206,6 +213,7 @@
 			{/each}
 			{#if featuredProducts.length > 3}<button class="rj-see-more" type="button" onclick={() => showAllFeatured = !showAllFeatured}>{showAllFeatured ? 'Show Less ↑' : 'See More ↓'}</button>{/if}{/if}
 		</div>
+		</div>
 	</aside>
 
 	<main class="rj-product-results">
@@ -232,6 +240,10 @@
 	.rj-toolbar-left { gap: 15px; }
 	.rj-toolbar-button { gap: 8px; padding: 0; border: 0; background: transparent; font: inherit; font-size: 18px; line-height: 26px; color: #505050; cursor: pointer; }
 	.rj-toolbar-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.35; }
+	.rj-filter-toggle svg { transform-origin: center; transition: transform .45s cubic-bezier(.22, 1, .36, 1); }
+	.rj-filter-toggle .rj-filter-knobs { transition: transform .45s cubic-bezier(.22, 1, .36, 1); }
+	.rj-filter-toggle.filter-hidden svg { transform: rotate(180deg); }
+	.rj-filter-toggle.filter-hidden .rj-filter-knobs { transform: translateX(4px); }
 	.rj-toolbar-divider { width: 1px; height: 22px; background: #d9d9d9; }
 	.rj-sort { gap: 15px; font-size: 18px; line-height: 26px; color: #202020; }
 	.rj-sort select { width: 149px; border: 0; outline: 0; background: transparent; font: inherit; color: #606060; cursor: pointer; }
@@ -245,10 +257,11 @@
 	.rj-view-controls button:not(.active) { color: #505050; }
 	.rj-view-controls svg { width: 100%; height: 100%; fill: currentColor; }
 	.rj-mobile-label { display: none; }
-	.rj-products-layout { display: grid; grid-template-columns: 307px minmax(0, 1fr); gap: 29px; margin-top: 26px; margin-bottom: 170px; align-items: start; }
-	.rj-products-layout.filter-hidden { grid-template-columns: minmax(0, 1fr); }
-	.rj-products-layout.filter-hidden .rj-sidebar { display: none; }
-	.rj-sidebar { position: relative; display: flex; flex-direction: column; gap: 23px; width: 307px; font-family: 'Sarala', var(--font-body, sans-serif); color: #404040; background: #fff; }
+	.rj-products-layout { display: grid; grid-template-columns: 307px minmax(0, 1fr); column-gap: 29px; margin-top: 26px; margin-bottom: 170px; align-items: start; transition: grid-template-columns .45s cubic-bezier(.22, 1, .36, 1), column-gap .45s cubic-bezier(.22, 1, .36, 1); }
+	.rj-products-layout.filter-hidden { grid-template-columns: 0 minmax(0, 1fr); column-gap: 0; }
+	.rj-sidebar { position: relative; width: 307px; overflow: hidden; opacity: 1; transform: translateX(0); visibility: visible; transition: width .45s cubic-bezier(.22, 1, .36, 1), opacity .22s ease, transform .45s cubic-bezier(.22, 1, .36, 1), visibility 0s; }
+	.rj-products-layout.filter-hidden .rj-sidebar { width: 0; opacity: 0; transform: translateX(-22px); visibility: hidden; pointer-events: none; transition: width .45s cubic-bezier(.22, 1, .36, 1), opacity .18s ease, transform .45s cubic-bezier(.22, 1, .36, 1), visibility 0s .45s; }
+	.rj-sidebar-content { display: flex; flex-direction: column; gap: 23px; width: 307px; font-family: 'Sarala', var(--font-body, sans-serif); color: #404040; background: #fff; }
 	.rj-filter-close { display: none; }
 	.rj-filter-search { display: flex; align-items: center; gap: 10px; height: 42px; padding: 8px 10px; border: 1px solid #e1d6be; border-radius: 5px; }
 	.rj-filter-search svg { width: 18px; height: 18px; fill: none; stroke: #707070; stroke-width: 1.5; }
@@ -289,11 +302,16 @@
 	.rj-product-results { min-width: 0; }
 	.rj-filter-backdrop { display: none; }
 
-	@media (min-width: 1600px) { .rj-products-layout { gap: 40px; } }
+	@media (min-width: 1600px) { .rj-products-layout { column-gap: 40px; } .rj-products-layout.filter-hidden { column-gap: 0; } }
 	@media (max-width: 1100px) {
 		.rj-products-layout, .rj-products-layout.filter-hidden { grid-template-columns: minmax(0, 1fr); }
-		.rj-sidebar, .rj-products-layout.filter-hidden .rj-sidebar { position: fixed; z-index: 1002; top: 0; bottom: 0; left: 0; display: flex; width: min(360px, 90vw); padding: 28px 26px 50px; overflow-y: auto; transform: translateX(-101%); transition: transform .25s ease; box-shadow: 8px 0 28px rgba(0,0,0,.12); }
+		.rj-sidebar, .rj-products-layout.filter-hidden .rj-sidebar { position: fixed; z-index: 1002; top: 0; bottom: 0; left: 0; width: min(360px, 90vw); padding: 28px 26px 50px; overflow-y: auto; opacity: 1; visibility: visible; pointer-events: auto; transform: translateX(-101%); transition: transform .4s cubic-bezier(.22, 1, .36, 1); box-shadow: 8px 0 28px rgba(0,0,0,.12); }
+		.rj-sidebar-content { width: 100%; }
 		.rj-sidebar.open { transform: translateX(0); }
+		.rj-filter-toggle.filter-hidden svg { transform: none; }
+		.rj-filter-toggle.filter-hidden .rj-filter-knobs { transform: none; }
+		.rj-filter-toggle.filter-open svg { transform: rotate(180deg); }
+		.rj-filter-toggle.filter-open .rj-filter-knobs { transform: translateX(4px); }
 		.rj-filter-close { position: absolute; top: 4px; right: 12px; display: block; border: 0; background: transparent; font-size: 28px; }
 		.rj-filter-backdrop { position: fixed; z-index: 1001; inset: 0; display: block; border: 0; background: rgba(0,0,0,.28); }
 		.rj-hide-label { display: none; } .rj-mobile-label { display: inline; }
@@ -318,5 +336,8 @@
 	@media (max-width: 430px) {
 		.rj-category-model { width: 145px; flex-basis: 145px; }
 		.rj-category-copy p { max-width: 190px; }
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.rj-products-layout, .rj-sidebar, .rj-filter-toggle svg, .rj-filter-toggle .rj-filter-knobs { transition: none; }
 	}
 </style>
