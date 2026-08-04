@@ -1026,6 +1026,7 @@
 	}
 
 	.rj-account-auth {
+		font-family: 'Sarala', sans-serif;
 		line-height: 10px;
 		white-space: nowrap;
 	}

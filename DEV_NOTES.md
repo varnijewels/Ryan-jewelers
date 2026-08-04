@@ -2,7 +2,7 @@
 
 ## Latest development batch
 
-- Previous base Git commit: `e201fdd` on `main`
+- Previous base Git commit: `b82c384` on `main`
 - Push target: `https://github.com/varnijewels/Ryan-jewelers.git`
 - Git push policy: push only when the user explicitly asks.
 - Guest account popup:
@@ -11,6 +11,7 @@
   - Sign-in button: full inner width (`222px`), `40px` height, Sarala Regular `16px/24px`.
   - Menu rows: `42px` height, Sarala Regular `16px/24px`, `10px` column gap.
   - Supplied SVG icons render at `21×21px` with `1.2px` stroke.
+- Header guest “Sign in / register” text uses Sarala.
 - Modified files:
   - `src/lib/theme/ryans-jewels/RyansJewelsNav.svelte`
   - `static/ryans-jewels/icons/order-history.svg`
