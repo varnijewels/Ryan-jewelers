@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#9E260E" />
+
+  <!-- ===== SEO ===== -->
+  <title>Order Confirmed — Boris &amp; Twins</title>
+  <meta name="description" content="Thank you for your order — your Boris &amp; Twins order has been received and is being processed." />
+  <meta name="robots" content="noindex, follow" />
+  <link rel="canonical" href="https://www.borisandtwins.com/order-success.html" />
+
+  <!-- ===== Fonts ===== -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;0,6..96,700;1,6..96,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- ===== Styles (tokens → components → responsive) ===== -->
+  <link rel="stylesheet" href="css/roots.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<!-- ===== REUSABLE SVG ICON SPRITE ===== -->
+<svg width="0" height="0" class="svg-sprite" aria-hidden="true" focusable="false" style="position:absolute">
+  <defs>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7L6 8Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20.5C6 16.5 3 13 3 9.3 3 6.9 4.9 5 7.3 5c1.6 0 3 .8 3.7 2.1C11.7 5.8 13.1 5 14.7 5 17.1 5 19 6.9 19 9.3c0 3.7-3 7.2-7 11.2Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="9.6" r="3.1" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M6.5 19a5.6 5.6 0 0 1 11 0" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 30 30"><line x1="5" y1="15" x2="24" y2="15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M17 8l8 7-8 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 28 28"><line x1="14" y1="23" x2="14" y2="6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 13l7-7 7 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 16 16"><path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-instagram" viewBox="0 0 30 30"><rect x="5" y="5" width="20" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="15" cy="15" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="21.2" cy="8.8" r="1.4" fill="currentColor"/></symbol>
+    <symbol id="i-whatsapp" viewBox="0 0 30 30"><path d="M15 4.5A10.5 10.5 0 0 0 5.7 20.2L4.5 25.5l5.5-1.2A10.5 10.5 0 1 0 15 4.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M11.3 10.4c.3-.7.6-.5.9-.5h.7c.3 0 .6.1.8.6l.9 2c.1.3.1.5 0 .7l-.5.9c-.1.2-.2.4 0 .7a7 7 0 0 0 3.1 2.7c.4.2.6.1.8-.1l.7-.8c.2-.3.4-.2.7-.1l2 1c.3.1.5.3.5.5 0 1.3-1 2.4-2.2 2.5-1 .1-2.3.2-5.3-1.6-2.6-1.6-4.2-4.4-4.3-4.6-.1-.2-1-1.5-1-2.9s.7-2 1-2.4Z" fill="currentColor"/></symbol>
+    <symbol id="i-facebook" viewBox="0 0 30 30"><circle cx="15" cy="15" r="11" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M16.6 15h2l.4-2.6h-2.4v-1.6c0-.8.3-1.3 1.4-1.3h1.1V7.3c-.5-.1-1.2-.2-2-.2-2 0-3.4 1.2-3.4 3.5v1.8h-2V15h2v7.6c.7.1 1.4.1 2.1 0V15Z" fill="currentColor"/></symbol>
+    <symbol id="i-twitter" viewBox="0 0 30 30"><circle cx="15" cy="15" r="11" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 10.5l4.6 6.1L9.3 21h1.4l3.4-3.7L17 21h3.6l-4.9-6.4 4-4.1h-1.4l-3.1 3.4-2.5-3.4H9Z" fill="currentColor"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="11" x2="12" y2="16.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="7.8" r="1.1" fill="currentColor"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 8l-4 4 4 4M6 12h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V7.5L14 3Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M14 3v4.5h4.5M8.5 12.5h7M8.5 16h7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 15V5a2 2 0 0 1 2-2h8" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+  </defs>
+</svg>
+
+<!-- ============================================================= -->
+<!--  HEADER -->
+<!-- ============================================================= -->
+<header class="bt-header" id="top">
+  <div class="announce-bar"><span class="h-line"></span><p class="announce-bar__text">MADE TO ORDER : CRAFTED WITHIN 7-10 DAYS</p><span class="h-line"></span></div>
+  <span class="tablet-top-border h-line"></span>
+
+  <div class="row-mobile">
+    <div class="logo-mobile-wrap"><a href="index.html" class="logo-link">BORIS &amp; TWINS</a></div>
+    <div class="v-div v-div-45"></div>
+    <div class="icons-mobile">
+      <button class="bt-btn bt-btn--faded" type="button" aria-label="Search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M11.5 21C16.7467 21 21 16.7467 21 11.5C21 6.25 16.7467 2 11.5 2C6.25 2 2 6.25 2 11.5C2 16.7467 6.25 21 11.5 21Z" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 22L20 20" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="bt-btn" type="button" aria-label="Wishlist"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.69C2 5.6 4.49 3.1 7.56 3.1C9.38 3.1 10.99 3.98 12 5.34C13.01 3.98 14.63 3.1 16.44 3.1C19.51 3.1 22 5.6 22 8.69C22 15.69 15.52 19.82 12.62 20.81Z" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="bt-btn" type="button" aria-label="Cart"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M7.5 7.67V6.7C7.5 4.45 9.31 2.24 11.56 2.03C14.24 1.77 16.5 3.88 16.5 6.51V7.89" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 22H15C19.02 22 19.74 20.39 19.96 18.43L20.7 12.43C20.98 9.99 20.27 8 16 8H8C3.73 8 3.02 9.99 3.3 12.43L4.04 18.43C4.26 20.39 4.98 22 9 22Z" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.4955 12H15.5045" stroke="#292D32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.49451 12H8.50349" stroke="#292D32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="bt-btn js-menu-open" type="button" aria-label="Open menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 7H21" stroke="#292D32" stroke-width="1.5" stroke-linecap="round"/><path d="M3 12H21" stroke="#292D32" stroke-width="1.5" stroke-linecap="round"/><path d="M3 17H21" stroke="#292D32" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
+
+  <div class="row-desktop">
+    <div class="logo-group"><a href="index.html" class="logo-link">BORIS &amp; TWINS</a><div class="v-div v-div-80"></div></div>
+    <p class="tagline">MADE TO ORDER : CRAFTED WITHIN 7-10 DAYS</p>
+    <div class="icons-tablet">
+      <div class="v-div v-div-80"></div>
+      <button class="bt-btn bt-btn-lg" type="button" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none"><path d="M7.5 7.67V6.7C7.5 4.45 9.31 2.24 11.56 2.03C14.24 1.77 16.5 3.88 16.5 6.51V7.89" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 22H15C19.02 22 19.74 20.39 19.96 18.43L20.7 12.43C20.98 9.99 20.27 8 16 8H8C3.73 8 3.02 9.99 3.3 12.43L4.04 18.43C4.26 20.39 4.98 22 9 22Z" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.4955 12H15.5045" stroke="#292D32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.49451 12H8.50349" stroke="#292D32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="v-div v-div-80"></div>
+      <button class="bt-btn bt-btn-lg js-menu-open" type="button" aria-label="Open menu"><svg viewBox="0 0 24 24" fill="none"><path d="M3 7H21" stroke="#292D32" stroke-width="1.5" stroke-linecap="round"/><path d="M3 12H21" stroke="#292D32" stroke-width="1.5" stroke-linecap="round"/><path d="M3 17H21" stroke="#292D32" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="icons-desktop">
+      <div class="v-div v-div-80"></div>
+      <button class="bt-btn bt-btn-lg" type="button" aria-label="Search"><svg viewBox="0 0 24 24" fill="none"><path d="M11.5 21C16.7467 21 21 16.7467 21 11.5C21 6.25 16.7467 2 11.5 2C6.25 2 2 6.25 2 11.5C2 16.7467 6.25 21 11.5 21Z" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 22L20 20" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="v-div v-div-80"></div>
+      <button class="bt-btn bt-btn-lg" type="button" aria-label="Cart"><svg viewBox="0 0 24 24" fill="none"><path d="M7.5 7.67V6.7C7.5 4.45 9.31 2.24 11.56 2.03C14.24 1.77 16.5 3.88 16.5 6.51V7.89" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 22H15C19.02 22 19.74 20.39 19.96 18.43L20.7 12.43C20.98 9.99 20.27 8 16 8H8C3.73 8 3.02 9.99 3.3 12.43L4.04 18.43C4.26 20.39 4.98 22 9 22Z" stroke="#292D32" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.4955 12H15.5045" stroke="#292D32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.49451 12H8.50349" stroke="#292D32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="v-div v-div-80"></div>
+      <button class="bt-btn bt-btn-lg" type="button" aria-label="Wishlist"><svg viewBox="0 0 24 24" fill="none"><path d="M12.62 20.81C12.28 20.93 11.72 20.93 11.38 20.81C8.48 19.82 2 15.69 2 8.69C2 5.6 4.49 3.1 7.56 3.1C9.38 3.1 10.99 3.98 12 5.34C13.01 3.98 14.63 3.1 16.44 3.1C19.51 3.1 22 5.6 22 8.69C22 15.69 15.52 19.82 12.62 20.81Z" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="v-div v-div-80"></div>
+      <button class="bt-btn bt-btn-lg" type="button" aria-label="Account"><svg viewBox="0 0 24 24" fill="none"><path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M20.59 22C20.59 18.13 16.74 15 12 15C7.26 15 3.41 18.13 3.41 22" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="v-div v-div-80"></div>
+    </div>
+  </div>
+
+  <span class="bottom-border h-line"></span>
+
+  <nav class="mega-menu" aria-label="Main navigation">
+    <span class="h-line"></span>
+    <div class="mega-menu__inner">
+      <a href="index.html#explore" class="nav-item"><div class="nav-item__row"><span>ALL JEWELRY</span><svg class="nav-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 9L12 15L18 9" stroke="#595454" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div></a>
+      <div class="v-div v-div-61"></div>
+      <a href="index.html#most-loved" class="nav-item"><span>VINTAGE JEWELRY</span></a>
+      <div class="v-div v-div-61"></div>
+      <a href="index.html#sparkle" class="nav-item"><span>CUSTOM JEWELRY</span></a>
+      <div class="v-div v-div-61"></div>
+      <a href="index.html#best-sellers" class="nav-item"><span>SERVICE</span></a>
+      <div class="v-div v-div-61"></div>
+      <a href="index.html#crafting" class="nav-item"><span>ABOUT</span></a>
+      <div class="v-div v-div-61"></div>
+      <a href="contact.html" class="nav-item"><span>CONTACT</span></a>
+    </div>
+    <span class="h-line"></span>
+  </nav>
+</header>
+
+<!-- ===== SEARCH POPUP (opens from header search icon) ===== -->
+<div class="search-pop" id="searchPop" aria-hidden="true">
+  <div class="search-pop__back" data-search-close></div>
+  <div class="search-pop__panel" role="dialog" aria-modal="true" aria-label="Search products">
+    <div class="search-pop__row">
+      <span class="search-pop__ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M11.5 21C16.7 21 21 16.7 21 11.5C21 6.25 16.7 2 11.5 2C6.25 2 2 6.25 2 11.5C2 16.7 6.25 21 11.5 21Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 22L20 20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <div class="search-pop__field">
+        <input class="search-pop__input" id="searchInput" type="search" aria-label="Search for jewelry" autocomplete="off">
+        <span class="search-pop__ph" aria-hidden="true"><span class="pre">Search for </span><span class="rot" id="searchRot">Diamond Jewelry</span></span>
+      </div>
+    </div>
+    <span class="search-pop__line"></span>
+  </div>
+</div>
+
+
+<div class="overlay" id="overlay" aria-hidden="true"></div>
+<aside class="drawer" id="drawer" aria-label="Site navigation" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="drawer__head">
+    <span class="drawer__logo">BORIS &amp; TWINS</span>
+    <button class="bt-btn drawer__close js-menu-close" type="button" aria-label="Close menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6L18 18" stroke="#292D32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  </div>
+  <nav class="drawer__nav">
+    <a href="index.html#explore">ALL JEWELRY <svg class="drawer__chevron" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="#595454" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    <a href="index.html#most-loved">VINTAGE JEWELRY</a>
+    <a href="index.html#sparkle">CUSTOM JEWELRY</a>
+    <a href="index.html#best-sellers">SERVICE</a>
+    <a href="index.html#crafting">ABOUT</a>
+    <a href="contact.html">CONTACT</a>
+  </nav>
+</aside>
+
+<main id="main">
+
+  <!-- =========================================================== -->
+  <!--  ORDER SUCCESS / THANK YOU -->
+  <!-- =========================================================== -->
+  <section class="order-success listing" aria-label="Order confirmation">
+
+    <div class="os-hero a-reveal a-zoom">
+      <span class="os-badge" aria-hidden="true">
+        <svg viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="22" fill="var(--maroon)"/>
+          <path d="M22 33l7 7 14-15" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <i class="os-spark os-spark--1"></i><i class="os-spark os-spark--2"></i><i class="os-spark os-spark--3"></i><i class="os-spark os-spark--4"></i>
+      </span>
+      <h1 class="os-title">THANK YOU FOR YOUR ORDER!</h1>
+      <p class="os-sub">
+        <span class="os-oid">Order ID #125874-965478</span>
+        <button class="os-copy" id="osCopy" type="button" aria-label="Copy order ID"><svg class="ic-sm"><use href="#i-copy"/></svg></button>
+        <span class="os-note">Your order has been received and is being processed</span>
+      </p>
+    </div>
+
+    <!-- animated tracking stepper -->
+    <ol class="tr-steps os-steps">
+      <li class="tr-step done"><span class="tr-dot">1</span><span class="tr-label">Check your email</span><span class="tr-date">May 26, 2025</span></li>
+      <li class="tr-step done"><span class="tr-dot">2</span><span class="tr-label">Receive invoice</span><span class="tr-date">May 27, 2025</span></li>
+      <li class="tr-step"><span class="tr-dot">3</span><span class="tr-label">Production Begins</span><span class="tr-date">May 27, 2025</span></li>
+      <li class="tr-step"><span class="tr-dot">4</span><span class="tr-label">On Shorting Centre</span><span class="tr-date">May 27, 2025</span></li>
+      <li class="tr-step"><span class="tr-dot">5</span><span class="tr-label">Delivered</span><span class="tr-date">May 28, 2025</span></li>
+    </ol>
+
+    <!-- order info + summary -->
+    <div class="os-info">
+      <div class="tr-col">
+        <h3 class="tr-col-title">Ship To</h3>
+        <p class="os-lines">Emily Davis<br>456 Elm Ave, Toronto, ON, M5H 2N2<br>Burlin, Germany 85471<br>+91 8847-268741</p>
+      </div>
+      <div class="tr-col">
+        <h3 class="tr-col-title">Payment Methods</h3>
+        <p class="os-pay"><svg class="pay-logo" viewBox="0 0 60 22" role="img" aria-label="PayPal"><text x="2" y="17" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="700" font-style="italic"><tspan fill="#003087">Pay</tspan><tspan fill="#0070BA">Pal</tspan></text></svg></p>
+        <p class="os-lines">emailaddress@gmail.com</p>
+      </div>
+      <div class="tr-col">
+        <h3 class="tr-col-title">Order Placed</h3>
+        <p class="os-lines">Expected Date<br>03 / APR / 2026</p>
+      </div>
+      <div class="tr-col os-summary">
+        <h3 class="tr-col-title">Order Summary</h3>
+        <dl class="os-sum">
+          <div><dt>Subtotal</dt><dd>$573.83</dd></div>
+          <div><dt>Shipping Charge</dt><dd>$56.25</dd></div>
+          <div><dt>Marketplace Fees</dt><dd>$56.25</dd></div>
+          <div><dt>Discount</dt><dd>$12.55</dd></div>
+          <div class="os-grand"><dt>Grand Total</dt><dd>$12.55</dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <hr class="tr-rule">
+
+    <ul class="tr-items">
+        <li class="tr-item">
+          <a class="tr-thumb" href="product.html"><img src="assets/images/Products-Details/Main.jpg" width="90" height="78" loading="lazy" alt="Wedding Diamond Rings"></a>
+          <div class="tr-item-info">
+            <p class="order-ship">Ship To : <strong>Emily Davis</strong></p>
+            <h4 class="order-name">WEDDING DIAMOND RINGS</h4>
+            <p class="order-meta">Quantity: <strong>01</strong>　Metal: <strong>18K Yellow Gold</strong></p>
+          </div>
+          <p class="order-price"><span class="now">$286.75</span><span class="old">$386.75</span></p>
+        </li>
+        <li class="tr-item">
+          <a class="tr-thumb" href="product.html"><img src="assets/images/Product-Images/Rectangle%2046217.jpg" width="90" height="78" loading="lazy" alt="Wedding Diamond Rings"></a>
+          <div class="tr-item-info">
+            <p class="order-ship">Ship To : <strong>Emily Davis</strong></p>
+            <h4 class="order-name">WEDDING DIAMOND RINGS</h4>
+            <p class="order-meta">Quantity: <strong>01</strong>　Metal: <strong>18K Yellow Gold</strong></p>
+          </div>
+          <p class="order-price"><span class="now">$286.75</span><span class="old">$386.75</span></p>
+        </li>
+    </ul>
+  </section>
+
+  <!-- recommended -->
+  <section class="section related" aria-label="Recommended products">
+    <div class="section-head">
+      <h2 class="section-title sm">Recommended Based on your shopping Trends</h2>
+      <a class="text-link" href="rings.html">Page 1 of 2 <svg class="ic-arrow"><use href="#i-arrow-right"/></svg></a>
+    </div>
+    <div class="product-grid cols-5">
+      <article class="product-card reveal"><a class="product-media" href="product.html"><img src="assets/images/Products-Details/Main.jpg" width="238" height="231" loading="lazy" alt="Wedding Diamond Ring"></a><div class="product-info"><h3 class="product-name">Wedding Diamond Ring</h3><p class="product-meta">14k, 18k, 24k Gold Ring</p><div class="product-bottom"><div class="price"><span class="price-now">$286.75</span><span class="price-old">$386.75</span></div><div class="card-actions"><button class="wish-btn" type="button" aria-label="Add to wishlist"><svg class="ic-sm"><use href="#i-heart"/></svg></button><button class="add-btn" type="button"><svg class="ic-sm"><use href="#i-bag"/></svg>Add</button></div></div></div></article>
+      <article class="product-card reveal"><a class="product-media" href="product.html"><img src="assets/images/Product-Images/Rectangle%2026.jpg" width="238" height="231" loading="lazy" alt="Wedding Diamond Ring"></a><div class="product-info"><h3 class="product-name">Wedding Diamond Ring</h3><p class="product-meta">14k, 18k, 24k Gold Ring</p><div class="product-bottom"><div class="price"><span class="price-now">$286.75</span><span class="price-old">$386.75</span></div><div class="card-actions"><button class="wish-btn" type="button" aria-label="Add to wishlist"><svg class="ic-sm"><use href="#i-heart"/></svg></button><button class="add-btn" type="button"><svg class="ic-sm"><use href="#i-bag"/></svg>Add</button></div></div></div></article>
+      <article class="product-card reveal"><a class="product-media" href="product.html"><img src="assets/images/Product-Images/Rectangle%2026-1.jpg" width="238" height="231" loading="lazy" alt="Wedding Diamond Ring"></a><div class="product-info"><h3 class="product-name">Wedding Diamond Ring</h3><p class="product-meta">14k, 18k, 24k Gold Ring</p><div class="product-bottom"><div class="price"><span class="price-now">$286.75</span><span class="price-old">$386.75</span></div><div class="card-actions"><button class="wish-btn" type="button" aria-label="Add to wishlist"><svg class="ic-sm"><use href="#i-heart"/></svg></button><button class="add-btn" type="button"><svg class="ic-sm"><use href="#i-bag"/></svg>Add</button></div></div></div></article>
+      <article class="product-card reveal"><a class="product-media" href="product.html"><img src="assets/images/Product-Images/Rectangle%2026-2.jpg" width="238" height="231" loading="lazy" alt="Wedding Diamond Ring"></a><div class="product-info"><h3 class="product-name">Wedding Diamond Ring</h3><p class="product-meta">14k, 18k, 24k Gold Ring</p><div class="product-bottom"><div class="price"><span class="price-now">$286.75</span><span class="price-old">$386.75</span></div><div class="card-actions"><button class="wish-btn" type="button" aria-label="Add to wishlist"><svg class="ic-sm"><use href="#i-heart"/></svg></button><button class="add-btn" type="button"><svg class="ic-sm"><use href="#i-bag"/></svg>Add</button></div></div></div></article>
+      <article class="product-card reveal"><a class="product-media" href="product.html"><img src="assets/images/Product-Images/Rectangle%2026-3.jpg" width="238" height="231" loading="lazy" alt="Wedding Diamond Ring"></a><div class="product-info"><h3 class="product-name">Wedding Diamond Ring</h3><p class="product-meta">14k, 18k, 24k Gold Ring</p><div class="product-bottom"><div class="price"><span class="price-now">$286.75</span><span class="price-old">$386.75</span></div><div class="card-actions"><button class="wish-btn" type="button" aria-label="Add to wishlist"><svg class="ic-sm"><use href="#i-heart"/></svg></button><button class="add-btn" type="button"><svg class="ic-sm"><use href="#i-bag"/></svg>Add</button></div></div></div></article>
+    </div>
+  </section>
+
+  <!-- instagram -->
+  <section class="section insta" aria-label="Instagram gallery">
+    <h2 class="insta-title"><span class="rule"></span>#B&amp;TJEWELRY<span class="rule"></span></h2>
+    <div class="insta-grid">
+      <a class="insta-cell reveal" href="#" aria-label="Instagram post"><img src="assets/images/Social-media/image 3.jpg" width="214" height="238" loading="lazy" alt=""><span class="insta-ov"><svg class="ic-ig"><use href="#i-instagram"/></svg></span></a>
+      <a class="insta-cell reveal" href="#" aria-label="Instagram post"><img src="assets/images/Social-media/image 4.jpg" width="214" height="238" loading="lazy" alt=""><span class="insta-ov"><svg class="ic-ig"><use href="#i-instagram"/></svg></span></a>
+      <a class="insta-cell reveal" href="#" aria-label="Instagram post"><img src="assets/images/Social-media/image 5.jpg" width="214" height="238" loading="lazy" alt=""><span class="insta-ov"><svg class="ic-ig"><use href="#i-instagram"/></svg></span></a>
+      <a class="insta-cell reveal" href="#" aria-label="Instagram post"><img src="assets/images/Social-media/image 6.jpg" width="214" height="238" loading="lazy" alt=""><span class="insta-ov"><svg class="ic-ig"><use href="#i-instagram"/></svg></span></a>
+      <a class="insta-cell reveal" href="#" aria-label="Instagram post"><img src="assets/images/Social-media/image 7.jpg" width="214" height="238" loading="lazy" alt=""><span class="insta-ov"><svg class="ic-ig"><use href="#i-instagram"/></svg></span></a>
+      <a class="insta-cell reveal" href="#" aria-label="Instagram post"><img src="assets/images/Social-media/image 8.jpg" width="214" height="238" loading="lazy" alt=""><span class="insta-ov"><svg class="ic-ig"><use href="#i-instagram"/></svg></span></a>
+    </div>
+  </section>
+
+
+</main>
+
+<!-- ============================================================= -->
+<!--  FOOTER -->
+<!-- ============================================================= -->
+<footer class="site-footer" id="footer">
+  <div class="footer-grid">
+    <div class="footer-top">
+      <a class="brand" href="index.html">BORIS &amp; TWINS</a>
+      <form class="newsletter" action="#" method="post">
+        <label class="sr-only" for="news">Email Address</label>
+        <input id="news" name="email" type="email" placeholder="Email Address" required />
+        <button type="submit" aria-label="Subscribe"><svg class="ic-arrow"><use href="#i-arrow-right"/></svg></button>
+      </form>
+    </div>
+    <div class="footer-cols">
+      <nav class="f-col" aria-label="About">
+        <h4>About <span class="accent">B&amp;T</span></h4>
+        <ul>
+          <li><a href="index.html#explore">ALL JEWELRY</a></li>
+          <li><a href="index.html#most-loved">VINTAGE JEWELRY</a></li>
+          <li><a href="index.html#sparkle">CUSTOM JEWELRY</a></li>
+          <li><a href="#">SERVICE</a></li>
+          <li><a href="#">ABOUT</a></li>
+          <li><a href="contact.html">CONTACT</a></li>
+        </ul>
+      </nav>
+      <nav class="f-col" aria-label="Order and support">
+        <h4>Order &amp; support</h4>
+        <ul><li><a href="#">TARCK YOUR ORDER</a></li><li><a href="#">SAFE PAYMENT</a></li><li><a href="#">SAFE PAYMENT</a></li></ul>
+      </nav>
+      <nav class="f-col" aria-label="Customer service">
+        <h4>customer service</h4>
+        <ul><li><a href="#">FAQ</a></li><li><a href="#">PROMO CODES &amp; OFFERS</a></li><li><a href="#">SALE INFORMATION</a></li><li><a href="#">REFER A FRIEND</a></li><li><a href="#">ACCESSIBILITY</a></li></ul>
+      </nav>
+      <div class="f-col">
+        <h4>contact us</h4>
+        <ul class="f-contact">
+          <li><a href="mailto:boris.store@gmail.com">boris.store@gmail.com</a></li>
+          <li><a href="tel:+1852258963">+1 852-258963</a></li>
+          <li><a href="mailto:boris.sales@gmail.com">boris.sales@gmail.com</a></li>
+          <li><a href="tel:+1852852147">+1 852-852147</a></li>
+        </ul>
+      </div>
+      <div class="f-col f-payment">
+        <div class="pay-cards" aria-label="Accepted payment methods">
+          <span class="pay"><svg class="pay-logo" viewBox="0 0 40 24" role="img" aria-label="Mastercard"><circle cx="16" cy="12" r="8" fill="#EB001B"/><circle cx="24" cy="12" r="8" fill="#F79E1B"/><path d="M20 5.8a8 8 0 0 0 0 12.4 8 8 0 0 0 0-12.4Z" fill="#FF5F00"/></svg></span>
+          <span class="pay"><svg class="pay-logo" viewBox="0 0 60 22" role="img" aria-label="PayPal"><text x="2" y="17" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="700" font-style="italic"><tspan fill="#003087">Pay</tspan><tspan fill="#0070BA">Pal</tspan></text></svg></span>
+          <span class="pay"><svg class="pay-logo" viewBox="0 0 54 22" role="img" aria-label="Visa"><text x="2" y="17" font-family="Arial,Helvetica,sans-serif" font-size="17" font-weight="700" font-style="italic" letter-spacing="1" fill="#1A1F71">VISA</text></svg></span>
+          <span class="pay"><svg class="pay-logo" viewBox="0 0 44 28" role="img" aria-label="American Express"><rect width="44" height="28" rx="3" fill="#2E77BC"/><text x="22" y="12.5" font-family="Arial" font-size="5.4" font-weight="700" fill="#fff" text-anchor="middle">AMERICAN</text><text x="22" y="20" font-family="Arial" font-size="5.4" font-weight="700" fill="#fff" text-anchor="middle">EXPRESS</text></svg></span>
+          <span class="pay"><svg class="pay-logo" viewBox="0 0 56 24" role="img" aria-label="Apple Pay"><path d="M12.4 7.4c.5-.7.9-1.6.8-2.6-.8 0-1.8.5-2.4 1.2-.5.6-1 1.6-.8 2.5.9.1 1.8-.4 2.4-1.1Z" fill="#000"/><path d="M13 8.7c-1.3-.1-2.4.7-3 .7-.6 0-1.5-.7-2.5-.7-1.3 0-2.5.8-3.1 2-1.4 2.3-.4 5.8 1 7.7.6 1 1.4 2 2.3 2 .9 0 1.3-.6 2.4-.6s1.5.6 2.4.6 1.6-.9 2.2-1.8c.5-.7.7-1.4.7-1.4 0 0-1.4-.6-1.4-2.1 0-1.4 1.1-2 1.1-2-.6-1-1.6-1.1-2-1.1Z" fill="#000"/><text x="22" y="17" font-family="Arial" font-size="13" font-weight="600" fill="#000">Pay</text></svg></span>
+          <span class="pay"><svg class="pay-logo" viewBox="0 0 60 18" role="img" aria-label="Discover"><text x="1" y="14" font-family="Arial" font-size="10.5" font-weight="700" fill="#1a1a1a">DISC</text><circle cx="31" cy="10" r="4" fill="#F76B1C"/><text x="36" y="14" font-family="Arial" font-size="10.5" font-weight="700" fill="#1a1a1a">VER</text></svg></span>
+        </div>
+        <p class="pay-note">Learn more about our <span class="accent">TRUSTED PAYMENT</span></p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="copyright">@2026 BORIES &amp; TWINS ALL RIGHT REVERED.</p>
+      <ul class="socials">
+        <li><a href="#" aria-label="Instagram"><svg class="ic-soc"><use href="#i-instagram"/></svg></a></li>
+        <li><a href="#" aria-label="WhatsApp"><svg class="ic-soc"><use href="#i-whatsapp"/></svg></a></li>
+        <li><a href="#" aria-label="Facebook"><svg class="ic-soc"><use href="#i-facebook"/></svg></a></li>
+        <li><a href="#" aria-label="Twitter"><svg class="ic-soc"><use href="#i-twitter"/></svg></a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<button class="to-top" id="toTop" type="button" aria-label="Back to top"><svg class="ic-up"><use href="#i-arrow-up"/></svg></button>
+
+<script src="js/store.js" defer></script>
+<script src="js/script.js" defer></script>
+<script src="js/animations.js" defer></script>
+</body>
+</html>

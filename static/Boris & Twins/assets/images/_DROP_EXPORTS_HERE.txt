@@ -1,0 +1,20 @@
+Drop your Figma image exports into this folder.
+
+The page renders elegant in-palette placeholder tiles automatically until
+real images are present (handled by js/script.js). To finalize, export each
+node from Figma and save it here using the EXACT filename from the manifest
+in /README.md — no code changes needed.
+
+Quick filename reference:
+  hero-model.jpg            (1380x765)  hero
+  cat-pendant/chain/rings/earrings.jpg (320x380) category cards
+  ml-1.jpg ... ml-10.jpg    (238x231)  Our Most-loved Design
+  sparkle-model.jpg         (740x803)  Effortless Sparkle model
+  sp-1.jpg ... sp-4.jpg     (219x262)  Effortless Sparkle products
+  craft-1/2/3.jpg                       crafting narrative thumbnails
+  bs-1.jpg ... bs-5.jpg     (238x231)  Best Sellers
+  testi-necklace.jpg        (642x720)  Review portrait
+  insta-1.jpg ... insta-6.jpg (214x238) #B&TJEWELRY gallery
+
+A ready-made set of matching placeholder images is also provided as a
+downloadable zip in this chat — extract it here to preview them as files.

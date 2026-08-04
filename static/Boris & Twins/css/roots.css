@@ -1,0 +1,23 @@
+/* ---------- 1. DESIGN TOKENS ---------- */
+:root{
+  --maroon:#9E260E;        /* premiere / brand accent  */
+  --maroon-dark:#7d1c08;
+  --ink:#202020;           /* main text                */
+  --muted:#595454;         /* unselected / secondary   */
+  --line:#E9E9E9;          /* light border             */
+  --line-2:#D9D9D9;        /* gap border               */
+  --cream:#FBF2EE;         /* benefits band            */
+  --product-bg:#ffffff;    /* product media background */
+  --gold:#E2A53C;          /* review stars             */
+  --white:#ffffff;
+  --darkblack:#151515;
+
+  /* fonts — Bodoni Moda is the web-loaded fallback so headings render correctly */
+  --serif:'Bodoni 72 old style', 'Times New Roman', serif;
+  --sans:'Jost','afacad', 'chivo', sans-serif;
+  --primary-font:var(--sans);
+
+  --pad:60px;              /* page side gutter (matches Figma 1320 content / 1440) */
+  --maxw:1440px;          /* Figma frame width */
+  --ease:cubic-bezier(.22,.61,.36,1);
+}

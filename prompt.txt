@@ -1,0 +1,257 @@
+================================================================================
+RYAN JEWELERS — FIGMA → SVELTEKIT HANDOFF PROMPT
+Paste this whole file as your first message in a new session to resume the work.
+Last updated: 2026-07-31
+================================================================================
+
+## 0. STATUS AT A GLANCE
+
+The homepage is COMPLETE. All 16 sections plus the header and footer are built
+from the Figma frames and verified. `npm run build` passes.
+
+What is left is the open questions in section 7 of this file, and the other
+pages (PLP, PDP, cart, checkout, auth, account) which have NOT been restyled —
+they still use the stock Litekart look.
+
+Project root:  /Users/bhaktidesign7/Documents/projects/Ryan Jewels
+Dev server:    npm run dev -- --port 5173 --host 127.0.0.1
+
+--------------------------------------------------------------------------------
+## 1. READ THESE FIRST
+
+    CLAUDE.md                          hard rules, overrides defaults
+    themes/ryans-jewels/BUILD-LOG.md   <- THE MAIN DOCUMENT
+    themes/ryans-jewels/DESIGN.md      header contract + tokens
+
+BUILD-LOG.md is the running record of everything created/changed. It has:
+  - a 7-step recipe for standing up the next store
+  - the reusable-vs-per-store component inventory
+  - a gotchas table (letter-spacing, cap-height trim, fractional borders, ...)
+  - per-section Figma node IDs for all three breakpoints
+  - full gutter / margin / vertical-rhythm / gap / font reference tables
+  - the "how the layout fills wide screens" rule
+  - open questions for the client
+
+Keep BUILD-LOG.md updated as you work. That is an explicit client request.
+
+--------------------------------------------------------------------------------
+## 2. FIGMA SOURCE
+
+File key: XMPW8wCwQOrnp0c4uRBLJ5
+File URL: https://www.figma.com/design/XMPW8wCwQOrnp0c4uRBLJ5/Ryan-Jewels-Web
+
+    Desktop  1440 x 8569   node 1:5407      "#1440 Home Screen"
+    Tablet    744 x 8131   node 63:40011    "#744 Home Screen"
+    Mobile    412 x 7028   node 77:106779   "Home Page"
+    Header   1920 x 211    node 186:56688   <- settles wide-screen behaviour
+
+CSS breakpoints:
+
+    >= 1280px          desktop 1440 contract, verbatim
+    1024px .. 1279px   desktop layout, gutters relaxed to 40 (app-side)
+    640px .. 1023px    tablet 744 frame
+    <= 639px           mobile 412 frame
+
+NEVER guess responsive values - read them from the matching frame.
+The mobile frame includes a 53px phone status-bar mock (77:106784). Ignore it.
+
+### Reading the design
+Load the `figma-design-to-code` skill before the first `get_design_context`
+call and pass `skillNames` on every call.
+
+`get_metadata` gives x/y/width/height - use it for geometry.
+`get_design_context` gives colours, typography and asset URLs - use it for style.
+Asset URLs expire in ~7 days; `curl` them into `static/ryans-jewels/` right away.
+
+Figma MCP has a per-seat call limit. If you hit it, wait - it recovers. Prefer
+`get_metadata` (cheap) and reuse asset URLs you already have.
+
+--------------------------------------------------------------------------------
+## 3. HARD RULES (from CLAUDE.md)
+
+- Only SvelteKit + Svelte 5 runes + existing components + shadcn + Tailwind.
+- Reuse existing components; never create a new one where an existing one fits.
+- Section-by-section fidelity: exact order, copy, casing, icons, borders, font
+  weights, spacing, radius, shadows, hover states. No "close enough".
+- Container/spacing are computed contract values. NO guessed clamp().
+- Fonts are exact requirements. Do not substitute lookalikes.
+- Icons: use the exported Figma asset, not a generic lucide swap.
+- LIVE COMMERCE DATA COMES FROM THE API ONLY. Never hardcode products, prices,
+  stock, ratings or variant options. If the API omits a field, omit the element.
+- Theme-owned static copy lives in the theme layer, never inline in a route.
+- Preserve accessibility: aria-*, labels, semantic tags, focus, form links.
+- Async/click buttons must show a loading indicator while in flight.
+- Never touch lockfiles.
+- Build order: micro components -> reusable -> layout -> sections -> page.
+
+--------------------------------------------------------------------------------
+## 4. LAYOUT MODEL (decided 2026-07-31 - do not regress this)
+
+The 1920 header artboard (186:56688) settles it:
+
+  - outer gutters are FIXED px straight from the frame (61 for most sections)
+  - there is NO `max-width` cap on any section container
+  - the content box just grows; at 1920 it measures 1798 = 1920 - 61 - 61
+  - inner column splits are PERCENTAGES of the content box, so rows keep the
+    frame's proportions instead of one column eating all the extra width
+  - fixed-size children keep their source box only where the source scrolls
+    them; elsewhere they are a share of the row
+
+Verified with zero horizontal scroll at:
+320 / 360 / 375 / 390 / 412 / 600 / 744 / 900 / 1024 / 1280 / 1440 / 1600 /
+1920 / 2560.
+
+Full gutter tables are in BUILD-LOG.md section 8.
+
+--------------------------------------------------------------------------------
+## 5. WHAT IS BUILT
+
+Theme name `ryans-jewels`, active via `.env`:
+    PUBLIC_STOREFRONT_THEME='ryans-jewels'
+
+    src/lib/theme/ryans-jewels/
+        RyansJewelsNav.svelte        header, all breakpoints
+        RyansJewelsFooter.svelte     footer, all breakpoints
+        RyansJewelsHomepage.svelte   page composition
+        nav-content.ts               header static copy
+        home-content.ts              homepage static copy + geometry
+        footer-content.ts            footer + Instagram static copy
+        homepage-content.ts          SEO overrides
+
+        RjHero  RjChatWidget  RjTrustRow  RjRuleHeading  RjDiamondShapes
+        RjProductCard  RjFilterBar  RjProductRow  RjMarquee  RjArrowRule
+        RjRarePassion  RjCategoryTabs  RjSectionHead  RjCarouselCard
+        RjCarousel  RjBestSellers  RjDiamondCluster  RjCustomiseCard
+        RjNamePlate  RjCountdown  RjLookbook  RjWideBanner  RjTrending
+        RjEnquiry  RjFaq  RjInstagram
+
+Sections (all done):
+
+     1  Header (gold utility bar + logo/search/actions + category nav)
+     2  Hero + floating chat widget
+     3  Trust badges + slide counter
+     4  FIND YOUR PERFECT CUT (9 diamond shapes)
+     5  Featured products + filter tabs
+     6  Shape marquee
+     7  Designed with rare passion
+     8  Best sellers carousel + drag scrollbar
+     9  Personalised name plate + top-rated tiles
+    10  Tagline marquee
+    11  Lookbook + live countdown + 2x3 grid
+    12  Glamorous Gifts wide banner
+    13  Trending Collection
+    14  Enquiry form (wired to the real enquiryService)
+    15  FAQ accordion + decorative side panels
+    16  Instagram strip + full footer
+
+Files modified outside the theme (all additive):
+    src/lib/theme/index.ts                          AVAILABLE_THEMES + THEME_FONTS
+    src/lib/theme/homepages.ts                      registered the homepage
+    src/lib/theme/homepage-content.ts               registered SEO content
+    src/app.css                                     [data-theme='ryans-jewels']
+    src/lib/components/nav/nav.svelte                ryans-jewels branch
+    src/lib/components/common/footer.svelte          ryans-jewels branch
+    src/lib/components/nav/cart-sidebar.svelte       optional `trigger` snippet
+    src/lib/components/nav/profile-dropdown.svelte   optional `trigger` snippet
+    src/routes/(www)/+page.svelte                   passes trendingProducts
+
+--------------------------------------------------------------------------------
+## 6. DATA MAPPING
+
+    section 5   homepageModule.featuredProducts (first 4)
+    section 8   homepageModule.featuredProducts (full list, carousel)
+    section 11  homepageModule.trendingProducts
+    section 13  homepageModule.trendingProducts
+
+    name        product.title || product.name
+    href        /products/{product.slug}
+    image       product.thumbnail || img || image || image_url
+    category    product.category?.name || categoryName || collection?.name
+    price       formatPrice(product.price, currencyCode)
+    compare     product.mrp   (discount % = round((mrp-price)/mrp*100))
+    rating      product.ratings?.average ?? rating ?? avgRating
+    wishlist    ProductCardRenderer   (never reimplement)
+    newsletter  NewsletterRenderer    (never reimplement)
+    enquiry     enquiryService.create (never reimplement)
+
+The API returns NO ratings and NO metal/colour options, so the rating cluster
+and metal swatches are hidden. They appear automatically if the API starts
+returning them. DO NOT hardcode them to match the mockup.
+
+--------------------------------------------------------------------------------
+## 7. OPEN QUESTIONS FOR THE CLIENT (still unanswered)
+
+1. Real category slugs. nav-content.ts / home-content.ts / footer-content.ts
+   currently guess: /categories/rings, /categories/earrings,
+   /categories/pendants, /categories/lab-grown-diamond, /customise,
+   /about-us, /contact-us, /gift-card.
+2. Section 8 product source. The API exposes only featuredProducts and
+   trendingProducts for four product sections. Confirm the mapping above.
+3. Ratings / metal swatches - stay hidden until the API provides them?
+4. Enquiry attachments. The form has three working file pickers with previews,
+   but the enquiry API takes no files, so the chosen file NAMES are appended to
+   the message. Confirm whether real uploads are needed.
+5. `offerEndsAt` in home-content.ts -> lookbook needs the real campaign date
+   (currently 2026-12-31).
+6. FAQ answers in home-content.ts -> faq.items are factual placeholders written
+   so the accordion works. Replace with the client's wording.
+7. Instagram profile URL in footer-content.ts -> instagramStrip.href.
+
+Deliberate deviations from the mock (all documented in BUILD-LOG.md):
+  - name-plate tiles: the mock's static "5.5" rating is NOT reproduced
+    (that would be hardcoded commerce data).
+  - footer legal bar: the mock's "All Rights revered." typo is corrected to
+    "Reserved", and its literal "your company" uses the theme brandName.
+  - rating clusters render one star + value, not the mock's two star glyphs.
+  - tablet/mobile frames that use unthemed instances (#a80139 magenta,
+    #ffd60a yellow) are rendered in the themed gold.
+
+--------------------------------------------------------------------------------
+## 8. VERIFY LOOP
+
+    npm run dev -- --port 5173 --host 127.0.0.1        (background)
+
+    node scripts/rj-shot.mjs "<selector>" "<name>" '<measure-json>'
+    node scripts/rj-gutters.mjs                 RJ_WIDTHS=1440,1920 to vary
+    node scripts/rj-overflow.mjs <width>        finds the exact overflow culprit
+    node scripts/rj-cards.mjs                   card boxes across breakpoints
+    node scripts/rj-page-audit.mjs              order / overflow / console errors
+    node scripts/rj-fonts-applied.mjs           which font landed on each heading
+    node scripts/rj-fullpage.mjs <scale> <w> <name>
+    node scripts/rj-clip.mjs <startSel> <endSel> <name> <width>
+
+    npx svelte-check --threshold error --output machine | grep ryans-jewels
+    npm run build
+
+All scripts are store-agnostic - copy them into the next project as-is.
+Screenshots go to `.rj-qa/` (gitignored). Never write QA output into `static/`.
+
+Measure computed styles against the source contract and element-screenshot each
+section (`locator(sel).screenshot()`) - the header is sticky and covers
+viewport-clipped shots.
+
+Known pre-existing noise, NOT caused by this work:
+  - svelte-check errors about "$lib/core/services" and "$lib/components/ui/*"
+    (the shared enquiry modal imports the same path; it resolves at runtime)
+  - API 422 "Invalid credentials" from the wishlist endpoint
+  - `effect_orphan` / `lifecycle_outside_component` in dev -> stop the server,
+    `rm -rf node_modules/.vite`, restart. Stale Vite dep cache, not a code bug.
+
+--------------------------------------------------------------------------------
+## 9. ENVIRONMENT WARNING
+
+This machine repeatedly runs OUT OF DISK SPACE, which makes builds crawl
+(12 minutes instead of 25 seconds) and can block file writes entirely.
+
+    df -h /            keep at least 2 GB free
+
+Safe to clear:
+    npm cache clean --force
+    rm -rf node_modules/.vite
+    rm -rf .svelte-kit/output
+    ~/Library/Caches/*.ShipIt          (app-updater staging, ~2 GB)
+
+Note there is a second project (blue-nile-main) running its own dev server on
+port 3001. Leave it alone.
+
+================================================================================

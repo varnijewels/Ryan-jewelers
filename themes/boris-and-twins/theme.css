@@ -1,0 +1,44 @@
+/* Boris & Twins — "Golden Legacy" theme
+ * Source: static/Boris & Twins (roots.css design tokens are authoritative).
+ * Palette derived from the source CSS custom properties. The auto pass
+ * mis-parsed the literal word "maroon" as the CSS named color #800000;
+ * the real brand color is --maroon #9E260E — corrected here.
+ * Drop into src/app.css replacing the existing :root block.
+ */
+:root {
+  --background: 0 0% 100%;          /* --white    #ffffff */
+  --foreground: 0 0% 12.5%;         /* --ink      #202020 */
+  --primary: 10 83.7% 33.7%;        /* --maroon   #9E260E (brand) */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 18.5 61.9% 95.9%;    /* --cream    #FBF2EE (benefits band) */
+  --secondary-foreground: 0 0% 12.5%;
+  --accent: 38 74.1% 56.1%;         /* --gold     #E2A53C (review stars / highlights) */
+  --accent-foreground: 0 0% 8.2%;   /* --darkblack #151515 */
+  --muted: 36 15.2% 93.5%;          /* warm light surface #F1EFEC */
+  --muted-foreground: 0 2.9% 33.9%; /* --muted    #595454 */
+  --border: 0 0% 91.4%;             /* --line     #E9E9E9 */
+  --input: 0 0% 91.4%;
+  --ring: 10 83.7% 33.7%;           /* --maroon focus ring */
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 12.5%;
+  --destructive: 5.6 63.4% 46.1%;   /* #C0392B */
+  --destructive-foreground: 0 0% 100%;
+  --radius: 6px;
+  --font-heading: 'Bodoni Moda', 'Times New Roman', serif;
+  --font-body: 'Jost', 'Chivo', ui-sans-serif, system-ui, sans-serif;
+  --shadow-default: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
+  --container-width: 1440px;
+  --transition-duration: .25s;
+  --ease: cubic-bezier(.22, .61, .36, 1);
+}
+
+body {
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: .04em;
+}

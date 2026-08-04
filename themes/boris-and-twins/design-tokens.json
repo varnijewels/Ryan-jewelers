@@ -1,0 +1,247 @@
+{
+  "generatedAt": "2026-07-06T05:34:09.329Z",
+  "source": {
+    "dir": "static/Boris & Twins",
+    "files": [
+      "responsive.css",
+      "roots.css",
+      "style.css",
+      "address.html",
+      "auth.html",
+      "cart.html",
+      "checkout.html",
+      "contact.html",
+      "forgot.html",
+      "index.html",
+      "login.html",
+      "my-profile.html",
+      "order-details.html",
+      "order-success.html",
+      "payment.html",
+      "product.html",
+      "profile.html",
+      "register.html",
+      "rings.html",
+      "track.html",
+      "wishlist.html"
+    ]
+  },
+  "palette": {
+    "roles": {
+      "background": "#ffffff",
+      "foreground": "#202020",
+      "primary": "#9E260E",
+      "primary-foreground": "#ffffff",
+      "secondary": "#FBF2EE",
+      "secondary-foreground": "#202020",
+      "accent": "#E2A53C",
+      "accent-foreground": "#151515",
+      "muted": "#F1EFEC",
+      "muted-foreground": "#595454",
+      "border": "#E9E9E9",
+      "input": "#E9E9E9",
+      "ring": "#9E260E",
+      "card": "#ffffff",
+      "card-foreground": "#202020",
+      "destructive": "#C0392B",
+      "destructive-foreground": "#ffffff"
+    },
+    "_note": "Roles corrected by hand from sourceCustomProps. The auto pass mapped the literal word 'maroon' to the CSS named color #800000; the real brand color is --maroon #9E260E.",
+    "fullPalette": [
+      {
+        "hex": "#800000",
+        "weight": 464,
+        "count": 143,
+        "contexts": [
+          "interactive",
+          "body",
+          "surface",
+          "heading",
+          "error"
+        ]
+      },
+      {
+        "hex": "#ffffff",
+        "weight": 205,
+        "count": 87,
+        "contexts": [
+          "body",
+          "surface",
+          "interactive",
+          "heading",
+          "error"
+        ]
+      },
+      {
+        "hex": "#000000",
+        "weight": 28,
+        "count": 16,
+        "contexts": [
+          "interactive"
+        ]
+      },
+      {
+        "hex": "#ff0000",
+        "weight": 20,
+        "count": 6,
+        "contexts": [
+          "heading",
+          "interactive"
+        ]
+      },
+      {
+        "hex": "#1a8a3a",
+        "weight": 12,
+        "count": 9,
+        "contexts": []
+      },
+      {
+        "hex": "#bdbdbd",
+        "weight": 8,
+        "count": 4,
+        "contexts": [
+          "interactive"
+        ]
+      },
+      {
+        "hex": "#9e260e",
+        "weight": 7,
+        "count": 2,
+        "contexts": [
+          "interactive"
+        ]
+      },
+      {
+        "hex": "#ffd700",
+        "weight": 6,
+        "count": 4,
+        "contexts": []
+      },
+      {
+        "hex": "#d9d9d9",
+        "weight": 6,
+        "count": 5,
+        "contexts": []
+      },
+      {
+        "hex": "#a5a5a5",
+        "weight": 5,
+        "count": 5,
+        "contexts": []
+      },
+      {
+        "hex": "#9fd4b3",
+        "weight": 5,
+        "count": 1,
+        "contexts": [
+          "interactive"
+        ]
+      },
+      {
+        "hex": "#5a31f4",
+        "weight": 4,
+        "count": 2,
+        "contexts": []
+      },
+      {
+        "hex": "#c0392b",
+        "weight": 3,
+        "count": 3,
+        "contexts": []
+      },
+      {
+        "hex": "#595454",
+        "weight": 2,
+        "count": 2,
+        "contexts": []
+      },
+      {
+        "hex": "#ef9a9a",
+        "weight": 2,
+        "count": 1,
+        "contexts": []
+      },
+      {
+        "hex": "#0078ff",
+        "weight": 2,
+        "count": 2,
+        "contexts": []
+      },
+      {
+        "hex": "#0062dc",
+        "weight": 2,
+        "count": 2,
+        "contexts": []
+      },
+      {
+        "hex": "#292d32",
+        "weight": 1,
+        "count": 1,
+        "contexts": []
+      }
+    ],
+    "confidence": {
+      "primary": "high",
+      "contrastPrimaryOnBg": 10.95,
+      "contrastFgOnBg": 10.95
+    }
+  },
+  "typography": {
+    "fontHeading": "Bodoni Moda",
+    "fontBody": "Jost",
+    "googleFontFamilies": [
+      "Bodoni Moda",
+      "Jost",
+      "Chivo"
+    ],
+    "fontWeights": [
+      300,
+      400,
+      500,
+      600,
+      700
+    ],
+    "dominantBodySize": "13px",
+    "letterSpacingHeading": ".04em"
+  },
+  "geometry": {
+    "radius": "6px",
+    "shadow": "0 1px 2px 0 hsl(0 0% 0% / 0.05)",
+    "containerWidth": "1440px",
+    "spacingScale": [
+      "14px",
+      "10px",
+      "16px",
+      "8px",
+      "6px",
+      "18px",
+      "12px",
+      "24px"
+    ],
+    "transitionDuration": ".25s"
+  },
+  "sourceCustomProps": {
+    "--maroon": "#9E260E",
+    "--maroon-dark": "#7d1c08",
+    "--ink": "#202020",
+    "--muted": "#595454",
+    "--line": "#E9E9E9",
+    "--line-2": "#D9D9D9",
+    "--cream": "#FBF2EE",
+    "--product-bg": "#ffffff",
+    "--gold": "#E2A53C",
+    "--white": "#ffffff",
+    "--darkblack": "#151515",
+    "--serif": "'Bodoni 72 old style', 'Times New Roman', serif",
+    "--sans": "'Jost','afacad', 'chivo', sans-serif",
+    "--primary-font": "var(--sans)",
+    "--pad": "18px",
+    "--maxw": "1440px",
+    "--ease": "cubic-bezier(.22,.61,.36,1)",
+    "--hdr-red": "#9e260e",
+    "--hdr-dark": "#202020",
+    "--hdr-nav": "#595454",
+    "--hdr-div": "#d9d9d9",
+    "--hdr-bdr": "#e9e9e9"
+  }
+}
