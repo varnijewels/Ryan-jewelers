@@ -547,7 +547,7 @@
 		z-index: 60;
 		background: var(--rj-gold, #cca646);
 		color: #fff;
-		font-family: 'Sarala', sans-serif;
+		font-family: 'Afacad', var(--font-body, sans-serif);
 	}
 
 	.rj-utility-inner {
@@ -1062,7 +1062,7 @@
 		border: 0;
 		border-radius: 0 0 15px 15px;
 		background: #fff;
-		font-family: 'Afacad', var(--font-body, sans-serif);
+		font-family: 'Sarala', sans-serif;
 		color: var(--rj-ink, #404040);
 		box-shadow: 0 12px 18px rgba(0, 0, 0, 0.16);
 	}
@@ -1076,6 +1076,8 @@
 		border-radius: 6px;
 		background: var(--rj-gold, #cca646);
 		color: #fff;
+		font-family: 'Sarala', sans-serif;
+		font-weight: 400;
 		font-size: 20px;
 		line-height: 26px;
 		cursor: pointer;
@@ -1107,6 +1109,8 @@
 		height: 44px;
 		padding: 0;
 		color: var(--rj-ink, #404040);
+		font-family: 'Sarala', sans-serif;
+		font-weight: 400;
 		font-size: 18px;
 		line-height: 24px;
 		text-decoration: none;
