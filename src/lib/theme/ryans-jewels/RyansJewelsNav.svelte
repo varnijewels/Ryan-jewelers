@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ChevronRight, ClipboardList, Gift, Menu, Truck, UserRound } from '@lucide/svelte'
+	import { ChevronRight, ContactRound, Gift, Menu, NotepadText, Truck } from '@lucide/svelte'
 	import { page } from '$app/state'
 	import CartSidebar from '$lib/components/nav/cart-sidebar.svelte'
 	import ProfileDropdown from '$lib/components/nav/profile-dropdown.svelte'
@@ -391,7 +391,7 @@
 							<AuthButton class="rj-guest-signin" type="login">Sign in / Create Account</AuthButton>
 							<div class="rj-guest-rule"></div>
 							<DropdownMenu.Item class="rj-guest-item">
-								<AuthButton class="rj-guest-row" type="login"><ClipboardList /><span>Order History</span><ChevronRight /></AuthButton>
+								<AuthButton class="rj-guest-row" type="login"><NotepadText /><span>Order History</span><ChevronRight /></AuthButton>
 							</DropdownMenu.Item>
 							<DropdownMenu.Item class="rj-guest-item">
 								<a class="rj-guest-row" href="/order-tracking"><Truck /><span>Track Order</span><ChevronRight /></a>
@@ -401,7 +401,7 @@
 								<AuthButton class="rj-guest-row" type="login"><Gift /><span>Rewards</span><ChevronRight /></AuthButton>
 							</DropdownMenu.Item>
 							<DropdownMenu.Item class="rj-guest-item">
-								<AuthButton class="rj-guest-row" type="login"><UserRound /><span>My Profile</span><ChevronRight /></AuthButton>
+								<AuthButton class="rj-guest-row" type="login"><ContactRound /><span>My Profile</span><ChevronRight /></AuthButton>
 							</DropdownMenu.Item>
 						</DropdownMenu.Content>
 					</DropdownMenu.Root>
@@ -547,7 +547,7 @@
 		z-index: 60;
 		background: var(--rj-gold, #cca646);
 		color: #fff;
-		font-family: 'Afacad', var(--font-body, sans-serif);
+		font-family: 'Sarala', sans-serif;
 	}
 
 	.rj-utility-inner {
@@ -1116,7 +1116,7 @@
 	:global(.rj-guest-row svg) {
 		width: 21px;
 		height: 21px;
-		stroke-width: 1.35;
+		stroke-width: 1.65;
 	}
 
 	:global(.rj-guest-row svg:last-child) {
