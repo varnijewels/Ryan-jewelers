@@ -1,40 +1,60 @@
 <script lang="ts">
 	import { page } from '$app/state'
-	import { formatPrice, selectSort } from '$lib/core/utils/index.js'
+	import { goto } from '$app/navigation'
+	import { formatPrice } from '$lib/core/utils/index.js'
 	import { getDesktopFilterState } from '$lib/core/composables/index.js'
-	import { sortOptions } from '$lib/config.js'
 	import ListingGrid from '$lib/components/product-catalogue/listing-grid.svelte'
 	import RjInstagram from './RjInstagram.svelte'
+	import { facetOptions } from './product-filters.js'
+
+	const sortOptions = [
+		['select', 'Select one'],
+		['default', 'Default Sorting'],
+		['createdAt:desc', 'Whats New Arrival'],
+		['popularity:desc', 'Sort By Popularity'],
+		['rating:desc', 'Sort By Average Rating'],
+		['updatedAt:desc', 'Sort By Latest'],
+		['price:asc', 'Sort By Price: Low To High'],
+		['price:desc', 'Sort By Price: High To Low'],
+		['title:asc', 'Alphabetically: A to Z'],
+		['title:desc', 'Alphabetically: Z to A']
+	] as const
+	const localSorts = new Set(['default', 'rating:desc', 'title:asc', 'title:desc'])
 
 	const data = $derived(page.data)
 	const filterState = getDesktopFilterState()
-	let selectedSort = $state(page.url.searchParams.get('sort') ?? 'popularity:desc')
+	let selectedSort = $state(page.url.searchParams.get('uiSort') ?? page.url.searchParams.get('sort') ?? 'position')
 	let filterOpen = $state(false)
 	let filterHidden = $state(false)
 	let listView = $state(false)
+	let showAllCategories = $state(false)
+	let showAllQualities = $state(false)
+	let showAllFeatured = $state(false)
+	let openSections = $state<Record<string, boolean>>({
+		status: true, categories: true, price: true, material: true,
+		shape: true, quality: true, weight: true, featured: true
+	})
 
 	const categoryName = $derived(
 		data.products?.categoryHierarchy?.at(-1)?.name || data.products?.category?.name || 'Wedding Rings'
 	)
-	const categories = $derived(
-		(filterState.categories?.length ? filterState.categories : [
-			{ name: 'Wedding Ring', slug: 'wedding-rings' },
-			{ name: 'All Earrings', slug: 'earrings' },
-			{ name: 'Bracelet', slug: 'bracelets' },
-			{ name: 'Customs design', slug: 'customise' },
-			{ name: 'All Lab Grown', slug: 'lab-grown-diamond' },
-			{ name: 'Pendants', slug: 'pendants' }
-		]).slice(0, 6)
-	)
+	const categories = $derived(filterState.categories || [])
+	const visibleCategories = $derived(showAllCategories ? categories : categories.slice(0, 6))
 	const statuses = ['In Stock', 'Out of stock', 'Best seller', 'Top Rated', 'Featured products']
-	const materials = ['10k Yellow gold', '10k Rose gold', '10k White gold', '14k Yellow gold', '14k Rose gold', '14k White gold']
-	const shapes = [
-		['oval', 'Oval'], ['radiant', 'Radiant'], ['pear', 'Pear'], ['cushion', 'Cushion'],
-		['princess', 'Princess'], ['asscher', 'Asscher'], ['emerald', 'Emerald'], ['marquise', 'Marquise'], ['heart', 'Heart']
-	]
-	const qualities = ['HI SI1-SI2(137)', 'GH VS1-VS2(94)', 'EF VVS1-VVS2(67)', 'IJ SI1-SI2(42)', 'GH SI1-SI2(31)']
-	const weights = ['0.25 Ct To 0.49 Ct', '0.50 Ct To 0.99 Ct', '1.00 Ct To 1.49 Ct', '1.50 Ct To 2.00 Ct']
-	const featured = $derived((data.products?.data || []).slice(0, 3))
+	const materials = $derived(facetOptions(filterState.allFilters, ['attributes.Metal_Type', 'attributes.Metal_Color', 'options.Material', 'options.Metal_Type', 'options.Metal_Color'], /gold|silver|platinum|metal/i))
+	const shapes = $derived(facetOptions(filterState.allFilters, ['attributes.Stone_Shape', 'attributes.Center_Stone_Shape', 'attributes.Side_Stone_Shape', 'options.Center_Stone']))
+	const qualities = $derived(facetOptions(filterState.allFilters, ['attributes.Stone_Quality', 'options.Stone_Quality']))
+	const visibleQualities = $derived(showAllQualities ? qualities : qualities.slice(0, 5))
+	const weights = $derived(facetOptions(filterState.allFilters, ['attributes.Total_Carat_Weight_Range', 'attributes.Center_Stone_Ctw', 'options.Carat_Weight']))
+	const featuredProducts = $derived(data.products?.data || [])
+	const featured = $derived(showAllFeatured ? featuredProducts : featuredProducts.slice(0, 3))
+	const shapeIcons = new Set(['oval', 'radiant', 'pear', 'cushion', 'princess', 'asscher', 'emerald', 'marquise', 'heart'])
+	filterState.searchQuery = page.url.searchParams.get('search') ?? ''
+
+	$effect(() => {
+		filterState.searchQuery = page.url.searchParams.get('search') ?? ''
+		selectedSort = page.url.searchParams.get('uiSort') ?? page.url.searchParams.get('sort') ?? 'position'
+	})
 
 	function checked(key: string, value: string) {
 		return filterState.selectedGeneralFilters?.[key]?.includes(value) || false
@@ -44,9 +64,32 @@
 		filterState.handleGeneralFiltersChange({ key, value, checked: (event.currentTarget as HTMLInputElement).checked })
 	}
 
-	function applySort(event: Event) {
+	function toggleSection(section: string) {
+		openSections[section] = !openSections[section]
+	}
+
+	function shapeIcon(name: string) {
+		const icon = name.toLowerCase().replace(/[^a-z]/g, '')
+		return shapeIcons.has(icon) ? icon : ''
+	}
+
+	async function selectCategory(category: Record<string, string>) {
+		const url = new URL(page.url)
+		url.searchParams.set('categories', category.slug || category.name)
+		url.searchParams.delete('page')
+		filterOpen = false
+		await goto(url, { replaceState: true })
+	}
+
+	async function applySort(event: Event) {
 		selectedSort = (event.currentTarget as HTMLSelectElement).value
-		selectSort(selectedSort)
+		const url = new URL(page.url)
+		url.searchParams.delete('page')
+		url.searchParams.delete('sort')
+		url.searchParams.delete('uiSort')
+		if (localSorts.has(selectedSort)) url.searchParams.set('uiSort', selectedSort)
+		else if (selectedSort !== 'position' && selectedSort !== 'select') url.searchParams.set('sort', selectedSort)
+		await goto(url, { replaceState: true })
 	}
 </script>
 
@@ -72,8 +115,8 @@
 			</button>
 			<span class="rj-toolbar-divider"></span>
 			<label class="rj-sort"><span>Sort by:</span><select value={selectedSort} onchange={applySort} aria-label="Sort products">
-				<option value="popularity:desc">Position</option>
-				{#each sortOptions.slice(1) as option}<option value={option.value}>{option.name}</option>{/each}
+				<option value="position" hidden>Position</option>
+				{#each sortOptions as option}<option value={option[0]}>{option[1]}</option>{/each}
 			</select></label>
 			<span class="rj-toolbar-divider"></span>
 			<button class="rj-toolbar-button rj-refresh" type="button" onclick={() => location.reload()}>
@@ -101,67 +144,67 @@
 		</label>
 
 		<div class="rj-filter-section">
-			<h2>Products Status <span>⌃</span></h2>
-			<div class="rj-filter-options">
-				{#each statuses as item}<label><input type="checkbox" checked={checked('status', item)} onchange={(e) => toggleFilter('status', item, e)} /><span>{item}</span></label>{/each}
-			</div>
+			<h2><button class="rj-section-toggle" type="button" onclick={() => toggleSection('status')} aria-expanded={openSections.status}>Products Status <span class:closed={!openSections.status}>⌃</span></button></h2>
+			{#if openSections.status}<div class="rj-filter-options">
+				{#each statuses as item}<label><input type="checkbox" checked={checked('uiStatus', item)} onchange={(e) => toggleFilter('uiStatus', item, e)} /><span>{item}</span></label>{/each}
+			</div>{/if}
 		</div>
 
 		<div class="rj-filter-section">
-			<h2>Shop by Categories <span>⌃</span></h2>
-			<div class="rj-filter-options">
-				{#each categories as category}<button class="rj-category-filter" type="button" onclick={() => filterState.handleCategoryClick(category as any)}><span class="rj-faux-check"></span><span>{category.name}</span><b>+</b></button>{/each}
+			<h2><button class="rj-section-toggle" type="button" onclick={() => toggleSection('categories')} aria-expanded={openSections.categories}>Shop by Categories <span class:closed={!openSections.categories}>⌃</span></button></h2>
+			{#if openSections.categories}<div class="rj-filter-options">
+				{#each visibleCategories as category}<button class="rj-category-filter" type="button" onclick={() => selectCategory(category)}><span class="rj-faux-check"></span><span>{category.name}</span><b>+</b></button>{/each}
 			</div>
-			<button class="rj-see-more" type="button">See More ↓</button>
+			{#if categories.length > 6}<button class="rj-see-more" type="button" onclick={() => showAllCategories = !showAllCategories}>{showAllCategories ? 'Show Less ↑' : 'See More ↓'}</button>{/if}{/if}
 		</div>
 
 		<div class="rj-filter-section">
-			<h2>Filter by price <span>⌄</span></h2>
-			<div class="rj-price-controls">
+			<h2><button class="rj-section-toggle" type="button" onclick={() => toggleSection('price')} aria-expanded={openSections.price}>Filter by price <span class:closed={!openSections.price}>⌃</span></button></h2>
+			{#if openSections.price}<div class="rj-price-controls">
 				<div class="rj-range-wrap">
 					<input type="range" bind:value={filterState.minPrice} min={filterState.minPossiblePrice || 0} max={filterState.maxPossiblePrice || 10000} onchange={filterState.handleMinPriceChange} aria-label="Minimum price" />
 					<input type="range" bind:value={filterState.maxPrice} min={filterState.minPossiblePrice || 0} max={filterState.maxPossiblePrice || 10000} onchange={filterState.handleMaxPriceChange} aria-label="Maximum price" />
 				</div>
 				<button type="button" onclick={filterState.handleApply}>GO</button>
 			</div>
-			<p class="rj-price-copy">Up to $2000<br />Over $2000</p>
+			<p class="rj-price-copy">Up to $2000<br />Over $2000</p>{/if}
 		</div>
 
-		<div class="rj-filter-section">
-			<h2>Filter by Material <span>⌃</span></h2>
-			<div class="rj-filter-options">
-				{#each materials as item}<label><input type="checkbox" checked={checked('attributes.Material', item)} onchange={(e) => toggleFilter('attributes.Material', item, e)} /><span>{item}</span></label>{/each}
-			</div>
-		</div>
+		{#if materials.length}<div class="rj-filter-section">
+			<h2><button class="rj-section-toggle" type="button" onclick={() => toggleSection('material')} aria-expanded={openSections.material}>Filter by Material <span class:closed={!openSections.material}>⌃</span></button></h2>
+			{#if openSections.material}<div class="rj-filter-options">
+				{#each materials as item}<label><input type="checkbox" checked={checked('uiMaterial', item.name)} onchange={(e) => toggleFilter('uiMaterial', item.name, e)} /><span>{item.name}</span></label>{/each}
+			</div>{/if}
+		</div>{/if}
 
-		<div class="rj-filter-section">
-			<h2>Stone Shape <span>⌃</span></h2>
-			<div class="rj-shapes">
-				{#each shapes as shape}<label><input class="sr-only" type="checkbox" checked={checked('attributes.Shape', shape[1])} onchange={(e) => toggleFilter('attributes.Shape', shape[1], e)} /><img src="/ryans-jewels/shapes/{shape[0]}.svg" alt="" /><span>{shape[1]}</span></label>{/each}
-			</div>
-		</div>
+		{#if shapes.length}<div class="rj-filter-section">
+			<h2><button class="rj-section-toggle" type="button" onclick={() => toggleSection('shape')} aria-expanded={openSections.shape}>Stone Shape <span class:closed={!openSections.shape}>⌃</span></button></h2>
+			{#if openSections.shape}<div class="rj-shapes">
+				{#each shapes as shape}<label><input class="sr-only" type="checkbox" checked={checked('uiShape', shape.name)} onchange={(e) => toggleFilter('uiShape', shape.name, e)} />{#if shapeIcon(shape.name)}<img src="/ryans-jewels/shapes/{shapeIcon(shape.name)}.svg" alt="" />{/if}<span>{shape.name}</span></label>{/each}
+			</div>{/if}
+		</div>{/if}
 
-		<div class="rj-filter-section">
-			<h2>Stone Quality <span>⌃</span></h2>
-			<div class="rj-filter-options compact">
-				{#each qualities as item}<label><input type="checkbox" checked={checked('attributes.Quality', item)} onchange={(e) => toggleFilter('attributes.Quality', item, e)} /><span>{item}</span></label>{/each}
+		{#if qualities.length}<div class="rj-filter-section">
+			<h2><button class="rj-section-toggle" type="button" onclick={() => toggleSection('quality')} aria-expanded={openSections.quality}>Stone Quality <span class:closed={!openSections.quality}>⌃</span></button></h2>
+			{#if openSections.quality}<div class="rj-filter-options compact">
+				{#each visibleQualities as item}<label><input type="checkbox" checked={checked('uiQuality', item.name)} onchange={(e) => toggleFilter('uiQuality', item.name, e)} /><span>{item.name}</span></label>{/each}
 			</div>
-			<button class="rj-see-more" type="button">See More ↓</button>
-		</div>
+			{#if qualities.length > 5}<button class="rj-see-more" type="button" onclick={() => showAllQualities = !showAllQualities}>{showAllQualities ? 'Show Less ↑' : 'See More ↓'}</button>{/if}{/if}
+		</div>{/if}
 
-		<div class="rj-filter-section">
-			<h2>Total Craft Wight <span>⌃</span></h2>
-			<div class="rj-filter-options compact">
-				{#each weights as item, i}<label><input type="checkbox" checked={checked('attributes.Carat', item)} onchange={(e) => toggleFilter('attributes.Carat', item, e)} /><span>{item}</span><small>{15 - i}</small></label>{/each}
-			</div>
-		</div>
+		{#if weights.length}<div class="rj-filter-section">
+			<h2><button class="rj-section-toggle" type="button" onclick={() => toggleSection('weight')} aria-expanded={openSections.weight}>Total Craft Wight <span class:closed={!openSections.weight}>⌃</span></button></h2>
+			{#if openSections.weight}<div class="rj-filter-options compact">
+				{#each weights as item}<label><input type="checkbox" checked={checked('uiWeight', item.name)} onchange={(e) => toggleFilter('uiWeight', item.name, e)} /><span>{item.name}</span><small>{item.count}</small></label>{/each}
+			</div>{/if}
+		</div>{/if}
 
 		<div class="rj-featured">
-			<h2>Featured Product <span>⌃</span></h2>
-			{#each featured as product}
+			<h2><button class="rj-section-toggle" type="button" onclick={() => toggleSection('featured')} aria-expanded={openSections.featured}>Featured Product <span class:closed={!openSections.featured}>⌃</span></button></h2>
+			{#if openSections.featured}{#each featured as product}
 				<a href="/products/{product.slug}"><span class="rj-featured-image">{#if product.thumbnail || product.image_url}<img src={product.thumbnail || product.image_url} alt="" />{/if}</span><span><b>{product.title || product.name}</b><i>★★★★</i><small>{formatPrice(product.price, data.store?.currency?.code)}</small></span></a>
 			{/each}
-			<button class="rj-see-more" type="button">See More ↓</button>
+			{#if featuredProducts.length > 3}<button class="rj-see-more" type="button" onclick={() => showAllFeatured = !showAllFeatured}>{showAllFeatured ? 'Show Less ↑' : 'See More ↓'}</button>{/if}{/if}
 		</div>
 	</aside>
 
@@ -213,6 +256,9 @@
 	.rj-filter-section, .rj-featured { display: flex; flex-direction: column; gap: 20px; }
 	.rj-filter-section h2, .rj-featured h2 { display: flex; align-items: center; justify-content: space-between; margin: 0; font-family: 'Sarala', sans-serif; font-size: 20px; font-weight: 400; line-height: 26px; letter-spacing: 0; color: #202020; }
 	.rj-filter-section h2 span, .rj-featured h2 span { font-size: 15px; }
+	.rj-section-toggle { display: flex; width: 100%; align-items: center; justify-content: space-between; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+	.rj-section-toggle span { transition: transform .2s ease; }
+	.rj-section-toggle span.closed { transform: rotate(180deg); }
 	.rj-filter-options { display: flex; flex-direction: column; gap: 16px; padding-left: 11px; }
 	.rj-filter-options label, .rj-category-filter { display: flex; align-items: center; gap: 10px; min-height: 26px; font-size: 16px; line-height: 26px; color: #505050; cursor: pointer; }
 	.rj-filter-options input, .rj-faux-check { width: 18px; height: 18px; margin: 0; border: 1px solid #505050; border-radius: 2px; accent-color: #cca646; flex: 0 0 18px; }
