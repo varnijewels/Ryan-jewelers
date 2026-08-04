@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ChevronRight, ContactRound, Gift, Menu, NotepadText, Truck } from '@lucide/svelte'
+	import { ChevronRight, Menu } from '@lucide/svelte'
 	import { page } from '$app/state'
 	import CartSidebar from '$lib/components/nav/cart-sidebar.svelte'
 	import ProfileDropdown from '$lib/components/nav/profile-dropdown.svelte'
@@ -391,17 +391,17 @@
 							<AuthButton class="rj-guest-signin" type="login">Sign in / Create Account</AuthButton>
 							<div class="rj-guest-rule"></div>
 							<DropdownMenu.Item class="rj-guest-item">
-								<AuthButton class="rj-guest-row" type="login"><NotepadText /><span>Order History</span><ChevronRight /></AuthButton>
+								<AuthButton class="rj-guest-row" type="login"><img class="rj-guest-icon" src="/ryans-jewels/icons/order-history.svg" alt="" /><span>Order History</span><ChevronRight /></AuthButton>
 							</DropdownMenu.Item>
 							<DropdownMenu.Item class="rj-guest-item">
-								<a class="rj-guest-row" href="/order-tracking"><Truck /><span>Track Order</span><ChevronRight /></a>
+								<a class="rj-guest-row" href="/order-tracking"><img class="rj-guest-icon" src="/ryans-jewels/icons/track-order.svg" alt="" /><span>Track Order</span><ChevronRight /></a>
 							</DropdownMenu.Item>
 							<div class="rj-guest-rule"></div>
 							<DropdownMenu.Item class="rj-guest-item">
-								<AuthButton class="rj-guest-row" type="login"><Gift /><span>Rewards</span><ChevronRight /></AuthButton>
+								<AuthButton class="rj-guest-row" type="login"><img class="rj-guest-icon" src="/ryans-jewels/icons/rewards.svg" alt="" /><span>Rewards</span><ChevronRight /></AuthButton>
 							</DropdownMenu.Item>
 							<DropdownMenu.Item class="rj-guest-item">
-								<AuthButton class="rj-guest-row" type="login"><ContactRound /><span>My Profile</span><ChevronRight /></AuthButton>
+								<AuthButton class="rj-guest-row" type="login"><img class="rj-guest-icon" src="/ryans-jewels/icons/my-profile.svg" alt="" /><span>My Profile</span><ChevronRight /></AuthButton>
 							</DropdownMenu.Item>
 						</DropdownMenu.Content>
 					</DropdownMenu.Root>
@@ -1117,10 +1117,9 @@
 		cursor: pointer;
 	}
 
-	:global(.rj-guest-row svg) {
-		width: 21px;
-		height: 21px;
-		stroke-width: 1.65;
+	:global(.rj-guest-icon) {
+		width: 16px;
+		height: 16px;
 	}
 
 	:global(.rj-guest-row svg:last-child) {
