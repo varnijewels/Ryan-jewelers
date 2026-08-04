@@ -2,10 +2,10 @@
 
 ## Latest development batch
 
-- Previous base Git commit: `95c7faf` on `main`
+- Previous base Git commit: `91a1a6a` on `main`
 - Push target: `https://github.com/varnijewels/Ryan-jewelers.git`
 - Product-list filter animation:
-  - Filter icon rotates and its slider knobs shift smoothly between Show/Hide states.
+  - Filter icon stays upright; its two slider knobs move in opposite directions with lively easing between Show/Hide states.
   - Desktop sidebar slides/fades while the product grid expands or contracts smoothly.
   - Responsive filter drawer uses the same softer easing without changing its UI.
   - Reduced-motion preference disables the transitions.

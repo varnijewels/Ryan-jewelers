@@ -116,7 +116,11 @@
 				type="button"
 				onclick={() => { filterOpen = true; filterHidden = !filterHidden }}
 			>
-				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10" /><path class="rj-filter-knobs" d="M14 4v6M6 14v6" /></svg>
+				<svg viewBox="0 0 24 24" aria-hidden="true">
+					<path class="rj-filter-lines" d="M4 7h16M4 17h16" />
+					<path class="rj-filter-knob rj-filter-knob--top" d="M15 4v6" />
+					<path class="rj-filter-knob rj-filter-knob--bottom" d="M7 14v6" />
+				</svg>
 				<span class="rj-hide-label">{filterHidden ? 'Show Filter' : 'Hide Filter'}</span><span class="rj-mobile-label">Filter</span>
 			</button>
 			<span class="rj-toolbar-divider"></span>
@@ -240,10 +244,11 @@
 	.rj-toolbar-left { gap: 15px; }
 	.rj-toolbar-button { gap: 8px; padding: 0; border: 0; background: transparent; font: inherit; font-size: 18px; line-height: 26px; color: #505050; cursor: pointer; }
 	.rj-toolbar-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.35; }
-	.rj-filter-toggle svg { transform-origin: center; transition: transform .45s cubic-bezier(.22, 1, .36, 1); }
-	.rj-filter-toggle .rj-filter-knobs { transition: transform .45s cubic-bezier(.22, 1, .36, 1); }
-	.rj-filter-toggle.filter-hidden svg { transform: rotate(180deg); }
-	.rj-filter-toggle.filter-hidden .rj-filter-knobs { transform: translateX(4px); }
+	.rj-filter-toggle .rj-filter-lines { transition: opacity .25s ease; }
+	.rj-filter-toggle .rj-filter-knob { transition: transform .5s cubic-bezier(.34, 1.56, .64, 1); }
+	.rj-filter-toggle.filter-hidden .rj-filter-lines { opacity: .72; }
+	.rj-filter-toggle.filter-hidden .rj-filter-knob--top { transform: translateX(-8px); }
+	.rj-filter-toggle.filter-hidden .rj-filter-knob--bottom { transform: translateX(8px); }
 	.rj-toolbar-divider { width: 1px; height: 22px; background: #d9d9d9; }
 	.rj-sort { gap: 15px; font-size: 18px; line-height: 26px; color: #202020; }
 	.rj-sort select { width: 149px; border: 0; outline: 0; background: transparent; font: inherit; color: #606060; cursor: pointer; }
@@ -308,10 +313,11 @@
 		.rj-sidebar, .rj-products-layout.filter-hidden .rj-sidebar { position: fixed; z-index: 1002; top: 0; bottom: 0; left: 0; width: min(360px, 90vw); padding: 28px 26px 50px; overflow-y: auto; opacity: 1; visibility: visible; pointer-events: auto; transform: translateX(-101%); transition: transform .4s cubic-bezier(.22, 1, .36, 1); box-shadow: 8px 0 28px rgba(0,0,0,.12); }
 		.rj-sidebar-content { width: 100%; }
 		.rj-sidebar.open { transform: translateX(0); }
-		.rj-filter-toggle.filter-hidden svg { transform: none; }
-		.rj-filter-toggle.filter-hidden .rj-filter-knobs { transform: none; }
-		.rj-filter-toggle.filter-open svg { transform: rotate(180deg); }
-		.rj-filter-toggle.filter-open .rj-filter-knobs { transform: translateX(4px); }
+		.rj-filter-toggle.filter-hidden .rj-filter-lines { opacity: 1; }
+		.rj-filter-toggle.filter-hidden .rj-filter-knob { transform: none; }
+		.rj-filter-toggle.filter-open .rj-filter-lines { opacity: .72; }
+		.rj-filter-toggle.filter-open .rj-filter-knob--top { transform: translateX(-8px); }
+		.rj-filter-toggle.filter-open .rj-filter-knob--bottom { transform: translateX(8px); }
 		.rj-filter-close { position: absolute; top: 4px; right: 12px; display: block; border: 0; background: transparent; font-size: 28px; }
 		.rj-filter-backdrop { position: fixed; z-index: 1001; inset: 0; display: block; border: 0; background: rgba(0,0,0,.28); }
 		.rj-hide-label { display: none; } .rj-mobile-label { display: inline; }
@@ -338,6 +344,6 @@
 		.rj-category-copy p { max-width: 190px; }
 	}
 	@media (prefers-reduced-motion: reduce) {
-		.rj-products-layout, .rj-sidebar, .rj-filter-toggle svg, .rj-filter-toggle .rj-filter-knobs { transition: none; }
+		.rj-products-layout, .rj-sidebar, .rj-filter-toggle .rj-filter-lines, .rj-filter-toggle .rj-filter-knob { transition: none; }
 	}
 </style>
