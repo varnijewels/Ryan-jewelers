@@ -8,9 +8,8 @@
 	import { MsSearchRenderer } from '$lib/core/composables/index.js'
 	import { priceRoundUp } from '@misiki/kitcommerce-core/utils'
 	import { ryansJewelsNavContent as nav } from './nav-content.js'
-	import RjLabDiamondMegaMenu from './RjLabDiamondMegaMenu.svelte'
-	import RjAllJewelleryMegaMenu from './RjAllJewelleryMegaMenu.svelte'
-	import RjRingsMegaMenu from './RjRingsMegaMenu.svelte'
+	import RjAdminMegaMenu from './RjAdminMegaMenu.svelte'
+	import { menuChildren, menuHref, menuLabel, resolveAdminMenu } from './admin-menu.js'
 
 	let {
 		navModule,
@@ -29,11 +28,14 @@
 	} = $props()
 
 	let search = $state('')
-	let openMega = $state<'lab' | 'all' | 'rings' | 'earrings' | null>(null)
+	let openMega = $state<string | null>(null)
 
 	const isLoggedIn = $derived(!!userState?.user?.role)
 	const displayName = $derived(userState?.user?.firstName || userState?.user?.name || 'My Account')
 	const showCart = $derived(!pathname.startsWith('/checkout'))
+	const resolvedMenu = $derived(resolveAdminMenu(navModule.megaMenu, navModule.navMenu, nav.home, nav.menu))
+	const homeLabel = $derived(menuLabel(resolvedMenu.home))
+	const homeHref = $derived(menuHref(resolvedMenu.home))
 </script>
 
 <!-- Utility bar — Figma 1:5409 -->
@@ -412,102 +414,36 @@
 		<!-- Row 2 -->
 		<div class="rj-row-menu">
 			<nav class="rj-menu" aria-label="Main navigation">
-				<a class="rj-menu-home" href={nav.home.href} aria-current={pathname === nav.home.href ? 'page' : undefined} onmouseenter={() => (openMega = null)}>
-					{nav.home.label}
+				<a class="rj-menu-home" href={homeHref} aria-current={pathname === homeHref ? 'page' : undefined} onmouseenter={() => (openMega = null)}>
+					{homeLabel}
 				</a>
 				<span class="rj-menu-divider"></span>
 				<div class="rj-menu-list">
-					{#each nav.menu as item}
-						{#if item.label === 'Lab Grown Diamond'}
-							<div class="rj-menu-entry" class:is-open={openMega === 'lab'} onmouseenter={() => (openMega = 'lab')}>
+					{#each resolvedMenu.items as item, index}
+						{@const label = menuLabel(item)}
+						{@const href = menuHref(item)}
+						{@const menuId = `rj-admin-menu-${index}`}
+						{#if menuChildren(item).length}
+							<div class="rj-menu-entry" class:is-open={openMega === menuId} onmouseenter={() => (openMega = menuId)}>
 								<a
 									class="rj-menu-item"
-									href={item.href}
-									aria-current={pathname === item.href ? 'page' : undefined}
+									{href}
+									aria-current={pathname === href ? 'page' : undefined}
 									aria-haspopup="true"
-									aria-expanded={openMega === 'lab'}
-									aria-controls="rj-lab-grown-menu"
-									onfocus={() => (openMega = 'lab')}
+									aria-expanded={openMega === menuId}
+									aria-controls={menuId}
+									onfocus={() => (openMega = menuId)}
 								>
-									<span>{item.label}</span>
+									<span>{label}</span>
 									<svg class="rj-menu-caret" width="11.6829" height="6.06268" viewBox="0 0 11.6829 6.06268" fill="none" aria-hidden="true">
 										<path d="M10.9329 0.75L6.74143 4.94143C6.24643 5.43643 5.43643 5.43643 4.94143 4.94143L0.75 0.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
 									</svg>
 								</a>
-								<RjLabDiamondMegaMenu />
-							</div>
-						{:else if item.label === 'All Jewellery'}
-							<div class="rj-menu-entry" class:is-open={openMega === 'all'} onmouseenter={() => (openMega = 'all')}>
-								<a
-									class="rj-menu-item"
-									href={item.href}
-									aria-current={pathname === item.href ? 'page' : undefined}
-									aria-haspopup="true"
-									aria-expanded={openMega === 'all'}
-									aria-controls="rj-all-jewellery-menu"
-									onfocus={() => (openMega = 'all')}
-								>
-									<span>{item.label}</span>
-									<svg class="rj-menu-caret" width="11.6829" height="6.06268" viewBox="0 0 11.6829 6.06268" fill="none" aria-hidden="true">
-										<path d="M10.9329 0.75L6.74143 4.94143C6.24643 5.43643 5.43643 5.43643 4.94143 4.94143L0.75 0.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-									</svg>
-								</a>
-								<RjAllJewelleryMegaMenu />
-							</div>
-						{:else if item.label === 'Rings'}
-							<div class="rj-menu-entry" class:is-open={openMega === 'rings'} onmouseenter={() => (openMega = 'rings')}>
-								<a
-									class="rj-menu-item"
-									href={item.href}
-									aria-current={pathname === item.href ? 'page' : undefined}
-									aria-haspopup="true"
-									aria-expanded={openMega === 'rings'}
-									aria-controls="rj-rings-menu"
-									onfocus={() => (openMega = 'rings')}
-								>
-									<span>{item.label}</span>
-									<svg class="rj-menu-caret" width="11.6829" height="6.06268" viewBox="0 0 11.6829 6.06268" fill="none" aria-hidden="true">
-										<path d="M10.9329 0.75L6.74143 4.94143C6.24643 5.43643 5.43643 5.43643 4.94143 4.94143L0.75 0.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-									</svg>
-								</a>
-								<RjRingsMegaMenu />
-							</div>
-						{:else if item.label === 'Earrings'}
-							<div class="rj-menu-entry" class:is-open={openMega === 'earrings'} onmouseenter={() => (openMega = 'earrings')}>
-								<a
-									class="rj-menu-item"
-									href={item.href}
-									aria-current={pathname === item.href ? 'page' : undefined}
-									aria-haspopup="true"
-									aria-expanded={openMega === 'earrings'}
-									aria-controls="rj-earrings-menu"
-									onfocus={() => (openMega = 'earrings')}
-								>
-									<span>{item.label}</span>
-									<svg class="rj-menu-caret" width="11.6829" height="6.06268" viewBox="0 0 11.6829 6.06268" fill="none" aria-hidden="true">
-										<path d="M10.9329 0.75L6.74143 4.94143C6.24643 5.43643 5.43643 5.43643 4.94143 4.94143L0.75 0.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-									</svg>
-								</a>
-								<RjRingsMegaMenu
-									variant="earrings"
-									menuId="rj-earrings-menu"
-									ariaLabel="Earrings menu"
-									popularTitle="Popular Earring Types"
-									types={['All Earring', 'Drops', 'Solitaire Studs', 'J Hoops', 'Front Back', 'Danglers', 'Couple Rings']}
-									baseHref="/categories/earrings"
-									viewAllLabel="View All Earring"
-									cardTitle="Silver Diamond Earrings"
-									collectionImages={['/ryans-jewels/mega-menu/earring-collection-1.png', '/ryans-jewels/mega-menu/earring-collection-2.png']}
-								/>
+								<RjAdminMegaMenu category={item} {menuId} onNavigate={() => (openMega = null)} />
 							</div>
 						{:else}
-							<a class="rj-menu-item" href={item.href} aria-current={pathname === item.href ? 'page' : undefined} onmouseenter={() => (openMega = null)}>
-								<span>{item.label}</span>
-								{#if item.dropdown}
-									<svg class="rj-menu-caret" width="11.6829" height="6.06268" viewBox="0 0 11.6829 6.06268" fill="none" aria-hidden="true">
-										<path d="M10.9329 0.75L6.74143 4.94143C6.24643 5.43643 5.43643 5.43643 4.94143 4.94143L0.75 0.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-									</svg>
-								{/if}
+							<a class="rj-menu-item" {href} aria-current={pathname === href ? 'page' : undefined} onmouseenter={() => (openMega = null)}>
+								<span>{label}</span>
 							</a>
 						{/if}
 					{/each}
@@ -1167,7 +1103,8 @@
 
 	.rj-menu-entry.is-open :global(.rj-lab-mega),
 	.rj-menu-entry.is-open :global(.rj-all-mega),
-	.rj-menu-entry.is-open :global(.rj-rings-mega) {
+	.rj-menu-entry.is-open :global(.rj-rings-mega),
+	.rj-menu-entry.is-open :global(.rj-admin-mega) {
 		visibility: visible;
 		opacity: 1;
 		pointer-events: auto;
