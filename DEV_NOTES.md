@@ -2,6 +2,9 @@
 
 ## Product details latest Figma refinements (not pushed)
 
+- Implemented the Reviews tab from Figma node `1:22022`: exact 1320×534 desktop frame, live API review cards/average/count, responsive layout, working View More, style-number copy, and the existing API-backed Write Review modal.
+- Added a loading state to review submission and kept unsupported mock-only likes, replies and moderation actions out of the customer storefront.
+- Corrected the Size Guide row to Figma node `1:17112`: 45px height, 10px outer side inset, and 10px/13px internal padding; mobile remains full-width.
 - Matched Figma node `216:41922`: added the 30px product-section offset, the three-tone Metal Color row, and removed the previous Expedite Delivery Date card.
 - Metal swatches use admin-store variation values when available and update the selected product variant; products without selectable metal variants keep the same Figma swatch presentation.
 - Cart, Buy Now, Share, ZIP lookup and all existing product-detail functionality remain unchanged.

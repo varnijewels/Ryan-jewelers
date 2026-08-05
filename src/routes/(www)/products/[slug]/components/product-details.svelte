@@ -50,6 +50,7 @@
 
 {#if activeTheme === 'ryans-jewels'}
 	<RyansJewelsProductDetails />
+	<ProductReviewsSection modalOnly />
 {:else}
 <!-- <ProductRenderer bind:data>
 {#snippet content(productState)} -->

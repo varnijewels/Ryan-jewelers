@@ -125,6 +125,12 @@
 		color: var(--rj-ink-2, #606060);
 	}
 
+	@media (min-width: 1600px) {
+		.rj-bestsellers :global(.rj-tile--md) {
+			width: calc((100% + 61px - 100px) / 5);
+		}
+	}
+
 	@media (max-width: 1279px) {
 		.rj-bestsellers-inner {
 			padding-left: 40px;

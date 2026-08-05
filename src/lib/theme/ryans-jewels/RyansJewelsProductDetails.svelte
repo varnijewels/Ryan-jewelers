@@ -1,18 +1,34 @@
 
 <script lang="ts">
-	import { goto } from '$app/navigation'
+	import { goto, preloadData } from '$app/navigation'
 	import { page } from '$app/state'
-	import { onMount } from 'svelte'
+	import { onMount, tick } from 'svelte'
 	import { toast } from 'svelte-sonner'
-	import { formatPrice } from '$lib/core/utils/index.js'
+	import { dateOnly, formatPrice, time, timestampToAgo } from '$lib/core/utils/index.js'
 	import { productService } from '$lib/core/services/index.js'
 	import { useProductState } from '$lib/core/composables/index.js'
 	import LoginModal from '$lib/components/auth/login-modal.svelte'
+	import RjCarousel from './RjCarousel.svelte'
+	import RjCustomizeModal from './RjCustomizeModal.svelte'
 	import RjInstagram from './RjInstagram.svelte'
 	import RjProductCard from './RjProductCard.svelte'
-	import { customizationOptions, discountPercent, metalColorTone, productAttributeValue, productDetailParagraphs, productImages, toggleStoredId, variantForOption } from './product-details.logic.js'
+	import RjWideBanner from './RjWideBanner.svelte'
+	import { customizationOptions, diamondImageForShape, discountPercent, groupedProductForAttribute, groupedProductForSelections, metalColorImage, metalColorTone, productAttributeValue, productDetailParagraphs, productImages, toggleStoredId, variantForOption } from './product-details.logic.js'
 
 	const COMPARE_STORAGE_KEY = 'ryans-jewels-compare-products'
+	const customerTestimonials = [
+		{ name: 'Johan Michel', avatar: '/ryans-jewels/product/testimonials/avatar-1.jpg', message: "A diamond toggle bracelet was my very first purchase. I was impressed by the designs and how smooth the purchase experience was.", date: 'August 29, 2025' },
+		{ name: 'Emilio Lindgren', avatar: '/ryans-jewels/product/testimonials/avatar-2.jpg', message: 'Every piece is designed with durability and current trends in mind. The collection feels stylish and timeless.', date: 'August 29, 2025' },
+		{ name: 'Melinda Gusikowski', avatar: '/ryans-jewels/product/testimonials/avatar-3.jpg', message: 'The product met my expectations and looked exactly like the pictures. The finish and detailing are beautiful.', date: 'August 29, 2025' },
+		{ name: 'Ernesto Feeney', avatar: '/ryans-jewels/product/testimonials/avatar-4.jpg', message: 'I had an amazing experience with this product. The quality exceeded my expectations and the service was excellent.', date: 'August 29, 2025' },
+		{ name: 'Clara Lang', avatar: '/ryans-jewels/product/testimonials/avatar-5.jpg', message: 'The craftsmanship is lovely and the buying process was simple from start to finish. I would happily recommend it.', date: 'August 29, 2025' },
+		{ name: 'Joy Zboncak', avatar: '/ryans-jewels/product/testimonials/avatar-6.jpg', message: 'The jewellery has a refined, front-engine design and a finish that looks even better in person.', date: 'August 29, 2025' },
+		{ name: 'Naomi Grady', avatar: '/ryans-jewels/product/testimonials/avatar-7.jpg', message: 'The service was quick and helpful. The piece arrived safely packed and matched the website photos perfectly.', date: 'August 29, 2025' },
+		{ name: 'Denise Lind', avatar: '/ryans-jewels/product/testimonials/avatar-8.jpg', message: 'A beautifully finished piece with thoughtful details. It feels comfortable, premium and made to last.', date: 'August 29, 2025' },
+		{ name: 'Ernest Von', avatar: '/ryans-jewels/product/testimonials/avatar-9.jpg', message: 'The range has an exciting mix of classic and modern designs. The quality and presentation are both excellent.', date: 'August 29, 2025' },
+		{ name: 'Sophia Garcia', avatar: '/ryans-jewels/product/testimonials/avatar-10.jpg', message: 'My order arrived on time and looked beautiful. The customer support team made the entire experience effortless.', date: 'August 29, 2025' }
+	]
+	const testimonialRows = [customerTestimonials.slice(0, 5), customerTestimonials.slice(5)]
 
 	const productState = useProductState()
 	const data = $derived(page.data)
@@ -28,7 +44,12 @@
 	let showPriceBreakup = $state(false)
 	let postalCode = $state('')
 	let locating = $state(false)
+	let changingMetalColor = $state('')
+	let shareOpen = $state(false)
+	let customizationOpen = $state(false)
+	let customizationLoading = $state(false)
 	let activeTab = $state<'details' | 'reviews'>('details')
+	let visibleReviewCount = $state(2)
 
 	$effect(() => {
 		if (!selectedVariant || !variants.some((variant: any) => variant.id === selectedVariant.id)) {
@@ -39,7 +60,7 @@
 
 	const images = $derived(productImages(product, selectedVariant))
 	$effect(() => {
-		if (!images.includes(activeImage)) activeImage = images[0] || ''
+		if (!changingMetalColor && !images.includes(activeImage)) activeImage = images[0] || ''
 		productState.selectedImage = activeImage
 	})
 
@@ -47,9 +68,10 @@
 	const mrp = $derived(Number(selectedVariant?.mrp ?? product?.mrp ?? price))
 	const discount = $derived(discountPercent(price, mrp))
 	const category = $derived(product?.category?.name || [...(product?.categoryHierarchy || [])].reverse().find((item: any) => item.name !== product.title)?.name || '')
-	const ratings = $derived(product?.ratings || [])
-	const rating = $derived(ratings.length ? Math.round((ratings.reduce((sum: number, item: any) => sum + Number(item.rating || 0), 0) / ratings.length) * 10) / 10 : 5.5)
+	const ratings = $derived(Array.isArray(product?.ratings) ? product.ratings : [])
+	const rating = $derived(ratings.length ? Math.round((ratings.reduce((sum: number, item: any) => sum + Number(item.rating || 0), 0) / ratings.length) * 10) / 10 : 0)
 	const inStock = $derived(!product?.manageInventory || Number(selectedVariant?.stock ?? product?.stock ?? 0) > 0)
+	const shareUrl = $derived(page.url?.href || '')
 	const attributes = $derived(Array.isArray(product?.attributes) ? product.attributes : [])
 	const detailSku = $derived(selectedVariant?.sku || product?.sku || product?.id || '')
 	const detailParagraphs = $derived(productDetailParagraphs(product?.description, product?.subtitle))
@@ -58,8 +80,12 @@
 	const caratWeight = $derived(productAttributeValue(attributes, /(carat|diamond).*weight|weight.*(carat|diamond)/i))
 	const stoneQuality = $derived(productAttributeValue(attributes, /(stone|diamond).*quality|quality.*(stone|diamond)/i))
 	const stoneShape = $derived(productAttributeValue(attributes, /(center\s*)?(stone|diamond).*shape|shape.*(stone|diamond)/i))
+	const diamondImage = $derived(diamondImageForShape(stoneShape))
 	const stoneSetting = $derived(productAttributeValue(attributes, /(center\s*)?(stone|diamond).*setting|setting.*(stone|diamond)/i))
+	const stoneType = $derived(productAttributeValue(attributes, /(stone|diamond)\s*type|type.*(stone|diamond)/i) || (/lab[\s-]*grown/i.test(`${product?.title || ''} ${product?.description || ''}`) ? 'Lab Grown Diamond' : 'Natural Diamond'))
 	const ringSize = $derived(productAttributeValue(attributes, /ring\s*size/i))
+	const ringHeight = $derived(selectedVariant?.height || product?.height || productAttributeValue(attributes, /ring\s*height/i))
+	const dimensionUnit = $derived(selectedVariant?.dimensionUnit || product?.dimensionUnit || 'mm')
 	const detailImage = $derived(images[1] || activeImage)
 	const goldInfo = $derived([metalType, metalColor, product?.weight ? `${product.weight} ${product.weightUnit || 'g'}` : ''].filter(Boolean).join(' · ') || 'Metal details unavailable')
 	const dimensionInfo = $derived([
@@ -71,11 +97,21 @@
 	const diamondInfo = $derived([stoneQuality, caratWeight, stoneShape].filter(Boolean).join(' · ') || 'Diamond details unavailable')
 	const diamondMeta = $derived([stoneSetting ? `${stoneSetting} setting` : '', ringSize ? `Size ${ringSize}` : ''].filter(Boolean).join(' · '))
 	const optionCards = $derived(customizationOptions(productState.productOptions || [], attributes))
-	const metalColorOption = $derived((productState.productOptions || []).find((option: any) => /\bmetal\s*color\b/i.test(option.title || option.type || '')) || optionCards.find((option: any) => /\bmetal\b/i.test(option.title || option.type || '')))
+	const metalColorOption = $derived((productState.productOptions || []).find((option: any) => /\bmetal\s*color\b/i.test(option.title || option.type || '')))
+	const metalColorAggregationKey = $derived(Object.keys(product?.ag || {}).find((key) => /\bmetal\s*color\b/i.test(key)) || '')
+	const caratWeightAggregationKey = $derived(Object.keys(product?.ag || {}).find((key) => /(carat|diamond).*weight|weight.*(carat|diamond)/i.test(key)) || '')
+	const ringSizeAggregationKey = $derived(Object.keys(product?.ag || {}).find((key) => /ring\s*size/i.test(key)) || '')
+	const stoneShapeAggregationKey = $derived(Object.keys(product?.ag || {}).find((key) => /(center\s*)?(stone|diamond).*shape|shape.*(stone|diamond)/i.test(key)) || '')
+	const groupedProducts = $derived(Array.isArray(product?.pg) ? product.pg : [])
+	const currentGroupedProduct = $derived(groupedProducts.find((item: any) => item.id === product.id || item.slug === product.slug))
 	const metalColorValues = $derived.by(() => {
-		const values = (metalColorOption?.values || []).map((item: any) => item.value).filter(Boolean)
-		return ['yellow', 'rose', 'white'].map((tone) => values.find((value: string) => metalColorTone(value) === tone) || `${tone[0].toUpperCase()}${tone.slice(1)} Gold`)
+		const values = [...new Set([...(metalColorOption?.values || []).map((item: any) => item.value), ...((metalColorAggregationKey && product?.ag?.[metalColorAggregationKey]) || []), metalColor].filter(Boolean))] as string[]
+		return [...['yellow', 'rose', 'white'].flatMap((tone) => values.filter((value) => metalColorTone(value) === tone)), ...values.filter((value) => !['yellow', 'rose', 'white'].includes(metalColorTone(value)))]
 	})
+	const caratWeightValues = $derived([...new Set([...((caratWeightAggregationKey && product?.ag?.[caratWeightAggregationKey]) || []), caratWeight].filter(Boolean))] as string[])
+	const ringSizeValues = $derived([...new Set([...((ringSizeAggregationKey && product?.ag?.[ringSizeAggregationKey]) || []), ringSize].filter(Boolean))] as string[])
+	const stoneShapeValues = $derived([...new Set([...((stoneShapeAggregationKey && product?.ag?.[stoneShapeAggregationKey]) || []), stoneShape].filter(Boolean))] as string[])
+	const customizationInitial = $derived({ metal: metalColor, carat: caratWeight, size: ringSize, cut: stoneShape, stone: stoneType })
 	const wishlistKey = $derived(`${product?.id}-${selectedVariant?.id || variants[0]?.id || ''}`)
 	const wishlisted = $derived(Boolean(productState.wishlistState?.isWishlisted?.[wishlistKey]))
 
@@ -86,12 +122,48 @@
 
 	function selectOption(option: any, event: Event) {
 		if (option.readonly) return
-		selectedVariant = variantForOption(variants, selectedVariant, option.id, (event.currentTarget as HTMLSelectElement).value)
+		const nextVariant = variantForOption(variants, selectedVariant, option.id, (event.currentTarget as HTMLSelectElement).value)
+		selectedVariant = nextVariant
+		activeImage = productImages(product, nextVariant)[0] || ''
 	}
 
-	function selectMetalColor(value: string) {
+	function groupedMetalColorProduct(value: string) {
+		return metalColorAggregationKey ? groupedProductForAttribute(groupedProducts, currentGroupedProduct, metalColorAggregationKey, value) : null
+	}
+
+	function metalColorAvailable(value: string) {
+		return Boolean(groupedMetalColorProduct(value) || (metalColorOption && !metalColorOption.readonly && (metalColorOption.values || []).some((item: any) => item.value === value)))
+	}
+
+	function preloadMetalColor(value: string) {
+		const groupedProduct = groupedMetalColorProduct(value)
+		if (!groupedProduct?.slug || groupedProduct.slug === product.slug) return
+		void preloadData(`/products/${groupedProduct.slug}`).catch(() => {})
+		const preview = metalColorImage(images[0], value)
+		if (preview) new Image().src = preview
+	}
+
+	async function selectMetalColor(value: string) {
+		if (changingMetalColor || metalColorTone(metalColor) === metalColorTone(value)) return
+		const groupedProduct = groupedMetalColorProduct(value)
+		if (groupedProduct?.slug) {
+			changingMetalColor = value
+			activeImage = metalColorImage(images[0] || activeImage, value)
+			await tick()
+			try {
+				await goto(`/products/${groupedProduct.slug}`, { noScroll: true, keepFocus: true })
+			} catch (error: any) {
+				activeImage = images[0] || ''
+				toast.error(error?.message || 'Unable to change metal color')
+			} finally {
+				changingMetalColor = ''
+			}
+			return
+		}
 		if (!metalColorOption || metalColorOption.readonly || !(metalColorOption.values || []).some((item: any) => item.value === value)) return
-		selectedVariant = variantForOption(variants, selectedVariant, metalColorOption.id, value)
+		const nextVariant = variantForOption(variants, selectedVariant, metalColorOption.id, value)
+		selectedVariant = nextVariant
+		activeImage = productImages(product, nextVariant)[0] || ''
 	}
 
 	async function addToBag() {
@@ -144,10 +216,58 @@
 	}
 
 	function openCustomization() {
-		const select = document.querySelector<HTMLSelectElement>('.rj-options select')
-		if (!select) return
-		select.focus()
-		try { select.showPicker?.() } catch { select.click() }
+		customizationOpen = true
+	}
+
+	function customizationTarget(selection: { metal: string; carat: string; size: string; cut: string }) {
+		const selectedAttributes = Object.fromEntries([
+			[metalColorAggregationKey, selection.metal],
+			[caratWeightAggregationKey, selection.carat],
+			[ringSizeAggregationKey, selection.size],
+			[stoneShapeAggregationKey, selection.cut]
+		].filter(([key, value]) => key && value))
+		return groupedProductForSelections(groupedProducts, currentGroupedProduct, selectedAttributes)
+	}
+
+	function preloadCustomization(selection: { metal: string; carat: string; size: string; cut: string; stone: string }) {
+		if (selection.stone !== stoneType) return
+		const target = customizationTarget(selection)
+		if (target?.slug && target.slug !== product.slug) void preloadData(`/products/${target.slug}`).catch(() => {})
+	}
+
+	async function applyCustomization(selection: { metal: string; carat: string; size: string; cut: string; stone: string }) {
+		if (selection.stone !== stoneType) {
+			toast.error(`${selection.stone} is not available for this product`)
+			return false
+		}
+		const target = customizationTarget(selection)
+		if (!target?.slug) {
+			toast.error('This customization combination is not available')
+			return false
+		}
+		if (target.slug === product.slug) {
+			toast.success('Customization applied')
+			return true
+		}
+
+		customizationLoading = true
+		activeImage = metalColorImage(images[0] || activeImage, selection.metal)
+		try {
+			await goto(`/products/${target.slug}`, { noScroll: true, keepFocus: true })
+			toast.success('Customization applied')
+			return true
+		} catch (error: any) {
+			activeImage = images[0] || ''
+			toast.error(error?.message || 'Unable to apply customization')
+			return false
+		} finally {
+			customizationLoading = false
+		}
+	}
+
+	function showRingView() {
+		activeImage = images[1] || images[0] || activeImage
+		setTimeout(() => document.querySelector('.rj-gallery')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
 	}
 
 	async function locateMe() {
@@ -180,13 +300,33 @@
 		}
 	}
 
-	async function shareProduct() {
+	async function copyShareLink() {
 		try {
-			if (navigator.share) await navigator.share({ title: product.title, url: location.href })
+			await navigator.clipboard.writeText(shareUrl)
+			toast.success('Product link copied')
+		} catch {
+			toast.error('Unable to copy product link')
+		}
+	}
+
+	function socialShareUrl(platform: 'facebook' | 'whatsapp' | 'snapchat' | 'telegram') {
+		const url = encodeURIComponent(shareUrl)
+		const title = encodeURIComponent(product?.title || '')
+		if (platform === 'facebook') return `https://www.facebook.com/sharer/sharer.php?u=${url}`
+		if (platform === 'whatsapp') return `https://wa.me/?text=${encodeURIComponent(`${product?.title || ''} ${shareUrl}`.trim())}`
+		if (platform === 'snapchat') return `https://www.snapchat.com/scan?attachmentUrl=${url}`
+		return `https://t.me/share/url?url=${url}&text=${title}`
+	}
+
+	async function shareToInstagram() {
+		try {
+			if (navigator.share) await navigator.share({ title: product.title, url: shareUrl })
 			else {
-				await navigator.clipboard?.writeText(location.href)
-				toast.success('Product link copied')
+				await navigator.clipboard.writeText(shareUrl)
+				toast.success('Product link copied. Paste it on Instagram.')
+				window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer')
 			}
+			shareOpen = false
 		} catch (error: any) {
 			if (error?.name !== 'AbortError') toast.error('Unable to share this product')
 		}
@@ -202,7 +342,17 @@
 		}
 	}
 
+	function reviewValue(review: any, ...keys: string[]) {
+		return keys.map((key) => review?.[key]).find((value) => value !== undefined && value !== null && value !== '')
+	}
+
+	function scrollProductCarousel(sectionId: string, direction: -1 | 1) {
+		const track = document.querySelector<HTMLElement>(`#${sectionId} .rj-carousel-track`)
+		track?.scrollBy({ left: direction * track.clientWidth * .8, behavior: 'smooth' })
+	}
+
 	onMount(async () => {
+		window.setTimeout(() => metalColorValues.forEach(preloadMetalColor), 1000)
 		try {
 			const stored = JSON.parse(localStorage.getItem(COMPARE_STORAGE_KEY) || '[]')
 			compared = Array.isArray(stored) && stored.map(String).includes(String(product.id))
@@ -213,12 +363,34 @@
 		relatedLoading = true
 		try {
 			const response = await productService.listRelatedProducts({ page: 1, categoryId: product.categoryId })
-			relatedProducts = (response?.data || []).filter((item: any) => item.id !== product.id).slice(0, 4)
+			relatedProducts = (response?.data || []).filter((item: any) => item.id !== product.id).slice(0, 8)
 		} finally {
 			relatedLoading = false
 		}
 	})
 </script>
+
+<svelte:window onkeydown={(event) => event.key === 'Escape' && (shareOpen = false)} />
+
+{#snippet testimonialCard(testimonial: (typeof customerTestimonials)[number])}
+	<article class="rj-testimonial-card">
+		<header>
+			<div class="rj-testimonial-person">
+				<img src={testimonial.avatar} alt="" />
+				<div>
+					<b>{testimonial.name}</b>
+					<span><span class="rj-testimonial-stars" aria-label="4.5 out of 5 stars">★★★★★</span><i></i><small>4.5 Review</small></span>
+				</div>
+			</div>
+			<div class="rj-testimonial-stats" aria-label="4.5 thousand likes and 500 comments">
+				<span><img src="/ryans-jewels/product/testimonials/heart.svg" alt="" />4.5k</span>
+				<span><img src="/ryans-jewels/product/testimonials/comment.svg" alt="" />500</span>
+			</div>
+		</header>
+		<p>{testimonial.message}</p>
+		<footer><time>{testimonial.date}</time><span><img src="/ryans-jewels/product/testimonials/instagram.png" alt="" />Instagram</span></footer>
+	</article>
+{/snippet}
 
 <div class="rj-pdp">
 	<nav class="rj-breadcrumb" aria-label="Breadcrumb">
@@ -268,9 +440,11 @@
 
 			<div class="rj-product-meta">
 				{#if category}<span>{category}</span><i></i>{/if}
-				<span class="rj-stars"><img src="/ryans-jewels/product/star.svg" alt="" /><img src="/ryans-jewels/product/star.svg" alt="" />{rating}</span><i></i>
-				<span>{rating} out of 5 ratings</span>
-				<span class="rj-review-count">{ratings.length} reviews</span><i></i>
+				{#if ratings.length}
+					<span class="rj-stars"><img src="/ryans-jewels/product/star.svg" alt="" /><img src="/ryans-jewels/product/star.svg" alt="" />{rating}</span><i></i>
+					<span>{rating} out of 5 ratings</span>
+					<span class="rj-review-count">{ratings.length} reviews</span><i></i>
+				{/if}
 				<span class:available={inStock} class="rj-stock">{#if inStock}<img src="/ryans-jewels/product/stock-tick.svg" alt="" />{/if}{inStock ? 'Stock Available' : 'Out Of Stock'}</span>
 			</div>
 
@@ -324,7 +498,7 @@
 					<span>Metal Color :</span>
 					<div>
 						{#each metalColorValues as value}
-							<button class="rj-metal-color rj-metal-color--{metalColorTone(value)}" type="button" disabled={metalColorOption?.readonly || !(metalColorOption?.values || []).some((item: any) => item.value === value)} onclick={() => selectMetalColor(value)} aria-label="Select {value}" aria-pressed={metalColorTone(selectedValue(metalColorOption)) === metalColorTone(value)}></button>
+							<button class="rj-metal-color rj-metal-color--{metalColorTone(value)}" type="button" disabled={Boolean(changingMetalColor) || !metalColorAvailable(value)} onpointerenter={() => preloadMetalColor(value)} onfocus={() => preloadMetalColor(value)} onpointerdown={() => preloadMetalColor(value)} onclick={() => selectMetalColor(value)} aria-label="Select {value}" aria-pressed={metalColorTone(metalColor) === metalColorTone(value)} aria-busy={changingMetalColor === value}></button>
 						{/each}
 					</div>
 				</div>
@@ -336,7 +510,28 @@
 							<button type="button" onclick={productState.decrementQuantity} aria-label="Decrease quantity"><img src="/ryans-jewels/product/minus.svg" alt="" /></button>
 						</div>
 						<button class="rj-add" type="button" disabled={!inStock || productState.cartState.isUpdatingCart} onclick={addToBag}>{productState.cartState.showCheckout ? 'Go To Bag' : inStock ? 'Add To Bag' : 'Out Of Stock'}</button>
-						<button class="rj-share" type="button" onclick={shareProduct}><img src="/ryans-jewels/product/share.svg" alt="" />Share</button>
+						<div class="rj-share-wrap">
+							<button class="rj-share" type="button" onclick={() => shareOpen = !shareOpen} aria-expanded={shareOpen} aria-controls="rj-share-popover"><img src="/ryans-jewels/product/share.svg" alt="" /><span>Share</span></button>
+							{#if shareOpen}
+								<button class="rj-share-dismiss" type="button" aria-label="Close share options" onclick={() => shareOpen = false}></button>
+								<div class="rj-share-popover" id="rj-share-popover" role="dialog" aria-label="Share this product">
+									<img class="rj-share-frame" src="/ryans-jewels/product/share-popup/frame.svg" alt="" />
+									<div class="rj-share-content">
+										<div class="rj-share-link">
+											<span title={shareUrl}>{shareUrl}</span>
+											<button type="button" onclick={copyShareLink}><img src="/ryans-jewels/product/share-popup/copy.svg" alt="" />Copy</button>
+										</div>
+										<div class="rj-share-socials">
+											<button type="button" onclick={shareToInstagram}><img src="/ryans-jewels/product/share-popup/instagram.png" alt="" /><span>Instagram</span></button>
+											<a href={socialShareUrl('facebook')} target="_blank" rel="noopener noreferrer" onclick={() => shareOpen = false}><img src="/ryans-jewels/product/share-popup/facebook.png" alt="" /><span>Facebook</span></a>
+											<a href={socialShareUrl('whatsapp')} target="_blank" rel="noopener noreferrer" onclick={() => shareOpen = false}><img src="/ryans-jewels/product/share-popup/whatsapp.png" alt="" /><span>WhatsApp</span></a>
+											<a href={socialShareUrl('snapchat')} target="_blank" rel="noopener noreferrer" onclick={() => shareOpen = false}><img src="/ryans-jewels/product/share-popup/snapchat.png" alt="" /><span>Snapchat</span></a>
+											<a href={socialShareUrl('telegram')} target="_blank" rel="noopener noreferrer" onclick={() => shareOpen = false}><img src="/ryans-jewels/product/share-popup/telegram.png" alt="" /><span>Telegram</span></a>
+										</div>
+									</div>
+								</div>
+							{/if}
+						</div>
 					</div>
 					<button class="rj-buy-now" type="button" disabled={!inStock || productState.cartState.isUpdatingCart} onclick={buyNow}><img src="/ryans-jewels/product/cart.svg" alt="" />Buy Now : {formatPrice(price, currency)}</button>
 				</div>
@@ -359,7 +554,7 @@
 		</div>
 	</section>
 
-	<section class="rj-info" id="rj-specifications">
+	<section class="rj-info" class:is-reviews={activeTab === 'reviews'} id="rj-specifications">
 		<div class="rj-detail-tabs" role="tablist" aria-label="Product information">
 			<div>
 				<button class:active={activeTab === 'details'} type="button" role="tab" aria-selected={activeTab === 'details'} onclick={() => activeTab = 'details'}>Product Details</button>
@@ -377,10 +572,10 @@
 				<div class="rj-detail-main">
 					<div class="rj-detail-visual">
 						{#if detailImage}<img class="rj-detail-product-image" src={detailImage} alt="Side view of {product.title}" />{/if}
-						<div class="rj-detail-height-label"><i></i><span>{product?.height ? `${product.height} ${product.dimensionUnit || 'mm'} (Height)` : ringSize ? `Ring Size ${ringSize}` : 'Product Height'}</span><i></i></div>
+						<div class="rj-detail-height-label"><i></i><span>{ringHeight ? `${ringHeight} ${dimensionUnit} (Height)` : ringSize ? `Ring Size ${ringSize}` : 'Ring Height'}</span><i></i></div>
 						<img class="rj-detail-height-guide" src="/ryans-jewels/product/detail-height-guide.svg" alt="" />
-						<img class="rj-detail-stone-guide" src="/ryans-jewels/product/detail-stone-guide.svg" alt="" />
-						<div class="rj-detail-stone"><span>{#if activeImage}<img src={activeImage} alt="{stoneShape || 'Center'} diamond detail" />{/if}</span><small>{stoneShape || 'Center'} Diamond</small></div>
+						<img class="rj-detail-stone-guide" src="/ryans-jewels/product/detail-stone-guide.svg?v=2" alt="" />
+						<div class="rj-detail-stone"><span>{#if diamondImage}<img class="is-shape" src={diamondImage} alt="{stoneShape} diamond" />{:else if activeImage}<img class="is-crop" src={activeImage} alt="{stoneShape || 'Center'} diamond detail" />{/if}</span><small>{stoneShape || 'Center'} Diamond{#if caratWeight}<b>{caratWeight}</b>{/if}</small></div>
 					</div>
 
 					<div class="rj-detail-card">
@@ -397,39 +592,111 @@
 				</div>
 			</div>
 		{:else}
-			<div class="rj-detail-reviews" role="tabpanel">
-				{#if ratings.length}
-					{#each ratings as review}<article><div>★★★★★</div><p>{review.message || review.review || review.comment}</p><b>{review.name || review.reviewerName || 'Verified Customer'}</b></article>{/each}
-				{:else}<p>No reviews yet for this product.</p>{/if}
+			<div class="rj-detail-reviews" role="tabpanel" aria-label="Customer reviews">
+				<div class="rj-review-feed">
+					{#if ratings.length}
+						<div class="rj-review-cards">
+							{#each ratings.slice(0, visibleReviewCount) as review}
+								{@const reviewerName = reviewValue(review, 'name', 'reviewerName', 'userName') || 'Verified Customer'}
+								{@const createdAt = reviewValue(review, 'createdAt', 'created_at', 'date')}
+								{@const reviewCopy = reviewValue(review, 'review', 'message', 'comment')}
+								<article class="rj-review-card">
+									<header>
+										<span class="rj-review-avatar">
+											{#if reviewValue(review, 'img', 'image', 'avatar')}<img src={reviewValue(review, 'img', 'image', 'avatar')} alt="" />{:else}{String(reviewerName).charAt(0).toUpperCase()}{/if}
+										</span>
+										<span><b>{reviewerName}</b><small>{createdAt ? timestampToAgo(createdAt) || 'Recently' : 'Recently'}</small></span>
+										<span class="rj-review-card-rating" aria-label="{Number(review.rating || 0)} out of 5 stars">
+											{#each Array.from({ length: 5 }) as _, index}<i class:filled={index < Math.round(Number(review.rating || 0))}></i>{/each}
+										</span>
+									</header>
+									{#if reviewCopy}<p>{reviewCopy}</p>{/if}
+									{#if createdAt}<footer><span>{dateOnly(createdAt)}</span><i></i><span><img src="/ryans-jewels/product/review-clock.svg" alt="" />{time(createdAt)}</span></footer>{/if}
+								</article>
+							{/each}
+						</div>
+						{#if visibleReviewCount < ratings.length}
+							<button class="rj-review-more" type="button" onclick={() => visibleReviewCount += 2}>View More<span><img src="/ryans-jewels/product/review-arrow-right.svg" alt="" /><img src="/ryans-jewels/product/review-arrow-right.svg" alt="" /></span></button>
+						{/if}
+					{:else}
+						<p class="rj-review-empty">No customer reviews yet.</p>
+					{/if}
+				</div>
+
+				<i class="rj-review-divider"></i>
+
+				<div class="rj-review-summary">
+					<div class="rj-review-heading">
+						<span aria-hidden="true"><img src="/ryans-jewels/product/review-star.svg" alt="" /><img src="/ryans-jewels/product/review-star.svg" alt="" /><img src="/ryans-jewels/product/review-star.svg" alt="" /></span>
+						<h2>Customer Reviews</h2>
+					</div>
+					<div class="rj-review-score">
+						<div><span class="rj-review-score-stars" aria-label="{rating} out of 5 stars">{#each Array.from({ length: 5 }) as _, index}<i class:filled={index < Math.round(rating)}></i>{/each}</span><small>{ratings.length ? `${rating} out of 5` : 'Be the first to write a review'}</small></div>
+						<i></i>
+						<p>Based on <b>Reviews {ratings.length}</b></p>
+					</div>
+					<button class="rj-write-review" type="button" onclick={() => productState.showReviewForm = true}>Write Review<img src="/ryans-jewels/product/review-brush.svg" alt="" /></button>
+				</div>
 			</div>
 		{/if}
 	</section>
 
 	{#if relatedLoading || relatedProducts.length}
 		<section class="rj-related" id="rj-related">
-			<p>You May Also Like</p><h2>Discover Similar Brilliance</h2>
-			{#if relatedLoading}<div class="rj-loading">Loading...</div>{:else}<div class="rj-related-grid">{#each relatedProducts as item}<RjProductCard product={item} size="listing" />{/each}</div>{/if}
-		</section>
-		<section class="rj-related rj-related-second">
-			<p>Made For Your Moments</p><h2>Dazzling &amp; Stylish, Perfectly Created To Fit You</h2>
-			{#if relatedLoading}<div class="rj-loading">Loading...</div>{:else}<div class="rj-related-grid">{#each relatedProducts as item}<RjProductCard product={item} size="listing" />{/each}</div>{/if}
+			<div class="rj-related-head"><i></i><div><h2>You May Also Like...</h2><p>Explore our most loved pieces, handpicked for you.</p></div><i></i></div>
+			{#if relatedLoading}
+				<div class="rj-loading">Loading...</div>
+			{:else}
+				<button class="rj-related-arrow is-prev" type="button" onclick={() => scrollProductCarousel('rj-related', -1)} aria-label="Previous products">‹</button>
+				<RjCarousel label="You May Also Like">
+					{#each relatedProducts as item (item.id)}<div class="rj-related-item"><RjProductCard product={item} size="listing" /></div>{/each}
+				</RjCarousel>
+				<button class="rj-related-arrow is-next" type="button" onclick={() => scrollProductCarousel('rj-related', 1)} aria-label="Next products">›</button>
+			{/if}
 		</section>
 	{/if}
 
-	{#if ratings.length}
-		<section class="rj-reviews">
-			<p>Customer Reviews</p><h2>Don't Take Our Word For It</h2>
-			<div class="rj-review-grid">{#each ratings.slice(0, 3) as review}<article><div class="rj-review-stars">★★★★★</div><p>{review.message || review.review || 'Beautiful jewellery and excellent craftsmanship.'}</p><b>{review.name || 'Verified Customer'}</b></article>{/each}</div>
+	<div class="rj-pdp-promo">
+		<RjWideBanner />
+	</div>
+
+	{#if relatedLoading || relatedProducts.length}
+		<section class="rj-dazzling" id="rj-dazzling">
+			<div class="rj-related-head"><i></i><div><h2>Dazzling &amp; Stylish...</h2><p>Explore our most loved pieces, handpicked for you.</p></div><i></i></div>
+			{#if relatedLoading}
+				<div class="rj-loading">Loading...</div>
+			{:else}
+				<button class="rj-related-arrow is-prev" type="button" onclick={() => scrollProductCarousel('rj-dazzling', -1)} aria-label="Previous dazzling products">‹</button>
+				<RjCarousel label="Dazzling and Stylish products">
+					{#each [...relatedProducts].reverse() as item (item.id)}<div class="rj-dazzling-item"><RjProductCard product={item} size="listing" /></div>{/each}
+				</RjCarousel>
+				<button class="rj-related-arrow is-next" type="button" onclick={() => scrollProductCarousel('rj-dazzling', 1)} aria-label="Next dazzling products">›</button>
+			{/if}
 		</section>
 	{/if}
+
+	<section class="rj-testimonials" aria-labelledby="rj-testimonials-heading">
+		<div class="rj-testimonials-head"><i></i><div><h2 id="rj-testimonials-heading">Don't take our word for it.</h2><p>Trust our customers</p></div><i></i></div>
+		<div class="rj-testimonial-rows">
+			{#each testimonialRows as row, rowIndex}
+				<div class="rj-testimonial-row" class:is-reverse={rowIndex === 1}>
+					<div class="rj-testimonial-track">
+						<div class="rj-testimonial-group">{#each row as testimonial}{@render testimonialCard(testimonial)}{/each}</div>
+						<div class="rj-testimonial-group" aria-hidden="true">{#each row as testimonial}{@render testimonialCard(testimonial)}{/each}</div>
+					</div>
+				</div>
+			{/each}
+		</div>
+	</section>
 </div>
 
 <RjInstagram />
 <LoginModal bind:show={productState.showLoginModal} />
+<RjCustomizeModal bind:open={customizationOpen} initial={customizationInitial} {metalType} metalOptions={metalColorValues} caratOptions={caratWeightValues} sizeOptions={ringSizeValues} cutOptions={stoneShapeValues} stoneOptions={[stoneType]} loading={customizationLoading} onchange={preloadCustomization} onapply={applyCustomization} onringview={showRingView} />
 
 <style>
 	.rj-pdp { color: #404040; font-family: 'Sarala', var(--font-body, sans-serif); }
-	.rj-breadcrumb, .rj-product, .rj-info, .rj-related, .rj-reviews { width: min(calc(100% - clamp(120px, 8.333vw, 160px)), 1760px); margin-inline: auto; }
+	.rj-breadcrumb, .rj-product, .rj-info, .rj-related { width: min(calc(100% - clamp(120px, 8.333vw, 160px)), 1760px); margin-inline: auto; }
 	.rj-breadcrumb { display: flex; gap: 8px; align-items: center; min-height: 63px; overflow: hidden; font-size: 14px; color: #a2a2a2; white-space: nowrap; }
 	.rj-breadcrumb a { color: inherit; } .rj-breadcrumb .current { overflow: hidden; text-overflow: ellipsis; color: #505050; }
 	.rj-product { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(24px, 1.667vw, 32px); align-items: start; margin-top: 30px; }
@@ -518,7 +785,7 @@
 	.rj-ring-part-15 { top: 19.81%; left: 50.2%; width: 28.05%; height: 17.95%; }
 	.rj-ring-part-16 { top: 0; left: 18.8%; width: 81.2%; height: 43.8%; }
 	.rj-option select { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
-	.rj-size-guide { display: flex; align-items: center; justify-content: space-between; height: 35px; padding: 0 13px; border-radius: 6px; background: #e5f4ff; color: #404040; font: 12px 'Lato', sans-serif; }
+	.rj-size-guide { display: flex; box-sizing: border-box; width: calc(100% - 20px); height: 45px; margin-left: 10px; align-items: center; justify-content: space-between; padding: 10px 13px; border-radius: 6px; background: #e5f4ff; color: #404040; font: 12px 'Lato', sans-serif; }
 	.rj-size-guide b { display: flex; gap: 5px; align-items: center; color: #0157a8; font-family: 'Inter', sans-serif; font-weight: 500; } .rj-size-guide img { width: 25px; height: 25px; }
 	.rj-purchase { display: flex; flex-direction: column; gap: 25px; }
 	.rj-metal-colors, .rj-metal-colors > div { display: flex; align-items: center; gap: 10px; }
@@ -534,9 +801,25 @@
 	.rj-qty { display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; border: 1px solid #e2e2e2; border-radius: 5px; text-align: center; }
 	.rj-qty button { display: grid; place-items: center; padding: 0; border: 0; background: none; cursor: pointer; } .rj-qty img { width: 20px; height: 20px; }
 	.rj-add, .rj-share, .rj-buy-now { display: flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid #d5d5d5; border-radius: 4px; font: 18px 'Sarala', sans-serif; cursor: pointer; }
-	.rj-add { background: #cca646; color: #fff; } .rj-share img { width: 22px; height: 22px; }
+	.rj-add { background: #cca646; color: #fff; } .rj-share > img { width: 22px; height: 22px; }
 	.rj-add { font-size: 20px; }
+	.rj-share-wrap { position: relative; display: flex; min-width: 0; }
+	.rj-share { width: 100%; height: 100%; }
 	.rj-share, .rj-buy-now { background: #fff; color: #404040; } .rj-buy-now { width: 100%; height: 55px; border-color: #b0b0b0; font-size: 20px; }
+	.rj-share-dismiss { position: fixed; z-index: 48; inset: 0; padding: 0; border: 0; background: transparent; cursor: default; }
+	.rj-share-popover { position: absolute; z-index: 49; top: calc(100% + 4px); right: 0; width: 280px; height: 142px; color: #878787; font-family: 'Lato', sans-serif; }
+	.rj-share-frame { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(-2px 20px 30px rgb(54 53 53 / 30%)); }
+	.rj-share-content { position: absolute; top: 36px; left: 9px; display: flex; width: 262px; flex-direction: column; gap: 12px; }
+	.rj-share-link { box-sizing: border-box; display: flex; width: 100%; height: 25px; align-items: center; justify-content: space-between; padding: 5px 6px; border-radius: 3px; background: #f4f4f4; }
+	.rj-share-link > span { width: 183px; overflow: hidden; color: #009efa; font-size: 10px; line-height: normal; text-overflow: ellipsis; text-transform: capitalize; white-space: nowrap; }
+	.rj-share-link button { display: flex; height: 23px; gap: 5px; align-items: center; padding: 4px 5px; border: 0; border-radius: 3px; background: #009efa; color: #fff; font: 10px/normal 'Sarala', sans-serif; cursor: pointer; }
+	.rj-share-link button img { width: 15px; height: 15px; }
+	.rj-share-socials { display: flex; width: 100%; gap: 17px; align-items: flex-start; }
+	.rj-share-socials > * { display: flex; width: 38px; flex: 0 0 38px; flex-direction: column; gap: 5px; align-items: center; padding: 0; border: 0; background: transparent; color: #878787; font: 500 9px/normal 'Lato', sans-serif; text-decoration: none; text-transform: capitalize; cursor: pointer; }
+	.rj-share-socials img { width: 34px; height: 34px; object-fit: cover; }
+	.rj-share-socials > :nth-child(4) img { transform: scale(1.3077); }
+	.rj-share-socials span { white-space: nowrap; }
+	.rj-share:focus-visible, .rj-share-link button:focus-visible, .rj-share-socials > *:focus-visible { outline: 2px solid #009efa; outline-offset: 2px; }
 	.rj-buy-now img { width: 27px; height: 27px; }
 	.rj-add:disabled, .rj-buy-now:disabled { opacity: .55; cursor: not-allowed; }
 	.rj-delivery { display: flex; flex-direction: column; gap: 15px; }
@@ -565,11 +848,13 @@
 	.rj-detail-tabs > div:first-child { display: flex; gap: 36px; align-items: flex-start; }
 	.rj-detail-tabs > div:first-child button { position: relative; padding: 0 0 7px; border: 0; background: none; color: #808080; font: 18px/18px 'Sarala', sans-serif; cursor: pointer; white-space: nowrap; }
 	.rj-detail-tabs > div:first-child button.active { color: #303030; }
-	.rj-detail-tabs > div:first-child button.active::after { position: absolute; bottom: 0; left: 0; width: 64px; height: 2px; background: #cca646; content: ''; }
+	.rj-detail-tabs > div:first-child button.active::after { position: absolute; bottom: 0; left: 0; height: 2px; background: #cca646; content: ''; }
+	.rj-detail-tabs > div:first-child button:first-child.active::after { width: 125px; }
+	.rj-detail-tabs > div:first-child button:last-child.active::after { width: 50px; }
 	.rj-style-copy, .rj-style-copy button, .rj-detail-card header > div, .rj-detail-card header button { display: flex; align-items: center; }
 	.rj-style-copy { gap: 12px; padding: 3px 7px; color: #808080; font: 18px/18px 'Sarala', sans-serif; }
 	.rj-style-copy b { color: #cca646; font-weight: 400; }
-	.rj-style-copy button, .rj-detail-card header button { gap: 10px; height: 34px; padding: 7px 10px; border: 0; border-radius: 5px; background: #003176; color: #fff; font: 14px/18px 'Sarala', sans-serif; cursor: pointer; }
+	.rj-style-copy button, .rj-detail-card header button { display: flex; min-width: 82px; height: 34px; flex: 0 0 auto; gap: 10px; align-items: center; justify-content: center; padding: 7px 10px; border: 0; border-radius: 5px; background: #003176; color: #fff; font: 14px/18px 'Sarala', sans-serif; white-space: nowrap; cursor: pointer; }
 	.rj-style-copy button img, .rj-detail-card header button img { width: 20px; height: 20px; }
 	.rj-detail-body { display: flex; flex-direction: column; gap: 35px; padding: 22px 49px 30px; }
 	.rj-detail-description { display: flex; flex-direction: column; gap: 18px; color: #303030; font-size: 18px; }
@@ -580,20 +865,22 @@
 	.rj-detail-main { display: grid; grid-template-columns: minmax(360px, 486fr) minmax(0, 710fr); gap: 24px; align-items: start; }
 	.rj-detail-visual { position: relative; height: 382px; min-width: 0; overflow: hidden; border-radius: 4px; background: #fff; }
 	.rj-detail-product-image { position: absolute; inset: 2% 5% 0 5%; width: 90%; height: 98%; object-fit: contain; }
-	.rj-detail-height-label { position: absolute; z-index: 2; top: 21px; left: 16.5%; display: flex; width: 18px; height: 309px; flex-direction: column; gap: 10px; align-items: center; }
+	.rj-detail-height-label { position: absolute; z-index: 2; top: 65px; left: 18.5%; display: flex; width: 18px; height: 282px; flex-direction: column; gap: 10px; align-items: center; }
 	.rj-detail-height-label i { width: 1px; flex: 1; background: #717171; }
 	.rj-detail-height-label span { color: #202020; font: 14px/18px 'Lato', sans-serif; writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; }
-	.rj-detail-height-guide { position: absolute; z-index: 2; top: 21px; left: 22.2%; width: 27.5%; height: 309px; }
+	.rj-detail-height-guide { position: absolute; z-index: 2; top: 65px; left: 24.2%; width: 27.5%; height: 282px; }
 	.rj-detail-stone-guide { position: absolute; z-index: 2; top: 55px; left: 46%; width: 30.5%; height: auto; }
 	.rj-detail-stone { position: absolute; z-index: 3; top: 15px; right: 4%; display: flex; width: 95px; flex-direction: column; gap: 7px; align-items: center; color: #202020; font: 12px/18px 'Lato', sans-serif; }
-	.rj-detail-stone > span { display: grid; width: 95px; height: 85px; place-items: center; padding: 3px; overflow: hidden; border-radius: 5px; background: #f0f0f0; }
-	.rj-detail-stone img { width: 100%; height: 100%; border-radius: 4px; object-fit: cover; }
+	.rj-detail-stone > span { position: relative; display: block; box-sizing: border-box; width: 95px; height: 85px; padding: 3px; overflow: hidden; border: 1.5px solid #e9e9e9; border-radius: 5px; background: #fff; }
+	.rj-detail-stone img.is-shape { width: calc(100% - 5px); height: calc(100% - 5px); margin: 2.5px; border-radius: 4px; object-fit: contain; }
+	.rj-detail-stone img.is-crop { position: absolute; top: 50%; left: 50%; width: 320%; max-width: none; height: auto; aspect-ratio: 1; border-radius: 4px; object-fit: cover; transform: translate(-50%, -50%); }
 	.rj-detail-stone small { width: 100%; font: inherit; text-align: center; }
+	.rj-detail-stone small b { display: block; color: #707070; font-weight: 400; }
 	.rj-detail-card { min-width: 0; min-height: 353px; overflow: hidden; border: 1px solid #e0e0e0; border-radius: 5px; background: #fff; }
 	.rj-detail-card header { display: flex; height: 66px; align-items: center; justify-content: space-between; gap: 15px; padding: 11px 20px; border-bottom: 1px solid #e0e0e0; }
-	.rj-detail-card header > strong { overflow: hidden; color: #202020; font: 18px/18px 'Sarala', sans-serif; text-overflow: ellipsis; white-space: nowrap; }
-	.rj-detail-card header > div { gap: 12px; min-width: 0; }
-	.rj-detail-card header > div > span { overflow: hidden; max-width: 190px; color: #1f9eff; font: 16px/18px 'Lato', sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+	.rj-detail-card header > strong { min-width: 0; flex: 1 1 auto; overflow: hidden; color: #202020; font: 18px/18px 'Sarala', sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+	.rj-detail-card header > div { min-width: 0; flex: 0 1 284px; gap: 12px; }
+	.rj-detail-card header > div > span { min-width: 0; flex: 1 1 auto; overflow: hidden; color: #1f9eff; font: 16px/18px 'Lato', sans-serif; text-overflow: ellipsis; white-space: nowrap; }
 	.rj-detail-card-body { padding: 12px 20px 20px; }
 	.rj-detail-card-body > p { margin: 0 0 28px; color: #808080; font: 16px/18px 'Sarala', sans-serif; }
 	.rj-detail-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px 50px; padding-left: 15px; }
@@ -601,31 +888,155 @@
 	.rj-detail-fact h3 > img:first-child { width: 28px; height: 28px; }
 	.rj-detail-fact h3 .rj-detail-info-icon { width: 14px; height: 14px; }
 	.rj-detail-fact p { margin: 10px 0 0 10px; color: #7c7c7c; font: 14px/18px 'Lato', sans-serif; }
-	.rj-detail-reviews { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; min-height: 675px; padding: 32px 50px; color: #707070; font: 14px/22px 'Lato', sans-serif; }
-	.rj-detail-reviews article { height: max-content; padding: 24px; border: 1px solid #e0e0e0; border-radius: 5px; }
-	.rj-detail-reviews article > div { color: #cca646; }
-	.rj-related, .rj-reviews { padding-block: 80px; text-align: center; }
-	.rj-related-second { padding-top: 25px; }
-	.rj-related > p, .rj-reviews > p { margin: 0 0 8px; color: #cca646; font-size: 20px; }
-	.rj-related h2, .rj-reviews h2 { margin: 0 0 50px; font-family: 'Rozha One', serif; font-size: 34px; font-weight: 400; letter-spacing: 0; color: #202020; }
-	.rj-related-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; overflow: hidden; text-align: left; }
+	.rj-info.is-reviews { height: 534px; min-height: 534px; }
+	.rj-detail-reviews { position: relative; height: 464px; color: #505050; font-family: 'Lato', sans-serif; }
+	.rj-review-feed { position: absolute; top: 40px; left: 2.273%; display: flex; width: 45.379%; flex-direction: column; gap: 30px; align-items: flex-end; }
+	.rj-review-cards { display: flex; width: 100%; flex-direction: column; gap: 15px; }
+	.rj-review-card { box-sizing: border-box; display: flex; width: 100%; height: 150px; flex-direction: column; gap: 19px; padding: 12px 15px; overflow: hidden; border: 1px solid #e0e0e0; border-radius: 5px; background: #fff; box-shadow: -1px 5px 3px rgb(229 229 229 / 25%); }
+	.rj-review-card header { display: flex; height: 40px; align-items: center; }
+	.rj-review-avatar { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; overflow: hidden; border-radius: 50%; background: #f3f3f3; color: #cca646; font: 600 16px 'Lato', sans-serif; }
+	.rj-review-avatar img { width: 100%; height: 100%; object-fit: cover; }
+	.rj-review-card header > span:nth-child(2) { display: flex; min-width: 0; flex-direction: column; gap: 3px; margin-left: 12px; }
+	.rj-review-card header b { overflow: hidden; max-width: 180px; color: #000; font: 500 14px 'Lato', sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+	.rj-review-card header small { color: #9a9a9a; font: 10px 'Lato', sans-serif; }
+	.rj-review-card-rating { display: flex; gap: 3px; margin-left: auto; }
+	.rj-review-card-rating i, .rj-review-score-stars i { display: block; background: #e4e4e4; -webkit-mask: url('/ryans-jewels/product/review-rating-star.svg') center / contain no-repeat; mask: url('/ryans-jewels/product/review-rating-star.svg') center / contain no-repeat; }
+	.rj-review-card-rating i { width: 15px; height: 15px; }
+	.rj-review-card-rating i.filled, .rj-review-score-stars i.filled { background: #cca646; }
+	.rj-review-card > p { display: -webkit-box; overflow: hidden; margin: -9px 0 0; color: #555; font: 12px/16px 'Lato', sans-serif; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+	.rj-review-card footer { display: flex; height: 16px; align-items: center; gap: 5px; margin-top: auto; color: #505050; font: 12px 'Lato', sans-serif; }
+	.rj-review-card footer > i { width: 1px; height: 16px; background: #d9d9d9; }
+	.rj-review-card footer span:last-child { display: flex; gap: 5px; align-items: center; }
+	.rj-review-card footer img { width: 12px; height: 12px; }
+	.rj-review-empty { display: grid; box-sizing: border-box; width: 100%; height: 150px; place-items: center; margin: 0; border: 1px solid #e0e0e0; border-radius: 5px; color: #808080; font: 14px 'Sarala', sans-serif; }
+	.rj-review-more { display: flex; gap: 5px; align-items: center; padding: 0; border: 0; background: none; color: #404040; font: 14px/18px 'Sarala', sans-serif; cursor: pointer; }
+	.rj-review-more span { display: flex; align-items: center; }
+	.rj-review-more img { width: 18px; height: 18px; }
+	.rj-review-more img:first-child { margin-right: -10px; }
+	.rj-review-divider { position: absolute; top: 20px; left: 49.924%; width: 2px; height: 424px; background: #e0e0e0; }
+	.rj-review-summary { position: absolute; top: 90px; left: 56.288%; display: flex; width: 37.5%; flex-direction: column; gap: 24px; align-items: center; }
+	.rj-review-heading { display: flex; width: 201px; flex-direction: column; gap: 12px; align-items: center; }
+	.rj-review-heading > span { display: flex; align-items: flex-end; }
+	.rj-review-heading img { width: 40px; height: 40px; }
+	.rj-review-heading img:nth-child(1), .rj-review-heading img:nth-child(2) { margin-right: -12px; }
+	.rj-review-heading img:nth-child(2) { width: 60px; height: 60px; }
+	.rj-review-heading h2 { margin: 0; color: #303030; font: 400 24px/normal 'Sarala', sans-serif; text-align: center; white-space: nowrap; }
+	.rj-review-score { display: flex; width: 100%; height: 80px; gap: 20px; align-items: center; }
+	.rj-review-score > div { display: flex; width: 224px; flex: 0 0 224px; flex-direction: column; gap: 5px; }
+	.rj-review-score-stars { display: flex; width: 224px; gap: 6px; align-items: center; }
+	.rj-review-score-stars i { width: 40px; height: 40px; }
+	.rj-review-score small { width: 100%; color: #505050; font: 400 14px/normal 'Sarala', sans-serif; }
+	.rj-review-score > i { width: 2px; height: 80px; flex: 0 0 2px; background: #e0e0e0; }
+	.rj-review-score p { margin: 0; color: #303030; font: 400 22px/normal 'Sarala', sans-serif; white-space: nowrap; }
+	.rj-review-score b { color: #cca646; font-weight: 400; }
+	.rj-write-review { display: flex; min-height: 45px; gap: 10px; align-items: center; justify-content: center; padding: 8px 16px; border: 0; border-radius: 5px; background: #cca646; color: #fff; font: 400 18px/normal 'Sarala', sans-serif; cursor: pointer; }
+	.rj-write-review img { width: 24px; height: 24px; }
+	.rj-related { position: relative; width: min(calc(100% - 48px), 1760px); padding-block: 60px 0; }
+	.rj-related-head { display: grid; grid-template-columns: 40px max-content minmax(40px, 1fr); gap: 8px; align-items: start; margin-bottom: 12px; }
+	.rj-related-head > i { height: 1.5px; margin-top: 13px; background: var(--rj-gold, #cca646); }
+	.rj-related-head > div { display: flex; flex-direction: column; align-items: flex-start; }
+	.rj-related-head h2 { margin: 0; color: #202020; font: 600 23px/27px 'Sarala', sans-serif; letter-spacing: 0; }
+	.rj-related-head p { margin: 0; color: #707070; font: 8px/12px 'Lato', sans-serif; }
+	.rj-related-item { flex: 0 0 calc((100% - 96px) / 5); min-width: 0; }
+	.rj-related-item :global(.rj-card-media-link:focus-visible) { outline: 2px solid var(--rj-gold, #cca646); outline-offset: -2px; }
+	.rj-related-item :global(.rj-card--listing .rj-card-info) { gap: 5px; }
+	.rj-related-item :global(.rj-card--listing .rj-card-swatch) { width: 18px; height: 18px; border-radius: 5px; }
+	.rj-related-item :global(.rj-card--listing .rj-card-name) { display: -webkit-box; width: 100%; max-width: 100%; min-height: 34px; overflow: hidden; font-size: 12px; line-height: 17px; white-space: normal; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+	.rj-related-item :global(.rj-card--listing .rj-card-category) { font-size: 9px; }
+	.rj-related-item :global(.rj-card--listing .rj-card-star) { width: 11px; height: 11px; }
+	.rj-related-item :global(.rj-card--listing .rj-card-rating-value) { height: 11px; font-size: 10px; line-height: 11px; transform: none; }
+	.rj-related-item :global(.rj-card--listing .rj-card-price) { font-size: 16px; }
+	.rj-related-item :global(.rj-card-wish) { padding: 7px; }
+	.rj-related-item :global(.rj-card-heart), .rj-related-item :global(.rj-card-spinner) { width: 18px; height: 18px; }
+	.rj-related :global(.rj-carousel-track) { gap: 24px; }
+	.rj-related :global(.rj-carousel-rail) { height: 4px; margin-top: 22px; border-radius: 4px; background: #f5f5f5; }
+	.rj-related :global(.rj-carousel-thumb) { height: 4px; background: #cca646; }
+	.rj-related-arrow { position: absolute; z-index: 4; top: 47%; display: grid; width: 38px; height: 38px; place-items: center; padding: 0 0 3px; border: 0; border-radius: 50%; background: #fff; box-shadow: 0 2px 12px rgb(0 0 0 / 8%); color: #606060; font: 300 27px/1 Arial, sans-serif; cursor: pointer; }
+	.rj-related-arrow.is-prev { left: -14px; }
+	.rj-related-arrow.is-next { right: -14px; }
 	.rj-loading { min-height: 300px; display: grid; place-items: center; }
-	.rj-reviews { border-top: 1px solid #f0f0f0; }
-	.rj-review-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; text-align: left; }
-	.rj-review-grid article { padding: 28px; border: 1px solid #eee; border-radius: 5px; } .rj-review-stars { color: #cca646; } .rj-review-grid article p { min-height: 70px; color: #707070; font: 14px/22px 'Lato', sans-serif; }
+	.rj-pdp-promo { margin-block: 60px; }
+	.rj-pdp-promo :global(.rj-banner) { padding: 0 60px; }
+	.rj-dazzling { position: relative; width: min(calc(100% - 120px), 1760px); margin-inline: auto; padding-block: 45px 60px; }
+	.rj-pdp-promo + .rj-dazzling { padding-top: 0; }
+	.rj-dazzling .rj-related-head { grid-template-columns: 65px 275px minmax(65px, 1fr); gap: 0; margin-bottom: 35px; }
+	.rj-dazzling .rj-related-head > i { height: 2px; margin-top: 27px; }
+	.rj-dazzling .rj-related-head > div { gap: 2px; }
+	.rj-dazzling .rj-related-head h2 { font: 600 28px/34px 'Lato', sans-serif; }
+	.rj-dazzling .rj-related-head p { color: #5c5c5c; font: 400 12px/20px 'Sarala', sans-serif; }
+	.rj-dazzling-item { flex: 0 0 calc((100% - 72px) / 4); min-width: 0; }
+	.rj-dazzling-item :global(.rj-card-media-link:focus-visible) { outline: 2px solid var(--rj-gold, #cca646); outline-offset: -2px; }
+	.rj-dazzling :global(.rj-carousel-track) { gap: 24px; }
+	.rj-dazzling :global(.rj-carousel-rail) { height: 4px; margin-top: 20px; border-radius: 4px; background: #f5f5f5; }
+	.rj-dazzling :global(.rj-carousel-thumb) { height: 4px; background: #cca646; }
+	.rj-dazzling .rj-related-arrow { top: 48%; }
+
+	.rj-testimonials { width: 100%; height: 573px; padding: 33px 0 57px; overflow: hidden; background: #fdfdfd; }
+	.rj-testimonials-head { display: grid; grid-template-columns: 340px 320px 340px; gap: 10px; align-items: center; justify-content: center; }
+	.rj-testimonials-head > i { height: 2px; background: #a8a8a8; }
+	.rj-testimonials-head > div { display: flex; height: 65px; flex-direction: column; gap: 5px; align-items: center; }
+	.rj-testimonials-head h2 { margin: 0; color: #202020; font: 600 28px/34px 'Lato', sans-serif; letter-spacing: 0; white-space: nowrap; }
+	.rj-testimonials-head p { margin: 0; color: var(--rj-gold, #cca646); font: 400 16px/26px 'Sarala', sans-serif; }
+	.rj-testimonial-rows { display: flex; flex-direction: column; gap: 17px; margin-top: 41px; }
+	.rj-testimonial-row { width: 100%; padding-block: 5px; overflow: hidden; }
+	.rj-testimonial-track { display: flex; width: max-content; gap: 27px; animation: rj-testimonials-left 32s linear infinite; will-change: transform; }
+	.rj-testimonial-row.is-reverse .rj-testimonial-track { animation-name: rj-testimonials-right; }
+	.rj-testimonial-row:hover .rj-testimonial-track, .rj-testimonial-row:focus-within .rj-testimonial-track { animation-play-state: paused; }
+	.rj-testimonial-group { display: flex; gap: 27px; }
+	.rj-testimonial-card { box-sizing: border-box; display: flex; width: 310px; height: 170px; flex: 0 0 310px; flex-direction: column; gap: 13px; padding: 12px; overflow: hidden; border: 2.5px solid #ececec; border-radius: 5px; background: #fff; }
+	.rj-testimonial-card header { display: flex; height: 36px; flex: 0 0 36px; align-items: center; justify-content: space-between; gap: 8px; }
+	.rj-testimonial-person { display: flex; min-width: 0; gap: 10px; align-items: center; }
+	.rj-testimonial-person > img { width: 40px; height: 40px; flex: 0 0 40px; border-radius: 50%; object-fit: cover; }
+	.rj-testimonial-person > div { display: flex; width: 107px; min-width: 0; flex-direction: column; gap: 2px; }
+	.rj-testimonial-person b { overflow: hidden; color: #303030; font: 400 12px/normal 'Lato', sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+	.rj-testimonial-person > div > span { display: flex; height: 14px; gap: 4px; align-items: center; }
+	.rj-testimonial-stars { color: #fbb100; font: 10px/10px Arial, sans-serif; letter-spacing: 1px; white-space: nowrap; }
+	.rj-testimonial-person i { width: 1px; height: 14px; background: #e9e9e9; }
+	.rj-testimonial-person small { color: #b5b5b5; font: 400 10px/normal 'Sarala', sans-serif; white-space: nowrap; }
+	.rj-testimonial-stats { display: flex; gap: 12px; align-items: center; }
+	.rj-testimonial-stats span { display: flex; gap: 5px; align-items: center; color: #606060; font: 400 10px/normal 'Sarala', sans-serif; white-space: nowrap; }
+	.rj-testimonial-stats img { width: 15px; height: 15px; }
+	.rj-testimonial-card > p { display: -webkit-box; height: 62px; margin: 0; overflow: hidden; color: #555; font: 400 10px/15px 'Lato', sans-serif; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; }
+	.rj-testimonial-card footer { display: flex; min-height: 18px; margin-top: auto; align-items: center; justify-content: space-between; color: #252525; font: 500 10px/normal 'Lato', sans-serif; }
+	.rj-testimonial-card footer span { display: flex; gap: 5px; align-items: center; color: #555; font-weight: 400; }
+	.rj-testimonial-card footer img { width: 18px; height: 18px; border-radius: 50%; }
+	@keyframes rj-testimonials-left { to { transform: translateX(calc(-50% - 13.5px)); } }
+	@keyframes rj-testimonials-right { from { transform: translateX(calc(-50% - 13.5px)); } to { transform: translateX(0); } }
+	@media (min-width: 1600px) { .rj-dazzling-item { flex-basis: calc((100% - 96px) / 5); } }
 	@media (max-width: 1023px) {
-		.rj-breadcrumb, .rj-product, .rj-info, .rj-related, .rj-reviews { width: min(calc(100% - 60px), 684px); }
+		.rj-breadcrumb, .rj-product, .rj-info, .rj-related { width: min(calc(100% - 60px), 684px); }
+		.rj-related { width: calc(100% - 48px); }
 		.rj-product { grid-template-columns: 1fr; }
 		.rj-main-image { max-height: 684px; }
 		.rj-info { min-height: 0; }
+		.rj-info.is-reviews { height: auto; min-height: 0; }
 		.rj-detail-tabs { padding-inline: 30px; }
 		.rj-detail-body { padding-inline: 30px; }
 		.rj-detail-main { grid-template-columns: 1fr; }
 		.rj-detail-visual { width: min(100%, 560px); margin-inline: auto; }
-		.rj-related-grid { grid-template-columns: repeat(2, 1fr); row-gap: 40px; }
+		.rj-detail-reviews { display: flex; height: auto; min-height: 464px; flex-direction: column; }
+		.rj-review-summary, .rj-review-feed { position: static; box-sizing: border-box; width: 100%; }
+		.rj-review-summary { order: -1; padding: 45px 30px; }
+		.rj-review-feed { align-items: stretch; padding: 30px; border-top: 1px solid #e0e0e0; }
+		.rj-review-divider { display: none; }
+		.rj-review-card { height: auto; min-height: 150px; }
+		.rj-related-item { flex-basis: calc((100% - 80px) / 5); }
+		.rj-related :global(.rj-carousel-track) { gap: 20px; }
+		.rj-pdp-promo :global(.rj-banner) { padding-inline: 0; }
+		.rj-dazzling { width: calc(100% - 60px); padding-block: 40px 50px; }
+		.rj-dazzling .rj-related-head { grid-template-columns: 40px 245px minmax(40px, 1fr); margin-bottom: 30px; }
+		.rj-dazzling .rj-related-head > i { margin-top: 23px; }
+		.rj-dazzling .rj-related-head h2 { font-size: 24px; line-height: 29px; }
+		.rj-dazzling-item { flex-basis: calc((100% - 20px) / 2); }
+		.rj-dazzling :global(.rj-carousel-track) { gap: 20px; }
+		.rj-testimonials { height: auto; padding: 40px 0; }
+		.rj-testimonials-head { grid-template-columns: minmax(40px, 1fr) max-content minmax(40px, 1fr); width: calc(100% - 60px); margin-inline: auto; }
+		.rj-testimonials-head > div { height: auto; }
+		.rj-testimonials-head h2 { font-size: 24px; line-height: 30px; }
+		.rj-testimonial-rows { margin-top: 30px; }
 	}
 	@media (max-width: 639px) {
-		.rj-breadcrumb, .rj-product, .rj-info, .rj-related, .rj-reviews { width: calc(100% - 40px); }
+		.rj-breadcrumb, .rj-product, .rj-info, .rj-related { width: calc(100% - 40px); }
 		.rj-info { width: calc(100% - 30px); margin-top: 65px; }
 		.rj-breadcrumb { min-height: 50px; font-size: 12px; }
 		.rj-main-image { aspect-ratio: 1; }
@@ -634,16 +1045,18 @@
 		.rj-thumbnails { display: flex; gap: 10px; overflow-x: auto; margin-top: 12px; } .rj-thumbnails button { width: 92px; flex: 0 0 92px; }
 		.rj-title-row { grid-template-columns: 1fr auto; gap: 8px; } .rj-title-row h1 { font-size: 22px; line-height: 31px; } .rj-breakup-wrap { width: 40px; } .rj-breakup-wrap > small { display: none; } .rj-breakup { width: 40px; padding: 0; } .rj-breakup span { display: none; }
 		.rj-price-row strong { font-size: 24px; }
-		.rj-custom-section { width: 100%; margin-left: 0; }
+		.rj-custom-section, .rj-size-guide { width: 100%; margin-left: 0; }
 		.rj-options { grid-template-columns: 1fr; height: auto; } .rj-option { height: 96px; }
-		.rj-buy-row { grid-template-columns: 112px 1fr; } .rj-share { display: none; }
+		.rj-buy-row { grid-template-columns: 86px minmax(0, 1fr) 52px; gap: 6px; }
+		.rj-share { display: flex; }
+		.rj-share > span { display: none; }
 		.rj-service-row { flex-direction: column; align-items: flex-start; gap: 16px; }
 		.rj-payments { gap: 10px; }
 		.rj-detail-tabs { height: 58px; padding: 12px 15px; }
 		.rj-detail-tabs > div:first-child { gap: 12px; }
 		.rj-detail-tabs > div:first-child button { padding-bottom: 4px; font-size: 12px; line-height: 18px; }
 		.rj-style-copy { gap: 10px; padding: 2px 5px; font-size: 11px; line-height: 15px; }
-		.rj-style-copy > span { width: 61px; }
+		.rj-style-copy > span { display: none; }
 		.rj-style-copy button { width: 76px; height: 30px; padding: 5px 10px; font-size: 11px; }
 		.rj-style-copy button img { width: 20px; height: 20px; }
 		.rj-detail-body { gap: 22px; padding: 22px 10px 10px; }
@@ -653,26 +1066,62 @@
 		.rj-detail-main { display: flex; flex-direction: column; gap: 22px; align-items: center; }
 		.rj-detail-visual { width: calc(100% - 16px); height: 241px; margin: 0; }
 		.rj-detail-product-image { inset: 0; width: 100%; height: 100%; }
-		.rj-detail-height-label { top: 37px; left: 17.73%; height: 188px; gap: 12px; }
+		.rj-detail-height-label { top: 54px; left: 19.73%; height: 162px; gap: 12px; }
 		.rj-detail-height-label span { font-size: 12px; }
-		.rj-detail-height-guide { top: 37px; left: 25.87%; width: 24.3%; height: 188px; }
+		.rj-detail-height-guide { top: 54px; left: 27.87%; width: 24.3%; height: 162px; }
 		.rj-detail-stone-guide { top: 92px; left: 43.9%; width: 34.9%; }
 		.rj-detail-stone { top: 50px; right: 2.9%; width: 57px; font-size: 10px; line-height: normal; }
 		.rj-detail-stone > span { width: 57px; height: 53px; }
 		.rj-detail-card { width: 100%; min-height: 399px; }
 		.rj-detail-card header { height: 66px; gap: 8px; padding: 11px 12px; }
-		.rj-detail-card header > strong { max-width: 172px; font-size: 14px; }
+		.rj-detail-card header > strong { max-width: none; font-size: 14px; }
 		.rj-detail-card header > div { gap: 7px; }
-		.rj-detail-card header > div > span { width: 80px; font-size: 11px; line-height: 14px; white-space: normal; }
-		.rj-detail-card header button { gap: 7px; padding: 7px 6px; font-size: 11px; }
+		.rj-detail-card header > div { flex: 0 0 145px; }
+		.rj-detail-card header > div > span { width: 64px; max-width: 64px; flex: 0 0 64px; font-size: 11px; line-height: 14px; white-space: nowrap; }
+		.rj-detail-card header button { min-width: 68px; gap: 7px; padding: 7px 6px; font-size: 11px; }
 		.rj-detail-card-body { padding: 25px 22px 20px; }
 		.rj-detail-card-body > p { margin-bottom: 20px; font-size: 14px; line-height: 18px; }
 		.rj-detail-facts { grid-template-columns: 1fr; gap: 30px; padding-left: 0; }
 		.rj-detail-fact h3 { gap: 8px; font-size: 14px; }
 		.rj-detail-fact h3 > img:first-child { width: 22px; height: 22px; }
 		.rj-detail-fact p { margin: 8px 0 0; font-size: 14px; }
-		.rj-detail-reviews { grid-template-columns: 1fr; min-height: 500px; padding: 22px 10px; }
-		.rj-related, .rj-reviews { padding-block: 55px; } .rj-related > p, .rj-reviews > p { font-size: 15px; } .rj-related h2, .rj-reviews h2 { margin-bottom: 30px; font-size: 25px; }
-		.rj-related-grid, .rj-review-grid { grid-template-columns: 1fr; }
+		.rj-review-summary { gap: 20px; padding: 35px 15px; }
+		.rj-review-score { height: auto; flex-direction: column; gap: 14px; }
+		.rj-review-score > div { width: 224px; flex-basis: auto; align-items: center; }
+		.rj-review-score > i { width: 80px; height: 1px; flex-basis: 1px; }
+		.rj-review-score p { font-size: 18px; }
+		.rj-review-feed { padding: 20px 10px; }
+		.rj-review-card header b { max-width: 105px; }
+		.rj-review-card-rating { gap: 1px; }
+		.rj-review-card-rating i { width: 11px; height: 11px; }
+		.rj-related { padding: 60px 0 35px; }
+		.rj-related { width: calc(100% - 30px); }
+		.rj-related-head { grid-template-columns: 25px max-content minmax(25px, 1fr); margin-bottom: 15px; }
+		.rj-related-head h2 { font-size: 15px; line-height: 19px; }
+		.rj-related-head p { font-size: 7px; line-height: 10px; }
+		.rj-related-item { flex-basis: 190px; }
+		.rj-related :global(.rj-carousel-track) { gap: 16px; }
+		.rj-related-arrow { width: 34px; height: 34px; }
+		.rj-related-arrow.is-prev { left: -10px; }
+		.rj-related-arrow.is-next { right: -10px; }
+		.rj-dazzling { width: calc(100% - 30px); padding-block: 35px 45px; }
+		.rj-dazzling .rj-related-head { grid-template-columns: 25px max-content minmax(25px, 1fr); margin-bottom: 22px; }
+		.rj-dazzling .rj-related-head > i { margin-top: 18px; }
+		.rj-dazzling .rj-related-head h2 { font-size: 18px; line-height: 22px; }
+		.rj-dazzling .rj-related-head p { font-size: 7px; line-height: 10px; }
+		.rj-dazzling-item { flex-basis: 190px; }
+		.rj-dazzling :global(.rj-carousel-track) { gap: 16px; }
+		.rj-testimonials { padding: 35px 0; }
+		.rj-testimonials-head { grid-template-columns: minmax(25px, 1fr) max-content minmax(25px, 1fr); width: 100%; gap: 8px; }
+		.rj-testimonials-head h2 { font-size: 19px; line-height: 24px; }
+		.rj-testimonials-head p { font-size: 13px; line-height: 20px; }
+		.rj-testimonial-rows { gap: 12px; margin-top: 25px; }
+		.rj-testimonial-card { width: 280px; height: 160px; flex-basis: 280px; padding: 10px; }
+		.rj-testimonial-stats { gap: 7px; }
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.rj-testimonial-row { overflow-x: auto; scrollbar-width: none; }
+		.rj-testimonial-track, .rj-testimonial-row.is-reverse .rj-testimonial-track { animation: none; transform: none; }
+		.rj-testimonial-group[aria-hidden='true'] { display: none; }
 	}
 </style>

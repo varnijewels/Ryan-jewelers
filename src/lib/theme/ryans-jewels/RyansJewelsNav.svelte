@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { ChevronRight, Menu } from '@lucide/svelte'
 	import { page } from '$app/state'
-	import CartSidebar from '$lib/components/nav/cart-sidebar.svelte'
 	import ProfileDropdown from '$lib/components/nav/profile-dropdown.svelte'
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu'
 	import { AuthButton } from '$lib/core/components/index.js'
 	import { MsSearchRenderer } from '$lib/core/composables/index.js'
 	import { priceRoundUp } from '@misiki/kitcommerce-core/utils'
+	import { getCartState } from '$lib/core/stores/index.js'
 	import { ryansJewelsNavContent as nav } from './nav-content.js'
 	import RjAdminMegaMenu from './RjAdminMegaMenu.svelte'
 	import { menuChildren, menuHref, menuLabel, resolveAdminMenu } from './admin-menu.js'
@@ -29,13 +29,14 @@
 
 	let search = $state('')
 	let openMega = $state<string | null>(null)
+	const cartState = getCartState()
 
 	const isLoggedIn = $derived(!!userState?.user?.role)
 	const displayName = $derived(userState?.user?.firstName || userState?.user?.name || 'My Account')
-	const showCart = $derived(!pathname.startsWith('/checkout'))
+	const cartQty = $derived((cartState?.cart?.lineItems || []).reduce((total: number, item: any) => total + Number(item.qty || 0), 0))
 	const resolvedMenu = $derived(resolveAdminMenu(navModule.megaMenu, navModule.navMenu, nav.home, nav.menu))
 	const homeLabel = $derived(menuLabel(resolvedMenu.home))
-	const homeHref = $derived(menuHref(resolvedMenu.home))
+	const homeHref = '/'
 </script>
 
 <!-- Utility bar — Figma 1:5409 -->
@@ -259,15 +260,8 @@
 					</span>
 				</a>
 
-				{#if showCart}
-					<CartSidebar
-						onClose={navModule.closeCartSidebar}
-						onContinueShopping={navModule.handleContinueShoppingClick}
-						onRemoveCartItem={navModule.removeCartItem}
-					>
-						{#snippet trigger({ toggle, qty })}
-							<button class="rj-cart" class:rj-cart--empty={!qty} type="button" aria-label="Toggle cart" onclick={toggle}>
-								{#if qty > 0}
+				<a class="rj-cart" class:rj-cart--empty={!cartQty} href="/checkout/cart" aria-label="Open cart">
+					{#if cartQty > 0}
 									<span class="rj-cart-icon rj-cart-icon--count">
 										<svg width="27" height="27" viewBox="0 0 27 27" fill="none" aria-hidden="true">
 											<path
@@ -283,7 +277,7 @@
 												fill="currentColor"
 											/>
 										</svg>
-										<span class="rj-cart-count">{qty}</span>
+							<span class="rj-cart-count">{cartQty}</span>
 									</span>
 								{:else}
 									<span class="rj-cart-icon">
@@ -307,12 +301,9 @@
 											<defs><clipPath id="rj-cart-clip"><rect width="24" height="24" fill="white" /></clipPath></defs>
 										</svg>
 									</span>
-								{/if}
-								<span class="rj-cart-label">{nav.cartLabel}</span>
-							</button>
-						{/snippet}
-					</CartSidebar>
-				{/if}
+					{/if}
+					<span class="rj-cart-label">{nav.cartLabel}</span>
+				</a>
 
 				{#if isLoggedIn}
 					<ProfileDropdown onSignOut={navModule.handleSignOut}>
@@ -876,6 +867,7 @@
 		background: none;
 		color: var(--rj-ink, #404040);
 		cursor: pointer;
+		text-decoration: none;
 	}
 
 	.rj-cart-icon {

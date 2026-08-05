@@ -15,9 +15,11 @@
 	import { tweened } from 'svelte/motion'
 	import { cubicOut } from 'svelte/easing'
 	import CheckoutButton from '$lib/components/buttons/checkout-button.svelte'
+	import RyansJewelsCartPage from '$lib/theme/ryans-jewels/RyansJewelsCartPage.svelte'
 
 	const cartModule = new CartModule()
 	const cartState = cartModule.cartState
+	const isRyansJewels = $derived(page.data?.theme?.name === 'ryans-jewels')
 
 	const totalSavings = $derived(
 		(cartState.cart?.lineItems || []).reduce((acc, item) => acc + Math.max(0, (item.mrp || item.price) - item.price) * item.qty, 0) +
@@ -68,6 +70,9 @@
 	<title>Cart - {page?.data?.store?.name || ''}</title>
 </svelte:head>
 
+{#if isRyansJewels}
+	<RyansJewelsCartPage {cartModule} {cartState} />
+{:else}
 <div class="min-h-screen py-8">
 	<div class="container mx-auto px-4">
 		<CheckoutHeader step={1} />
@@ -614,3 +619,4 @@
 		{/await}
 	</div>
 </div>
+{/if}

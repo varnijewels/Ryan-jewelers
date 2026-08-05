@@ -757,6 +757,10 @@
 			width: 159px;
 		}
 
+		.rj-foot-usp:nth-child(5) {
+			grid-column: auto;
+		}
+
 		.rj-foot-usp:nth-child(4) {
 			grid-column: 2;
 			width: 136px;

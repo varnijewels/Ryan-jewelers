@@ -12,10 +12,13 @@
 	import { fade, fly, scale } from 'svelte/transition'
 	import { quintOut } from 'svelte/easing'
 
+	let { modalOnly = false }: { modalOnly?: boolean } = $props()
 	const productState = useProductState()
+	let reviewSubmitting = $state(false)
+	const reviewPluginActive = $derived(Boolean(page.data.store?.plugins?.isProductReviewsAndRatings?.active))
 	const accRating = $derived.by(() => {
 		if (!page.data?.product?.ratings?.length) return 0
-		const total = page.data?.product?.ratings?.reduce((acc, cur) => acc + cur.rating, 0)
+		const total = page.data?.product?.ratings?.reduce((acc: number, cur: any) => acc + cur.rating, 0)
 		const rating = total / page.data?.product?.ratings?.length
 		return Math.floor(rating * 10) / 10
 	})
@@ -27,10 +30,44 @@
 		{ text: 'Very Good', color: 'text-emerald-600' },
 		{ text: 'Excellent', color: 'text-emerald-700' }
 	]
+
+	async function submitReview() {
+		const review = productState.reviewMessage?.trim()
+		if (reviewSubmitting || productState.select === null || !review || !page.data?.product?.id || !productState.selectedVariant?.id) return
+		reviewSubmitting = true
+		try {
+			await productService.addReview({
+				productId: page.data?.product.id,
+				variantId: productState.selectedVariant?.id,
+				rating: productState.select,
+				review,
+				uploadedImages: (productState.uploadedImagestoSave || []).filter(Boolean)
+			})
+			productState.showReviewForm = false
+			productState.select = null
+			productState.reviewMessage = ''
+			await invalidateAll()
+			toast.success('Review published! Thanks for sharing.')
+		} catch (error: any) {
+			toast.error(error?.message || 'Could not post review. Try again?')
+		} finally {
+			reviewSubmitting = false
+		}
+	}
+
+	function closeReviewForm() {
+		if (!reviewSubmitting) productState.showReviewForm = false
+	}
+
+	function closeReviewFormOnEscape(event: KeyboardEvent) {
+		if (event.key === 'Escape') closeReviewForm()
+	}
 </script>
 
+<svelte:window onkeydown={closeReviewFormOnEscape} />
+
 <!-- Reviews Section -->
-{#if page.data.store?.plugins?.isProductReviewsAndRatings?.active}
+{#if !modalOnly && reviewPluginActive}
 	<section class="">
 		{#if page.data?.product?.ratings?.length}
 			<div class="intra-gap grid grid-cols-1 lg:grid-cols-12">
@@ -278,26 +315,32 @@
 			</div>
 		{/if}
 	</section>
+{/if}
 
 	<!-- Review Form Modal Overlay -->
 	{#if productState.showReviewForm}
-		<div class="fixed inset-0 z-[100] flex items-center justify-center bg-foreground backdrop-blur-sm sm:p-4" transition:fade={{ duration: 200 }}>
+		<div class="fixed inset-0 z-[100] flex items-center justify-center bg-foreground backdrop-blur-sm sm:p-4" transition:fade={{ duration: 200 }} role="presentation" onclick={(event) => event.target === event.currentTarget && closeReviewForm()}>
 			<div
 				class="font-montserrat relative h-full w-full overflow-hidden bg-background sm:h-auto sm:max-h-[90vh] sm:max-w-2xl sm:rounded-radius sm:shadow-2xl"
 				transition:scale={{ start: 0.95, duration: 300, easing: quintOut }}
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="review-dialog-title"
+				tabindex="-1"
 			>
 				<!-- Modal Header -->
 				<div
 					class="sticky top-0 z-10 flex items-center justify-between border-b border-border px-6 py-4 backdrop-blur-md sm:px-8 sm:py-6"
 				>
 					<div>
-						<h3 class="text-xl font-black tracking-tight text-foreground sm:text-2xl">Write a Review</h3>
+						<h3 id="review-dialog-title" class="text-xl font-black tracking-tight text-foreground sm:text-2xl">Write a Review</h3>
 						<p class="text-xs font-medium text-muted-foreground sm:text-sm">Share your experience with us</p>
 					</div>
 					<Button
 						variant="ghost"
 						size="icon"
-						onclick={() => (productState.showReviewForm = false)}
+						onclick={closeReviewForm}
+						aria-label="Close review form"
 						class="rounded-full"
 					>
 						<X class="h-6 w-6" />
@@ -313,10 +356,12 @@
 							<div class="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
 								<div class="flex items-center gap-1">
 									{#each { length: 5 } as _, i}
-										<Button
-											variant="plain"
-											class="h-12 w-12 p-0"
-											onclick={() => productState.onSelect(i + 1)}
+									<Button
+										variant="plain"
+										class="h-12 w-12 p-0"
+										onclick={() => productState.onSelect(i + 1)}
+										aria-label={`${i + 1} out of 5 stars`}
+										aria-pressed={productState.select === i + 1}
 										>
 											<Star
 												fill={productState.select !== null && productState.select >= i + 1 ? 'currentColor' : 'none'}
@@ -350,6 +395,7 @@
 									id="review"
 									placeholder="What did you love? What could be better? We're all ears."
 									bind:value={productState.reviewMessage}
+									maxlength={2000}
 									class="min-h-[140px] rounded-md border-2 border-border p-4 text-base transition-all focus:ring-0 sm:min-h-[160px] sm:p-6 sm:text-lg"
 								/>
 								<div class="absolute bottom-4 right-4 text-[10px] font-bold text-muted-foreground/30 sm:text-xs">
@@ -365,39 +411,24 @@
 					<div class="flex items-center justify-end gap-3 sm:gap-4">
 						<Button
 							variant="ghost"
-							onclick={() => (productState.showReviewForm = false)}
+							onclick={closeReviewForm}
 							class="h-10 sm:h-12 px-4 sm:px-6"
 						>
 							Discard
 						</Button>
 						<Button
-							disabled={productState.select === null || !productState.reviewMessage}
+							disabled={reviewSubmitting || productState.select === null || !productState.reviewMessage?.trim() || !page.data?.product?.id || !productState.selectedVariant?.id}
+							aria-busy={reviewSubmitting}
 							class="h-10 sm:h-12 px-6 sm:px-10"
-							onclick={async () => {
-								try {
-									await productService.addReview({
-										productId: page.data?.product.id,
-										variantId: productState.selectedVariant?.id,
-										rating: productState.select || 1,
-										review: productState.reviewMessage,
-										uploadedImages: productState.uploadedImagestoSave
-									})
-									productState.showReviewForm = false
-									await invalidateAll()
-									toast.success('Review published! Thanks for sharing.')
-								} catch (error: any) {
-									toast.error(error?.message || 'Could not post review. Try again?')
-								}
-							}}
+							onclick={submitReview}
 						>
-							Post Review
+							{reviewSubmitting ? 'Posting...' : 'Post Review'}
 						</Button>
 					</div>
 				</div>
 			</div>
 		</div>
 	{/if}
-{/if}
 
 <style>
 	:global(.font-montserrat) {
