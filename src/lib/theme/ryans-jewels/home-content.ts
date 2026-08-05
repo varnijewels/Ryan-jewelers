@@ -486,6 +486,7 @@ export const faq = {
 
 export const ryansJewelsHome = {
 	hero: {
+		video: '/ryans-jewels/home/hero.mp4',
 		image: '/ryans-jewels/home/hero-desktop.png',
 		imageAlt: 'Ryan Jewelers diamond engagement ring',
 		href: '/products',

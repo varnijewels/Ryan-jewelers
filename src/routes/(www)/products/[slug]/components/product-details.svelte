@@ -21,12 +21,14 @@
 	import StoreCheck from './store-check.svelte'
 	import { page } from '$app/state'
 	import { Button } from '$lib/components/ui/button/index.js'
+	import RyansJewelsProductDetails from '$lib/theme/ryans-jewels/RyansJewelsProductDetails.svelte'
 	//import { PUBLIC_LITEKART_DOMAIN } from '$env/static/public'
 	const PUBLIC_LITEKART_DOMAIN = $derived(page.url.origin)
 
 	const productState = useProductState()
   const data = $derived(page.data)
-  const showPincodeCheck = $derived(productState.wareHousePluginEnabled && productState.isIndianPincodesPluginEnabled)
+	const showPincodeCheck = $derived(productState.wareHousePluginEnabled && productState.isIndianPincodesPluginEnabled)
+	const activeTheme = $derived(page.data?.theme?.name ?? 'default')
 </script>
 
 <SeoHeader
@@ -46,6 +48,9 @@
   })) || []}
 />
 
+{#if activeTheme === 'ryans-jewels'}
+	<RyansJewelsProductDetails />
+{:else}
 <!-- <ProductRenderer bind:data>
 {#snippet content(productState)} -->
 <div class="intra-pt page-width hidden md:block">
@@ -186,3 +191,4 @@
 />
 <!-- {/snippet}
 </ProductRenderer> -->
+{/if}

@@ -1,9 +1,8 @@
 <script lang="ts">
 	/**
-	 * Full-bleed hero.
-	 * Source: 1:5755 (desktop 1440x745) · 63:40034 (tablet 744x434) · 77:106848 (mobile 412x290).
-	 * All three are the same photograph at a different crop height, so the image is
-	 * rendered edge-to-edge with a per-breakpoint aspect ratio.
+	 * Full-bleed hero video.
+	 * Source: 1:6861 (desktop 1440x745) · 63:40034 (tablet 744x434) · 77:106848 (mobile 412x290).
+	 * The same media is rendered edge-to-edge with a per-breakpoint aspect ratio.
 	 */
 	import { ryansJewelsHome } from './home-content.js'
 
@@ -12,7 +11,9 @@
 
 <section class="rj-hero">
 	<a class="rj-hero-link" href={hero.href} aria-label={hero.imageAlt}>
-		<img class="rj-hero-img" src={hero.image} alt={hero.imageAlt} width="1440" height="745" fetchpriority="high" />
+		<video class="rj-hero-img" autoplay muted loop playsinline poster={hero.image} aria-hidden="true">
+			<source src={hero.video} type="video/mp4" />
+		</video>
 	</a>
 </section>
 
