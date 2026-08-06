@@ -11,6 +11,7 @@
 	let now = $state(0)
 	let cutoff = $state(0)
 	let deliveryAt = $state(0)
+	let continueShoppingHref = $state('/products')
 
 	const items = $derived(cartState.cart?.lineItems || [])
 	const currency = $derived(page.data?.store?.currency?.code || cartState.cart?.currencyCode || 'USD')
@@ -28,6 +29,7 @@
 	})
 
 	onMount(() => {
+		continueShoppingHref = sessionStorage.getItem('rj-continue-shopping') || '/products'
 		const orderCutoff = new Date()
 		orderCutoff.setHours(23, 59, 59, 999)
 		const delivery = new Date()
@@ -83,7 +85,7 @@
 				<div class="rj-cart-main">
 					<header class="rj-cart-header">
 						<h1>Add To Cart <b>({String(items.length).padStart(2, '0')})</b></h1>
-						<a href="/products"><span class="rj-cart-back"><img src="/ryans-jewels/cart/arrow-left.svg" alt="" /><img src="/ryans-jewels/cart/arrow-left.svg" alt="" /></span>Continue Shopping</a>
+						<a href={continueShoppingHref}><span class="rj-cart-back"><img src="/ryans-jewels/cart/arrow-left.svg" alt="" /><img src="/ryans-jewels/cart/arrow-left.svg" alt="" /></span>Continue Shopping</a>
 					</header>
 
 					<div class="rj-cart-list">
@@ -150,7 +152,7 @@
 		{:else}
 			<div class="rj-cart-empty">
 				<div class="rj-cart-empty-art"><img src="/ryans-jewels/cart/empty-order.png" alt="Your cart is empty" /></div>
-				<a href="/products"><span>Continue Shopping</span><img src="/ryans-jewels/cart/empty-arrow-right.svg" alt="" /></a>
+				<a href={continueShoppingHref}><span>Continue Shopping</span><img src="/ryans-jewels/cart/empty-arrow-right.svg" alt="" /></a>
 			</div>
 		{/if}
 	{/await}

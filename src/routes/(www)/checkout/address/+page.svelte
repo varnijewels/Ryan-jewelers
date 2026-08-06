@@ -16,6 +16,7 @@
 	import CheckoutHeader from '$lib/components/checkout/checkout-header.svelte'
 	import { appendOneTimeCartId } from '$lib/core/utils/index.js'
 	import CheckoutButton from '$lib/components/buttons/checkout-button.svelte'
+	import RyansJewelsCheckoutOverview from '$lib/theme/ryans-jewels/RyansJewelsCheckoutOverview.svelte'
 
 	const addressModule = new AddressModule()
 	const cartState = addressModule.cartState
@@ -23,12 +24,16 @@
 
 	const isEmailOk = $derived(addressModule.isEmailOk)
 	const isPhoneOk = $derived(addressModule.isPhoneOk)
+	const isRyansJewels = $derived(page.data?.theme?.name === 'ryans-jewels')
 </script>
 
 <svelte:head>
 	<title>Address - {page?.data?.store?.name || ''}</title>
 </svelte:head>
 
+{#if isRyansJewels}
+	<RyansJewelsCheckoutOverview {addressModule} {cartState} />
+{:else}
 <div class="min-h-screen py-8">
 	<div class="container mx-auto px-4">
 		<CheckoutHeader step={2} />
@@ -402,6 +407,7 @@
 		{/await}
 	</div>
 </div>
+{/if}
 
 <AddressListModal
 	bind:show={addressModule.showAddressList}

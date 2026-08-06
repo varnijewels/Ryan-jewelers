@@ -3,7 +3,7 @@
 	import { type Snippet } from 'svelte'
 
 	import { X, UserCircle, ShoppingBag, MapPin, Heart, ArrowRightCircleIcon } from '@lucide/svelte'
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu'
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js'
 	import LazyImg from '$lib/core/components/image/lazy-img.svelte'
 	import { Button } from '$lib/components/ui/button'
 	import { page } from '$app/state'

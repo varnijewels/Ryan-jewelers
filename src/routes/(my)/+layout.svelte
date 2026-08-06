@@ -10,9 +10,11 @@
 	import { StorePlugins } from '$lib/core/components/index.js'
 	import { fade, fly } from 'svelte/transition'
 	import { quintOut } from 'svelte/easing'
+	import RyansJewelsAccountSidebar from '$lib/theme/ryans-jewels/RyansJewelsAccountSidebar.svelte'
 
 	let { children }: { children: Snippet } = $props()
 	let isMobileMenuOpen = $state(false)
+	const isRyansJewels = $derived(page.data?.theme?.name === 'ryans-jewels')
 
   const wishlistPlugin = $derived(page.data?.store?.plugins?.isWishlist)
 	setWishlistState()
@@ -53,6 +55,12 @@
 
 <Nav />
 
+{#if isRyansJewels}
+	<div class="rj-account-shell">
+		<RyansJewelsAccountSidebar />
+		<main class="rj-account-content">{@render children()}</main>
+	</div>
+{:else}
 <div class="page-width relative flex min-h-screen flex-col overflow-hidden p-0 md:flex-row md:p-0">
 	<!-- Backdrop overlay for mobile -->
 	{#if isMobileMenuOpen}
@@ -115,6 +123,7 @@
 		{@render children()}
 	</main>
 </div>
+{/if}
 
 <Footer />
 
@@ -130,6 +139,18 @@
 		height: 100dvh; /* For mobile browsers with dynamic viewport height */
 	}
 
+	.rj-account-shell {
+		display: grid;
+		box-sizing: border-box;
+		grid-template-columns: clamp(225px, 15.625vw, 300px) minmax(0, 1fr);
+		width: min(calc(100% - clamp(120px, 8.333vw, 160px)), 1760px);
+		gap: clamp(24px, 1.667vw, 32px);
+		align-items: start;
+		margin: 44px auto 60px;
+	}
+
+	.rj-account-content { min-width: 0; overflow: visible; padding: 0; }
+
 	/* Improve transition performance */
 	aside {
 		will-change: transform;
@@ -141,5 +162,9 @@
 		main {
 			padding-bottom: 2rem;
 		}
+	}
+
+	@media (max-width: 900px) {
+		.rj-account-shell { display: block; width: calc(100% - 32px); margin: 24px auto 40px; }
 	}
 </style>

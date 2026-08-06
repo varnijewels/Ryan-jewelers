@@ -1,14 +1,15 @@
 <script lang="ts">
 	import { ChevronRight, Menu } from '@lucide/svelte'
+	import { goto } from '$app/navigation'
 	import { page } from '$app/state'
-	import ProfileDropdown from '$lib/components/nav/profile-dropdown.svelte'
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu'
-	import { AuthButton } from '$lib/core/components/index.js'
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js'
 	import { MsSearchRenderer } from '$lib/core/composables/index.js'
+	import { AuthButton } from '$lib/core/components/index.js'
 	import { priceRoundUp } from '@misiki/kitcommerce-core/utils'
 	import { getCartState } from '$lib/core/stores/index.js'
 	import { ryansJewelsNavContent as nav } from './nav-content.js'
 	import RjAdminMegaMenu from './RjAdminMegaMenu.svelte'
+	import RjProfileDropdown from './RjProfileDropdown.svelte'
 	import { menuChildren, menuHref, menuLabel, resolveAdminMenu } from './admin-menu.js'
 
 	let {
@@ -32,7 +33,9 @@
 	const cartState = getCartState()
 
 	const isLoggedIn = $derived(!!userState?.user?.role)
-	const displayName = $derived(userState?.user?.firstName || userState?.user?.name || 'My Account')
+	const displayName = $derived(
+		`${userState?.user?.firstName || ''} ${userState?.user?.lastName || ''}`.trim() || userState?.user?.name || 'My Account'
+	)
 	const cartQty = $derived((cartState?.cart?.lineItems || []).reduce((total: number, item: any) => total + Number(item.qty || 0), 0))
 	const resolvedMenu = $derived(resolveAdminMenu(navModule.megaMenu, navModule.navMenu, nav.home, nav.menu))
 	const homeLabel = $derived(menuLabel(resolvedMenu.home))
@@ -156,6 +159,7 @@
 </div>
 
 <!-- Main header — Figma 63:83424 (logged out) / 63:83358 (logged in) -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <header
 	class="rj-header"
 	onmouseleave={() => (openMega = null)}
@@ -306,7 +310,7 @@
 				</a>
 
 				{#if isLoggedIn}
-					<ProfileDropdown onSignOut={navModule.handleSignOut}>
+					<RjProfileDropdown onSignOut={navModule.handleSignOut}>
 						{#snippet trigger()}
 							<span class="rj-account">
 								<span class="rj-account-icon" aria-hidden="true">
@@ -344,7 +348,7 @@
 								</span>
 							</span>
 						{/snippet}
-					</ProfileDropdown>
+					</RjProfileDropdown>
 				{:else}
 					<DropdownMenu.Root>
 						<DropdownMenu.Trigger aria-label="Open account menu" class="rj-guest-trigger">
@@ -386,8 +390,8 @@
 							<DropdownMenu.Item class="rj-guest-item">
 								<AuthButton class="rj-guest-row" type="login"><img class="rj-guest-icon" src="/ryans-jewels/icons/order-history.svg" alt="" /><span>Order History</span><ChevronRight /></AuthButton>
 							</DropdownMenu.Item>
-							<DropdownMenu.Item class="rj-guest-item">
-								<a class="rj-guest-row" href="/order-tracking"><img class="rj-guest-icon" src="/ryans-jewels/icons/track-order.svg" alt="" /><span>Track Order</span><ChevronRight /></a>
+							<DropdownMenu.Item class="rj-guest-item" onSelect={() => goto('/order-tracking')}>
+								<span class="rj-guest-row"><img class="rj-guest-icon" src="/ryans-jewels/icons/track-order.svg" alt="" /><span>Track Order</span><ChevronRight /></span>
 							</DropdownMenu.Item>
 							<div class="rj-guest-rule"></div>
 							<DropdownMenu.Item class="rj-guest-item">

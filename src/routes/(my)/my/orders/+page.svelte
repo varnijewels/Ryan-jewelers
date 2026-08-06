@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button'
+	import { Button } from '$lib/components/ui/button/index.js'
 	import LazyImg from '$lib/core/components/image/lazy-img.svelte'
 	import {
 		ChevronRight,
@@ -17,9 +17,10 @@
 		LoaderCircle
 	} from '@lucide/svelte'
 	import { page } from '$app/state'
-	import { date, formatPrice } from '$lib/core/utils'
+	import { date, formatPrice } from '$lib/core/utils/index.js'
 	import { MyOrdersRenderer } from '$lib/core/composables/index.js'
 	import { fade, fly } from 'svelte/transition'
+	import RyansJewelsOrderHistoryPage from '$lib/theme/ryans-jewels/RyansJewelsOrderHistoryPage.svelte'
 
 	const getStatusStyles = (status: string) => {
 		switch (status?.toLowerCase()) {
@@ -46,13 +47,18 @@
 				return { bg: 'bg-red-50', text: 'text-red-700', ring: 'ring-red-600/20', dot: 'bg-red-500' }
 		}
 	}
+
+	const isRyansJewels = $derived(page.data?.theme?.name === 'ryans-jewels')
 </script>
 
 <svelte:head>
-	<title>My Orders | Svelte Commerce</title>
+	<title>{isRyansJewels ? 'Order History | Ryan Jewelers' : 'My Orders | Svelte Commerce'}</title>
 </svelte:head>
 
-<MyOrdersRenderer>
+{#if isRyansJewels}
+	<RyansJewelsOrderHistoryPage />
+{:else}
+	<MyOrdersRenderer>
 	{#snippet content({ loading, orders })}
 		<div class="mx-auto max-w-6xl px-0 md:py-8 md:py-12">
 			<!-- Header -->
@@ -209,7 +215,8 @@
 			{/if}
 		</div>
 	{/snippet}
-</MyOrdersRenderer>
+	</MyOrdersRenderer>
+{/if}
 
 <style>
 	:global(body) {

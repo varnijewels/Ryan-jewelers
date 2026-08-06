@@ -1,0 +1,279 @@
+================================================================================
+RYAN JEWELERS — CONTINUATION PROMPT
+Paste this whole file as the first message in a new session to resume the work.
+Last updated: 2026-08-06 (Asia/Kolkata)
+================================================================================
+
+## 0. PROJECT AND CURRENT GOAL
+
+Project root:
+  /Users/bhaktidesign7/Documents/projects/Ryan Jewels
+
+Figma file:
+  https://www.figma.com/design/XMPW8wCwQOrnp0c4uRBLJ5/Ryan-Jewels-Web
+
+Theme:
+  ryans-jewels
+
+Primary requirement:
+  Build the Ryan Jewelers storefront from Figma pixel by pixel while keeping
+  all commerce content connected to real storefront/API data. The requested
+  desktop account and checkout pages must be designed and tested at 1920px.
+  Do not replace real products, orders, prices, variants, addresses or customer
+  information with hardcoded demo data.
+
+Current development URL:
+  http://localhost:3000
+
+Latest completed page:
+  /my/orders — Order History, Figma node 1:36797
+
+--------------------------------------------------------------------------------
+## 1. NON-NEGOTIABLE WORKING RULES
+
+1. Read the requested Figma node before changing UI. Use the
+   figma-design-to-code skill and exported Figma assets where available.
+2. Match the exact font family, font size, weight, color, spacing, borders,
+   icon size, radius and alignment. The user expects pixel-by-pixel matching.
+3. Account, checkout and other requested desktop pages must be verified at a
+   1920px viewport.
+4. Reuse the existing Ryan Jewelers components and logic. Do not duplicate
+   order, address, cart, product or variant logic.
+5. All product/order/cart/customer/address data must come from the existing
+   API/composables. Static content is allowed only for decorative Figma copy.
+6. Preserve the other storefront themes. Ryan-specific UI must remain inside
+   the `ryans-jewels` theme branch.
+7. Do not delete or reset unrelated user changes. The worktree is dirty and
+   contains the current session's uncommitted work.
+8. Keep the separate reminder/dashboard HTML outside the website files. It is
+   not part of the Ryan Jewelers storefront runtime.
+
+--------------------------------------------------------------------------------
+## 2. WORK COMPLETED ON 2026-08-06
+
+### Navigation, cart and product flow
+
+- Checked the website navigation and repaired the My Profile route that was
+  opening the custom 500 Internal Error page.
+- Updated Continue Shopping so it can return to the product/category flow the
+  customer came from instead of always forcing one generic destination.
+- Updated storefront product rendering to consume the available API product
+  list rather than showing only one static product.
+- Refined product-card/product-detail image sizing so oversized images do not
+  break the visual balance.
+- Added the requested five-product presentation to the desktop
+  “Dazzling & Stylish...” area.
+
+### Metal color and product interaction
+
+- Kept all three metal choices: White Gold, Yellow Gold and Rose Gold.
+- Removed the forced default selection where the design requires no initial
+  selection.
+- Connected available backend metal/variant values to variant selection.
+- The displayed product/variant image changes only when the backend supplies
+  the corresponding variant image. Never invent product-specific images.
+- Added/refined the product eye-icon hover popup from Figma node 1:30410.
+
+### Profile dropdown
+
+- Matched the logged-out and logged-in profile popups so their width, font,
+  spacing and overall presentation remain consistent.
+- Updated logged-in menu rows, icons, dividers, hover states and Logout row.
+- Corrected the Logout arrow/icon sizing and alignment.
+- Fixed profile-dropdown navigation by using menu selection callbacks instead
+  of invalid nested interactive links.
+
+### Checkout design and behavior
+
+- Implemented the Ryan Jewelers checkout overview from Figma node 1:24706.
+- Added the customer-information and shipping-address presentation for 1920px.
+- Added the no-saved-address flow from node 1:25587.
+- Added the saved-address flow from node 1:26075.
+- Fixed the saved-address delete flow, including replacing/clearing a selected
+  address before deletion when necessary.
+- Removed unwanted browser blue text-selection styling from address fields.
+- Added requested 25px and 40px spacing corrections between checkout sections.
+- Added the five-product recommendation row and customer testimonial section.
+- Refined testimonial card layout, spacing and full-width desktop presentation.
+
+### Email OTP
+
+- Implemented server-side email OTP generation and verification at:
+  src/routes/checkout/email-otp/+server.ts
+- OTP codes are six digits, expire after five minutes, have a 30-second resend
+  cooldown and allow a maximum of five failed attempts.
+- OTP state is stored in an HTTP-only signed cookie; the plain OTP is not stored.
+- Added the Ryan Jewels email subject, branded email body and logo.
+- Added the correct-code green confirmation UI from Figma node 232:55738.
+- Added the incorrect-code error UI from Figma node 1:28886.
+- Development mode returns a development OTP when SMTP is not configured.
+- Added SMTP configuration placeholders to `.env.example`.
+
+### Account dashboard and Order History
+
+- Built the shared 1920px Ryan account shell and Figma-matched sidebar.
+- Built the My Profile/account dashboard from Figma node 1:36016.
+- Added dashboard order information from Figma node 1:36277 using real orders.
+- Built the full Order History page from Figma node 1:36797.
+- Order History uses `MyOrdersRenderer` and real API orders/line items.
+- Added product image, title, description fallback, price, quantity, order ID,
+  category and status for every order row.
+- Added Figma status colors for Delivered, Cancelled, Shipped and Pending.
+- Added working Order Details links and Tracking Order links. Tracking is hidden
+  for cancelled orders, matching the Figma state.
+- Added working order search by product title or order number.
+- Added loading, no-orders and no-search-results states.
+- Preserved the generic order-history page for non-Ryan themes.
+
+--------------------------------------------------------------------------------
+## 3. LATEST ORDER HISTORY VERIFICATION
+
+Route:
+  http://localhost:3000/my/orders
+
+Browser verification viewport:
+  1920 x 1400
+
+Verified results:
+  - Page title: Order History | Ryan Jewelers
+  - Account shell left: 80px
+  - Account shell width: 1760px
+  - Main Order History card: 1428px x 853px
+  - Five order rows rendered
+  - Four Tracking Order actions for five rows because Cancelled has no tracking
+  - Five Order Details actions
+  - Delivered, Cancelled, Shipped and Pending statuses rendered correctly
+  - Search reduced the result list to the matching order
+  - Targeted Svelte checks reported no errors for the new Order History files
+  - `git diff --check` passed for the new Order History work
+
+Primary files:
+  src/lib/theme/ryans-jewels/RyansJewelsOrderHistoryPage.svelte
+  src/routes/(my)/my/orders/+page.svelte
+  src/lib/theme/ryans-jewels/account-dashboard.logic.js
+
+--------------------------------------------------------------------------------
+## 4. IMPORTANT CURRENT FILES
+
+Account UI:
+  src/lib/theme/ryans-jewels/RjProfileDropdown.svelte
+  src/lib/theme/ryans-jewels/RyansJewelsAccountSidebar.svelte
+  src/lib/theme/ryans-jewels/RyansJewelsAccountDashboard.svelte
+  src/lib/theme/ryans-jewels/RyansJewelsOrderHistoryPage.svelte
+  src/lib/theme/ryans-jewels/account-dashboard.logic.js
+  src/routes/(my)/+layout.svelte
+  src/routes/(my)/my/+page.svelte
+  src/routes/(my)/my/orders/+page.svelte
+
+Checkout UI and logic:
+  src/lib/theme/ryans-jewels/RyansJewelsCheckoutOverview.svelte
+  src/lib/theme/ryans-jewels/checkout-overview.logic.js
+  src/lib/theme/ryans-jewels/shipping-address.logic.js
+  src/routes/(www)/checkout/address/+page.svelte
+  src/routes/(www)/checkout/address/+page.ts
+  src/routes/checkout/email-otp/+server.ts
+  scripts/check-email-otp.mjs
+
+Product/cart areas touched:
+  src/lib/theme/ryans-jewels/RjProductCard.svelte
+  src/lib/theme/ryans-jewels/RyansJewelsProductDetails.svelte
+  src/lib/theme/ryans-jewels/RyansJewelsCartPage.svelte
+  src/lib/theme/ryans-jewels/product-details.logic.js
+  src/routes/(www)/+page.svelte
+  src/routes/(www)/+page.ts
+
+Assets:
+  static/ryans-jewels/account/
+  static/ryans-jewels/checkout/
+  static/ryans-jewels/product/
+
+--------------------------------------------------------------------------------
+## 5. BLOCKERS AND EXTERNAL DEPENDENCIES
+
+### Production email OTP configuration
+
+Real email delivery requires these private server environment variables:
+
+  CHECKOUT_OTP_SECRET
+  SMTP_HOST
+  SMTP_PORT
+  SMTP_SECURE
+  SMTP_USER
+  SMTP_PASS
+  SMTP_FROM
+
+Do not expose these as PUBLIC_ environment values. Use an email account/app
+password or a production transactional email provider before deployment.
+
+### SMS OTP
+
+SMS OTP with the Ryan Jewels sender name/logo was intentionally deferred after
+choosing email OTP first. Branded SMS requires an SMS provider, sender-ID or
+template registration and provider credentials. A logo cannot be guaranteed in
+normal SMS notifications; that depends on the messaging channel/provider.
+
+### Backend metal images
+
+Metal selection can only display a different image when the backend product
+variant contains the correct metal value and matching media. If an admin product
+has no Yellow Gold/Rose Gold variant image mapping, the frontend must keep the
+available product image rather than hardcode a fake one.
+
+### Full checkout validation
+
+The UI/design stage was intentionally prioritized. A complete authenticated
+checkout test with a real cart, real saved addresses, live email SMTP, payment
+method and final order placement still needs to be run after the remaining
+checkout/account designs are finished.
+
+### Existing repository diagnostics
+
+Targeted checks for the latest Ryan files pass. The repository-wide Svelte check
+still has older unrelated diagnostics. Do not treat every existing diagnostic as
+being caused by the latest account/order work; isolate errors by changed file.
+
+### Uncommitted work
+
+The working tree contains many modified and new files from the current Ryan
+Jewelers implementation. Do not run `git reset --hard`, checkout the files or
+delete untracked Ryan assets. Review and commit the work before another broad
+refactor.
+
+--------------------------------------------------------------------------------
+## 6. NEXT SESSION STARTING POINT
+
+1. Read this file and inspect `git status --short` without resetting anything.
+2. Start/reuse the dev server at http://localhost:3000.
+3. Open `/my`, `/my/orders` and checkout/address to confirm the latest state.
+4. Continue with the next Figma node supplied by the user. Implement page design
+   first; wire and test the complete feature flow after the designs are ready,
+   as explicitly requested by the user.
+5. Keep every new account page inside the existing shared account shell and
+   sidebar so 1920px widths and navigation remain consistent.
+6. Reuse `account-dashboard.logic.js` for order rows/status/search rather than
+   reimplementing the same mapping.
+7. After each page, run a 1920px browser screenshot/check, verify real API data,
+   check links/actions and run targeted Svelte diagnostics plus `git diff --check`.
+
+Small pending task from TASKS.md:
+  Product review submission is rejected by the backend with:
+  “You have not purchased this product or variant.”
+  Decide whether reviews must remain verified-purchase-only or whether the API
+  should permit every signed-in user. This is a backend/product-policy decision.
+
+--------------------------------------------------------------------------------
+## 7. QUICK VERIFICATION COMMANDS
+
+  git status --short
+  node src/lib/theme/ryans-jewels/account-dashboard.logic.js
+  node src/lib/theme/ryans-jewels/checkout-overview.logic.js
+  node src/lib/theme/ryans-jewels/shipping-address.logic.js
+  node scripts/check-email-otp.mjs
+  git diff --check
+
+Use a targeted Svelte check for the current files before investigating the
+repository's older unrelated diagnostics.
+
+================================================================================
+END OF CONTINUATION PROMPT — 2026-08-06
+================================================================================

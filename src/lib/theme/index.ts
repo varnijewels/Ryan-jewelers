@@ -30,7 +30,7 @@ const THEME_FONTS: Record<string, string> = {
 	'boris-and-twins':
 		'https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;0,6..96,700;1,6..96,400&family=Jost:wght@300;400;500;600&family=Chivo:wght@400;500&family=Chonburi&display=swap',
 	'ryans-jewels':
-		'https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,300;0,400;0,700;1,400&family=Afacad:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Red+Rose:wght@300;400;500;600;700&family=Rozha+One&family=Sarala:wght@400;700&display=swap'
+		'https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,300;0,400;0,700;1,400&family=Afacad:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Lato:wght@400;700;900&family=Red+Rose:wght@300;400;500;600;700&family=Rozha+One&family=Sarala:wght@400;700&display=swap'
 }
 
 export function getThemeFontsUrl(theme: string): string | null {

@@ -5,6 +5,7 @@
 	import Footer from '$lib/components/common/footer.svelte'
 	import { StorePlugins } from '$lib/core/components/index.js'
 	import { page } from '$app/state'
+	import { browser } from '$app/environment'
 	import type { StoreData } from '$lib/core/services/index.js'
 
 	const { children, data }: { children: Snippet; data: { store: StoreData; theme?: { name: string } } } = $props()
@@ -12,6 +13,14 @@
 	setCartState()
 	setProductState()
 	setWishlistState()
+
+	$effect(() => {
+		if (!browser || data.theme?.name !== 'ryans-jewels') return
+		const path = `${page.url.pathname}${page.url.search}`
+		if (page.url.pathname === '/products' || page.url.pathname.startsWith('/categories/') || page.url.pathname.startsWith('/collections')) {
+			sessionStorage.setItem('rj-continue-shopping', path)
+		}
+	})
 
 </script>
 

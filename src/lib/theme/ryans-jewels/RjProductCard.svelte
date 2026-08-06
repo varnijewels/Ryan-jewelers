@@ -11,6 +11,7 @@
 	import { ProductCardRenderer } from '$lib/core/composables/index.js'
 	import { formatPrice } from '$lib/core/utils/index.js'
 	import { metalSwatchFills } from './home-content.js'
+	import { metalColorImage, metalVariantChoices } from './product-details.logic.js'
 
 	/**
 	 * `size` picks the two card boxes the source uses for this card:
@@ -32,15 +33,24 @@
 
 	const currencyCode = $derived(page?.data?.store?.currency?.code || '')
 	const wishlistPlugin = $derived(page?.data?.store?.plugins?.isWishlist)
+	let selectedMetal = $state('')
 
 	const title = $derived(product?.title || product?.name || '')
-	const href = $derived(product?.slug ? `/products/${product.slug}` : '/products')
+	const metalChoices = $derived(metalVariantChoices(product))
+	const swatches = $derived([
+		metalChoices.find((choice) => choice.key === 'gold') || { value: 'Yellow Gold', key: 'gold', variant: null, product: null },
+		metalChoices.find((choice) => choice.key === 'rose') || { value: 'Rose Gold', key: 'rose', variant: null, product: null },
+		metalChoices.find((choice) => choice.key === 'silver') || { value: 'White Gold', key: 'silver', variant: null, product: null }
+	])
+	const selectedChoice = $derived(swatches.find((choice) => choice.value === selectedMetal))
+	const selectedProduct = $derived(selectedChoice?.product || product)
+	const href = $derived(selectedProduct?.slug ? `/products/${selectedProduct.slug}` : product?.slug ? `/products/${product.slug}` : '/products')
 	const image = $derived(
-		imageOverride || product?.thumbnail || product?.img || product?.image || product?.image_url || ''
+		imageOverride || selectedChoice?.variant?.thumbnail || selectedChoice?.variant?.img || selectedChoice?.product?.thumbnail || (selectedMetal ? metalColorImage(product?.thumbnail || product?.img || product?.image || product?.image_url || '', selectedMetal) : product?.thumbnail || product?.img || product?.image || product?.image_url || '')
 	)
 	const category = $derived(product?.category?.name || product?.categoryName || product?.collection?.name || '')
+	const price = $derived(selectedChoice?.variant?.price ?? selectedProduct?.price ?? product?.price)
 	const rating = 5.5
-	const swatches = ['gold', 'rose', 'silver'] as const
 </script>
 
 <ProductCardRenderer {product} {aspectRatio}>
@@ -85,8 +95,10 @@
 
 			<div class="rj-card-info">
 				<ul class="rj-card-swatches">
-					{#each swatches as key}
-						<li class="rj-card-swatch" style="background-image: {metalSwatchFills[key]};"></li>
+					{#each swatches as choice (choice.key)}
+						<li>
+							<button class="rj-card-swatch" class:selected={choice.value === selectedMetal} type="button" title={choice.value} aria-label="Select {choice.value}" aria-pressed={choice.value === selectedMetal} onclick={() => selectedMetal = choice.value} style="background-image: {metalSwatchFills[choice.key]};"></button>
+						</li>
 					{/each}
 				</ul>
 
@@ -103,9 +115,9 @@
 					</div>
 				</div>
 
-				{#if product?.price != null}
+				{#if price != null}
 					<p class="rj-card-price" data-testid="product-card-selling-price">
-						{formatPrice(product.price, currencyCode)}
+						{formatPrice(price, currencyCode)}
 					</p>
 				{/if}
 			</div>
@@ -234,12 +246,18 @@
 		padding: 0;
 		list-style: none;
 	}
+	.rj-card-swatches li { display: flex; }
 
 	.rj-card-swatch {
 		width: 31px;
 		height: 31px;
+		padding: 0;
+		border: 0;
 		border-radius: 10px;
+		cursor: pointer;
 	}
+	.rj-card-swatch.selected { outline: 2px solid #cca646; outline-offset: 2px; }
+	.rj-card-swatch:focus-visible { outline: 2px solid #303030; outline-offset: 2px; }
 
 	.rj-card-text {
 		display: flex;
@@ -315,7 +333,8 @@
 	}
 
 	.rj-card--listing { width: 100%; }
-	.rj-card--listing .rj-card-media { aspect-ratio: 312 / 260; }
+	.rj-card--listing .rj-card-media { max-height: 260px; aspect-ratio: 312 / 260; }
+	.rj-card--listing .rj-card-media-link img { width: min(100%, 260px); margin-inline: auto; }
 	.rj-card--listing .rj-card-info { width: 100%; gap: 8px; }
 	.rj-card--listing .rj-card-swatch { width: 28px; height: 28px; border-radius: 7px; }
 	.rj-card--listing .rj-card-name { font-size: 18px; }

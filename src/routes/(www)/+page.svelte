@@ -46,8 +46,9 @@
 	const themeDescription = $derived(themeContent.description || page?.metaDescription || '')
 
 	const featuredCategories = $derived(homepageModule.featuredCategories || [])
-	const featuredProducts = $derived(homepageModule.featuredProducts || [])
-	const trendingProducts = $derived(homepageModule.trendingProducts || [])
+	const storefrontProducts = $derived(data?.storefrontProducts || [])
+	const featuredProducts = $derived(activeTheme === 'ryans-jewels' ? storefrontProducts : homepageModule.featuredProducts || [])
+	const trendingProducts = $derived(activeTheme === 'ryans-jewels' ? storefrontProducts : homepageModule.trendingProducts || [])
 	const filterButtons = $derived([
 		'All',
 		...featuredCategories

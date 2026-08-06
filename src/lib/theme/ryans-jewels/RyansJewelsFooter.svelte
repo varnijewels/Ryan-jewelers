@@ -738,6 +738,7 @@
 		/* 77:107713 → exact 2 + 2 + 1 USP grid. */
 		.rj-foot-usp-row {
 			grid-template-columns: 154px 159px;
+			grid-template-rows: 96.515px 98px 98px;
 			justify-content: space-between;
 			column-gap: 0;
 			row-gap: 20px;
@@ -796,6 +797,10 @@
 			gap: 20px;
 		}
 
+		.rj-foot-cols {
+			gap: 20px;
+		}
+
 		.rj-foot-brand,
 		.rj-foot-nav {
 			width: 100%;
@@ -837,7 +842,13 @@
 		}
 
 		.rj-foot-link {
+			display: block;
 			font-size: 12px;
+			line-height: 20px;
+		}
+
+		.rj-foot-news-block {
+			gap: 10px;
 		}
 
 		.rj-foot-news-title {
@@ -860,7 +871,7 @@
 
 		/* 77:107789 — the legal bar centres over two rows. */
 		.rj-foot-legal {
-			padding: 12px 20px;
+			padding: 13px 20px;
 		}
 
 		.rj-foot-legal-inner {

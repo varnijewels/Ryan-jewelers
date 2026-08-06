@@ -3,6 +3,7 @@
 	import { Button } from '$lib/components/ui/button'
 	import { getUserState } from '$lib/core/stores/index.js'
 	import { page } from '$app/state'
+	import RyansJewelsAccountDashboard from '$lib/theme/ryans-jewels/RyansJewelsAccountDashboard.svelte'
 
 	const userState = getUserState()
 
@@ -38,6 +39,9 @@
 	<title>My Dashboard</title>
 </svelte:head>
 
+{#if page.data?.theme?.name === 'ryans-jewels'}
+	<RyansJewelsAccountDashboard />
+{:else}
 <div class="mx-auto max-w-7xl px-0 md:py-8 md:py-12">
 	{#if userState?.user}
 		<div class="mb-12 rounded-md border border-gray-200 bg-white p-6 shadow-sm md:p-8">
@@ -99,3 +103,4 @@
 		{/each}
 	</div>
 </div>
+{/if}
