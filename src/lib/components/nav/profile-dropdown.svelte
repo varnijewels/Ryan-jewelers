@@ -5,7 +5,7 @@
 	import { X, UserCircle, ShoppingBag, MapPin, Heart, ArrowRightCircleIcon } from '@lucide/svelte'
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js'
 	import LazyImg from '$lib/core/components/image/lazy-img.svelte'
-	import { Button } from '$lib/components/ui/button'
+	import { Button } from '$lib/components/ui/button/index.js'
 	import { page } from '$app/state'
 	const userState = getUserState()
 	// `trigger` is optional: themes can supply their own trigger markup while
