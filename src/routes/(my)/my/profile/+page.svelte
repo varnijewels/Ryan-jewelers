@@ -1,10 +1,12 @@
 <script lang="ts">
 	import Input from '$lib/components/form/textbox.svelte'
-	import { Button } from '$lib/components/ui/button'
+	import Button from '$lib/components/ui/button/button.svelte'
 	import { Save, ArrowLeft, InfoIcon, Loader, User, Mail, Phone, Trash2, AlertCircle } from '@lucide/svelte'
 	import { goto } from '$app/navigation'
+	import { page } from '$app/state'
 	import { MyProfileModule } from '$lib/core/composables/index.js'
 	import { fly, fade } from 'svelte/transition'
+	import RyansJewelsAccountProfile from '$lib/theme/ryans-jewels/RyansJewelsAccountProfile.svelte'
 
 	const profileModule = new MyProfileModule()
 </script>
@@ -13,6 +15,9 @@
 	<title>My Profile | Svelte Commerce</title>
 </svelte:head>
 
+{#if page.data?.theme?.name === 'ryans-jewels'}
+	<RyansJewelsAccountProfile {profileModule} />
+{:else}
 <div class="mx-auto max-w-6xl md:py-8 md:py-12">
 	<div in:fly={{ y: 20, duration: 600 }} class="space-y-10">
 		<!-- Profile Header -->
@@ -123,6 +128,7 @@
 			</Button>
 		</div>
 	</div>
+{/if}
 {/if}
 
 <style>

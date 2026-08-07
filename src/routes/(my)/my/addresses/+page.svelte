@@ -1,13 +1,16 @@
 <script lang="ts">
-	import { LoaderCircle, Plus, Trash2, MapPin, Pencil, Home, Briefcase, Phone, MoreVertical } from '@lucide/svelte'
+	import { LoaderCircle, Plus, Trash2, MapPin, Pencil, Phone } from '@lucide/svelte'
 	import { Button } from '$lib/components/ui/button'
 	import AddressFormModal from '$lib/components/address/address-form-modal.svelte'
 	import * as Dialog from '$lib/components/ui/dialog'
 	import Pagination from '$lib/components/common/pagination.svelte'
-	import { MyAddressesModule, MyOrdersRenderer } from '$lib/core/composables/index.js'
+	import { MyAddressesModule } from '$lib/core/composables/index.js'
 	import { fade, fly } from 'svelte/transition'
+	import { page } from '$app/state'
+	import RyansJewelsAddressBook from '$lib/theme/ryans-jewels/RyansJewelsAddressBook.svelte'
 
 	const addressesModule = new MyAddressesModule()
+	const isRyansJewels = $derived(page.data?.theme?.name === 'ryans-jewels')
 
 	let showDeleteConfirmation = $state(false)
 	let addressToDelete = $state<any>(null)
@@ -27,9 +30,12 @@
 </script>
 
 <svelte:head>
-	<title>Addresses | Svelte Commerce</title>
+	<title>{isRyansJewels ? 'Address Book | Ryan Jewelers' : 'Addresses | Svelte Commerce'}</title>
 </svelte:head>
 
+{#if isRyansJewels}
+	<RyansJewelsAddressBook {addressesModule} ondelete={confirmDelete} />
+{:else}
 <div class="mx-auto max-w-7xl px-0 md:py-8 md:py-12">
 	<!-- Header -->
 	<div class="mb-10 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
@@ -122,13 +128,18 @@
 		</div>
 	{/if}
 
-	<AddressFormModal
-		bind:show={addressesModule.showAddressFormModal}
-		bind:address={addressesModule.selectedAddress}
-		isEdit={addressesModule.isEditing}
-		onsave={addressesModule.handleSave}
-		ondelete={confirmDelete}
-	/>
+</div>
+{/if}
+
+	{#if !isRyansJewels}
+		<AddressFormModal
+			bind:show={addressesModule.showAddressFormModal}
+			bind:address={addressesModule.selectedAddress}
+			isEdit={addressesModule.isEditing}
+			onsave={addressesModule.handleSave}
+			ondelete={confirmDelete}
+		/>
+	{/if}
 
 	<Dialog.Root bind:open={showDeleteConfirmation}>
 		<Dialog.Content class="sm:max-w-[425px]">
@@ -142,10 +153,3 @@
 			</Dialog.Footer>
 		</Dialog.Content>
 	</Dialog.Root>
-</div>
-
-<style>
-	:global(body) {
-		background-color: #fafafa;
-	}
-</style>

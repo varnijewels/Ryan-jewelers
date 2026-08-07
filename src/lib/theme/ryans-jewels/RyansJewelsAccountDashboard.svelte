@@ -10,7 +10,7 @@
 	let orderFilter = $state('all')
 	let orderSearch = $state('')
 
-	const userName = $derived(`${userState?.user?.firstName || ''} ${userState?.user?.lastName || ''}`.trim() || userState?.user?.name || 'Ryan Jewels Customer')
+	const userName = $derived(`${userState?.user?.firstName || ''} ${userState?.user?.lastName || ''}`.trim() || userState?.user?.name || '—')
 	const product = $derived(page.data?.dashboardProducts?.[0])
 	const currency = $derived(page.data?.store?.currency?.code || 'USD')
 	const couponCount = $derived(cartState?.cart?.couponCode ? 1 : 0)
@@ -18,6 +18,7 @@
 	function itemCategory(item: any) {
 		return item.categoryTitle || item.category?.title || item.variantTitle || 'Jewellery'
 	}
+
 </script>
 
 <svelte:head><title>My Profile | Ryan Jewelers</title></svelte:head>
@@ -36,7 +37,7 @@
 						<a class="rj-online-support" href="/contact-us">Online Support</a>
 					</header>
 					<div class="rj-profile-stats">
-						<div><strong>0</strong><span>Unread messages</span></div><i></i>
+						<div><strong>—</strong><span>Unread messages</span></div><i></i>
 						<div><strong>{deliveredOrderCount(orders)}</strong><span>Total Delivered Order</span></div><i></i>
 						<div><strong>{couponCount}</strong><span>Coupons</span></div>
 					</div>
@@ -50,7 +51,7 @@
 								{#snippet content({ toggleWishlist, isWishlisted, loadingForWishlist })}
 									<a class="rj-history-product" href="/products/{product.slug}">
 										<img src={product.thumbnail || product.img || '/ryans-jewels/account/dashboard-product.png'} alt={product.title || 'Recently viewed product'} />
-										<span>{product.title || 'Silver Diamond Ring'}</span>
+									<span>{product.title || 'Product'}</span>
 										<small><b>{formatPrice(product.price || 0, currency)}</b>{#if product.mrp > product.price}<s>{formatPrice(product.mrp, currency)}</s>{/if}</small>
 									</a>
 									<i></i>
@@ -60,9 +61,7 @@
 								{/snippet}
 							</ProductCardRenderer>
 						{:else}
-							<a class="rj-history-product" href="/products"><img src="/ryans-jewels/account/dashboard-product.png" alt="Silver Diamond Ring" /><span>Silver Diamond Ring</span><small><b>$265.85</b><s>$295.85</s></small></a>
-							<i></i>
-							<a class="rj-history-wishlist" href="/my/wishlist"><img src="/ryans-jewels/account/dashboard-bag.png" alt="" /><span>Move to<b>Wishlist</b></span></a>
+							<div class="rj-browsing-empty">No browsing history yet.</div>
 						{/if}
 					</div>
 				</article>
@@ -141,6 +140,7 @@
 	.rj-browsing-card > header strong { font: 700 15px/22px 'Sarala', sans-serif; }
 	.rj-browsing-card > header a { color: #404040; font-size: 14px; text-decoration: none; }
 	.rj-browsing-body { display: grid; grid-template-columns: 101px 1px 100px; gap: 24px; align-items: center; justify-content: center; margin-top: 20px; }
+	.rj-browsing-empty { display: grid; min-height: 130px; grid-column: 1 / -1; place-items: center; color: #808080; font-size: 13px; }
 	.rj-browsing-body > i { width: 1px; height: 130px; background: #d9d9d9; }
 	.rj-history-product { display: flex; width: 101px; flex-direction: column; gap: 5px; align-items: center; color: #404040; text-decoration: none; }
 	.rj-history-product > img { width: 101px; height: 99px; border-radius: 5px; object-fit: contain; background: rgba(231, 231, 231, .2); }

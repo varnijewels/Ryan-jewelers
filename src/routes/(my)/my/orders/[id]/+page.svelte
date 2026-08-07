@@ -24,14 +24,19 @@
 	import { page } from '$app/state'
 	import { date, formatPrice } from '$lib/core/utils'
 	import { MyOrdersIdRenderer } from '$lib/core/composables/index.js'
+	import RyansJewelsOrderDetailsPage from '$lib/theme/ryans-jewels/RyansJewelsOrderDetailsPage.svelte'
 
 	let { class: klass = '', data, ...rest } = $props()
+	const isRyansJewels = page.data?.theme?.name === 'ryans-jewels'
 </script>
 
 <svelte:head>
 	<title>Order Details | Svelte Commerce</title>
 </svelte:head>
 
+{#if isRyansJewels}
+	<RyansJewelsOrderDetailsPage />
+{:else}
 <MyOrdersIdRenderer>
 	{#snippet content({ loading, order })}
 		<div class="mx-auto max-w-6xl {klass}">
@@ -382,6 +387,7 @@
 		</div>
 	{/snippet}
 </MyOrdersIdRenderer>
+{/if}
 
 <style>
 	:global(body) {
