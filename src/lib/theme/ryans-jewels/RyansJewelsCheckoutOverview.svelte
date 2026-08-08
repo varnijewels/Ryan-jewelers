@@ -6,12 +6,14 @@
 	import { z } from 'zod'
 	import { AddressSchema } from '$lib/core/components/index.js'
 	import { CartModule, checkoutAddressSchema, emptyAddress } from '$lib/core/composables/index.js'
-	import { addressService } from '$lib/core/services/index.js'
+	import { cartService, checkoutService } from '$lib/core/services/index.js'
+	import { Button } from '$lib/components/ui/button/index.js'
+	import * as Dialog from '$lib/components/ui/dialog/index.js'
 	import { formatPrice } from '$lib/core/utils/index.js'
 	import RjInstagram from './RjInstagram.svelte'
 	import RjProductCard from './RjProductCard.svelte'
-	import { checkoutGate } from './checkout-overview.logic.js'
-	import { findAddressReplacement, groupSavedAddresses, splitCustomerName } from './shipping-address.logic.js'
+	import { checkoutGate, shippingRatesAvailable } from './checkout-overview.logic.js'
+	import { findAddressReplacement, groupSavedAddresses, parseHiddenAddressIds, savedAddressId, splitCustomerName } from './shipping-address.logic.js'
 
 	let { addressModule, cartState }: { addressModule: any; cartState: any } = $props()
 
@@ -43,7 +45,13 @@
 	let verifiedOtp = $state('')
 	let otpError = $state('')
 	let deletingAddressId = $state('')
+	let deleteAddressError = $state('')
+	let showRemoveAddressConfirmation = $state(false)
+	let addressToRemove = $state<any>(null)
+	let hiddenAddressIds = $state<string[]>([])
+	let addingSavedAddress = $state(false)
 	let otpTimer: ReturnType<typeof setInterval> | undefined
+	let contactForm: HTMLFormElement
 
 	const items = $derived(cartState.cart?.lineItems || [])
 	const currency = $derived(page.data?.store?.currency?.code || cartState.cart?.currencyCode || 'USD')
@@ -55,8 +63,13 @@
 	const products = $derived((page.data?.checkoutProducts || []).slice(0, 5))
 	const isShippingStep = $derived(page.url.searchParams.get('step') === 'shipping')
 	const countries = $derived(page.data?.store?.countries || [])
-	const savedAddresses = $derived(groupSavedAddresses(addressModule.addresses || [], cartState.cart?.shippingAddress))
+	const visibleAddresses = $derived((addressModule.addresses || []).filter((address: any) => !hiddenAddressIds.includes(String(address?.id || ''))))
+	const visibleCartAddress = $derived(hiddenAddressIds.includes(String(cartState.cart?.shippingAddressId || cartState.cart?.shippingAddress?.id || '')) ? null : cartState.cart?.shippingAddress)
+	const savedAddresses = $derived(groupSavedAddresses(visibleAddresses, visibleCartAddress))
 	const hasSavedAddresses = $derived(savedAddresses.all.length > 0)
+	const showSavedAddressList = $derived(hasSavedAddresses && !addingSavedAddress)
+	const officeBaseAddress = $derived(savedAddresses.home[0] || null)
+	const showOfficeAddressFlow = $derived(addingSavedAddress && addressType === 'office' && Boolean(officeBaseAddress))
 	const otpVerified = $derived(verifiedEmail === addressModule.email?.trim().toLowerCase() && verifiedOtp === otp)
 	const orderDate = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' }).format(new Date())
 	const testimonials = [
@@ -97,6 +110,11 @@
 
 	onMount(() => {
 		continueShoppingHref = sessionStorage.getItem('rj-continue-shopping') || '/products'
+		try {
+			hiddenAddressIds = parseHiddenAddressIds(localStorage.getItem('rj-hidden-address-ids'))
+		} catch {
+			hiddenAddressIds = []
+		}
 	})
 
 	onDestroy(() => {
@@ -139,6 +157,16 @@
 		}, 1000)
 	}
 
+	function handleOtpInput(value = otp) {
+		otp = value
+		otpError = ''
+		if (!/^\d{6}$/.test(otp)) return
+		if (otpTimer) clearInterval(otpTimer)
+		otpTimer = undefined
+		otpSeconds = 0
+		if (!otpVerified && !contactSaving) queueMicrotask(() => contactForm?.requestSubmit())
+	}
+
 	async function sendEmailOtp() {
 		const nextEmail = addressModule.email?.trim().toLowerCase() || ''
 		if (!checkoutAddressSchema.email.safeParse(nextEmail).success || !nextEmail) {
@@ -155,12 +183,13 @@
 			})
 			const result = await response.json()
 			if (!response.ok) throw new Error(result.message || 'Unable to send verification code')
-			otp = ''
+			otp = result.devOtp || ''
 			otpEmail = nextEmail
 			verifiedEmail = ''
 			verifiedOtp = ''
 			otpSent = true
-			startOtpTimer(Number(result.cooldownSeconds || 30))
+			if (result.devOtp) handleOtpInput()
+			else startOtpTimer(Number(result.cooldownSeconds || 30))
 			toast.success(result.devOtp ? `Development OTP: ${result.devOtp}` : `Verification code sent to ${nextEmail}`)
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Unable to send verification code')
@@ -186,6 +215,7 @@
 			return false
 		}
 		contactSaving = true
+		const loadingStartedAt = Date.now()
 		try {
 			if (!otpVerified) {
 				const response = await fetch('/checkout/email-otp', {
@@ -209,6 +239,8 @@
 			if (!otpError) toast.error(error instanceof Error ? error.message : 'Unable to verify code')
 			return false
 		} finally {
+			const remainingLoadingTime = 700 - (Date.now() - loadingStartedAt)
+			if (remainingLoadingTime > 0) await new Promise((resolve) => setTimeout(resolve, remainingLoadingTime))
 			contactSaving = false
 		}
 	}
@@ -227,13 +259,28 @@
 		return [address.address_1, address.address_2, address.locality, address.city, address.state, address.zip].filter(Boolean).join(', ')
 	}
 
+	function savedAddressName(address: any) {
+		return [address?.firstName, address?.lastName].filter(Boolean).join(' ')
+	}
+
+	function savedCountryName(address: any) {
+		return countries.find((country: any) => country.code === address?.countryCode)?.name || address?.country || address?.countryCode || ''
+	}
+
 	function isSelectedAddress(address: any) {
 		const selected = cartState.cart?.shippingAddress
-		return selected === address || Boolean(address?.id && address.id !== 'new' && address.id === selected?.id)
+		const addressId = savedAddressId(address, cartState.cart, addressModule.addresses || [])
+		return selected === address || Boolean(addressId && addressId === (cartState.cart?.shippingAddressId || selected?.id))
 	}
 
 	function addSavedAddress(type: 'home' | 'office') {
-		addressModule.openAddressForm({ ...emptyAddress('new'), type }, 'shipping', false)
+		addingSavedAddress = true
+		addressType = type
+		addressModule.currentAddress = { ...emptyAddress('new'), type }
+		addressModule.currentAddressType = 'shipping'
+		addressModule.isBillingAddressSameAsShipping = true
+		addressModule.showAddressForm = false
+		resetShippingAddress()
 	}
 
 	async function selectSavedAddress(address: any) {
@@ -244,27 +291,42 @@
 		await addressModule.saveAddressToCart()
 	}
 
+	function confirmRemoveSavedAddress(address: any) {
+		addressToRemove = address
+		deleteAddressError = ''
+		showRemoveAddressConfirmation = true
+	}
+
+	function hideSavedAddress(addressId: string) {
+		// ponytail: the API has no archive endpoint; replace this browser-side archive when the backend adds one.
+		hiddenAddressIds = [...new Set([...hiddenAddressIds, addressId])]
+		try {
+			localStorage.setItem('rj-hidden-address-ids', JSON.stringify(hiddenAddressIds))
+		} catch {
+			// The address still disappears for this session when browser storage is unavailable.
+		}
+		addressModule.addresses = (addressModule.addresses || []).filter((candidate: any) => candidate.id !== addressId)
+	}
+
 	async function removeSavedAddress(address: any) {
-		if (!address?.id || address.id === 'new') return
-		deletingAddressId = address.id
+		const addressId = savedAddressId(address, cartState.cart, addressModule.addresses || [])
+		if (!addressId) {
+			deleteAddressError = 'Unable to identify this saved address. Please refresh and try again.'
+			toast.error(deleteAddressError)
+			return false
+		}
+		deletingAddressId = addressId
+		deleteAddressError = ''
 		try {
 			if (isSelectedAddress(address)) {
 				const replacement = findAddressReplacement(savedAddresses.all, address)
 				const cartId = cartState.cart?.id
-				const isBillingAddress = cartState.cart?.billingAddressId === address.id || cartState.cart?.billingAddress?.id === address.id
+				const isBillingAddress = addressModule.isBillingAddressSameAsShipping || cartState.cart?.billingAddressId === addressId || cartState.cart?.billingAddress?.id === addressId
 				if (cartId) {
-					const response = await fetch(`/api/carts/${cartId}`, {
-						method: 'PATCH',
-						headers: { 'content-type': 'application/json' },
-						body: JSON.stringify({
-							shippingAddressId: replacement?.id || null,
-							...(isBillingAddress ? { billingAddressId: replacement?.id || null } : {})
-						})
+					await cartService.patch(`/api/carts/${cartId}`, {
+						shippingAddressId: replacement?.id || null,
+						...(isBillingAddress ? { billingAddressId: replacement?.id || null } : {})
 					})
-					if (!response.ok) {
-						const result = await response.json().catch(() => null)
-						throw new Error(result?.message || 'Unable to remove address from checkout')
-					}
 				}
 				cartState.cart = {
 					...cartState.cart,
@@ -274,13 +336,26 @@
 				}
 				addressModule.currentAddress = replacement ? { ...replacement } : emptyAddress('new')
 			}
-			await addressService.deleteAddress(address.id)
-			addressModule.addresses = addressModule.addresses.filter((candidate: any) => candidate.id !== address.id)
+			hideSavedAddress(addressId)
 			toast.success('Address removed')
+			return true
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Unable to remove address')
+			deleteAddressError = (error as any)?.message || 'Unable to remove address'
+			toast.error(deleteAddressError)
+			return false
 		} finally {
 			deletingAddressId = ''
+		}
+	}
+
+	async function handleRemoveAddressConfirmation() {
+		try {
+			if (!addressToRemove || !(await removeSavedAddress(addressToRemove))) return
+			showRemoveAddressConfirmation = false
+			addressToRemove = null
+		} catch (error) {
+			deleteAddressError = (error as any)?.message || 'Unable to remove address'
+			toast.error(deleteAddressError)
 		}
 	}
 
@@ -288,9 +363,25 @@
 		const selected = cartState.cart?.shippingAddress?.address_1 ? cartState.cart.shippingAddress : savedAddresses.all[0]
 		if (!selected) return
 		processing = true
-		await selectSavedAddress(selected)
-		await addressModule.handleProceedToPayment()
-		processing = false
+		try {
+			await selectSavedAddress(selected)
+			await proceedToPayment()
+		} finally {
+			processing = false
+		}
+	}
+
+	async function proceedToPayment() {
+		try {
+			const rates = await checkoutService.getShippingRates({ cartId: cartState.cart?.id })
+			if (!shippingRatesAvailable(rates)) {
+				toast.error(rates?.error?.message || 'No shipping method is available for this address')
+				return
+			}
+			await addressModule.handleProceedToPayment()
+		} catch (cause: any) {
+			toast.error(cause?.message || 'Unable to check delivery availability')
+		}
 	}
 
 	async function processShippingAddress(event: SubmitEvent) {
@@ -323,13 +414,16 @@
 			return
 		}
 		processing = true
-		await cartState.updateEmail({ email: addressModule.email?.trim() || '', phone: addressModule.phone?.trim() || '' })
-		addressModule.currentAddress = nextAddress
-		addressModule.currentAddressType = 'shipping'
-		addressModule.isBillingAddressSameAsShipping = true
-		await addressModule.saveAddressToCart()
-		await addressModule.handleProceedToPayment()
-		processing = false
+		try {
+			await cartState.updateEmail({ email: addressModule.email?.trim() || '', phone: addressModule.phone?.trim() || '' })
+			addressModule.currentAddress = nextAddress
+			addressModule.currentAddressType = 'shipping'
+			addressModule.isBillingAddressSameAsShipping = true
+			await addressModule.saveAddressToCart()
+			await proceedToPayment()
+		} finally {
+			processing = false
+		}
 	}
 
 	async function processCheckout() {
@@ -375,7 +469,7 @@
 	{:then _}
 		{#if items.length}
 			{#if isShippingStep}
-				<div class="rj-shipping-grid" class:has-saved-addresses={hasSavedAddresses}>
+				<div class="rj-shipping-grid" class:has-saved-addresses={showSavedAddressList}>
 					<div class="rj-shipping-left">
 						<a class="rj-continue" href={continueShoppingHref}>
 							<span><img src="/ryans-jewels/cart/arrow-left.svg" alt="" /><img src="/ryans-jewels/cart/arrow-left.svg" alt="" /></span>
@@ -392,7 +486,7 @@
 
 						<hr class="rj-checkout-rule" />
 
-						{#if hasSavedAddresses}
+						{#if showSavedAddressList}
 							<div class="rj-saved-addresses">
 								{#each [
 									{ type: 'home', icon: 'saved-home.svg', subtitle: 'Delivered to Home', addresses: savedAddresses.home },
@@ -415,7 +509,7 @@
 															</div>
 															<footer>
 																<span><img src="/ryans-jewels/checkout/shipping/saved-call.svg" alt="" />{address.phone || cartState.cart?.phone || 'Phone unavailable'}</span>
-																<button type="button" disabled={addressModule.loadingForSaveToCart || deletingAddressId === address.id} onclick={() => removeSavedAddress(address)}><img src="/ryans-jewels/checkout/shipping/saved-trash.svg" alt="" />{deletingAddressId === address.id ? 'Removing…' : 'Remove'}</button>
+																<button type="button" disabled={addressModule.loadingForSaveToCart || deletingAddressId === savedAddressId(address, cartState.cart, addressModule.addresses || [])} onclick={() => confirmRemoveSavedAddress(address)}><img src="/ryans-jewels/checkout/shipping/saved-trash.svg" alt="" />{deletingAddressId === savedAddressId(address, cartState.cart, addressModule.addresses || []) ? 'Removing…' : 'Remove'}</button>
 															</footer>
 														</article>
 													{/each}
@@ -428,13 +522,13 @@
 								{/each}
 							</div>
 						{:else}
-						<form class="rj-customer-card" class:has-otp-error={Boolean(otpError)} onsubmit={saveShippingContact}>
+						<form bind:this={contactForm} class="rj-customer-card" class:has-otp-error={Boolean(otpError)} onsubmit={saveShippingContact}>
 							<h1><img src="/ryans-jewels/checkout/shipping/user-search.svg" alt="" />Customer Information</h1>
 							<div class="rj-customer-fields">
 								<label><img src="/ryans-jewels/checkout/shipping/sms.svg" alt="" /><input type="email" autocomplete="email" bind:value={addressModule.email} placeholder="Example1@Email.Com" aria-label="Email address" /></label>
 								<label><img src="/ryans-jewels/checkout/shipping/call-add.svg" alt="" /><input type="tel" autocomplete="tel" bind:value={addressModule.phone} placeholder="Enter Phone Number" aria-label="Phone number" /></label>
 								<div class="rj-otp-field">
-									<label class="otp" class:verified={otpVerified} class:error={Boolean(otpError)}><img src="/ryans-jewels/checkout/shipping/message-tick.svg" alt="" /><input inputmode="numeric" maxlength="6" bind:value={otp} oninput={() => (otpError = '')} placeholder="Enter 6-Digit Verification OTP Code" aria-label="Verification OTP code" aria-invalid={Boolean(otpError)} aria-describedby={otpError ? 'rj-otp-error' : undefined} />{#if otpVerified}<span class="rj-otp-verified"><img src="/ryans-jewels/checkout/shipping/otp-verified.svg" alt="" />Verify</span>{/if}</label>
+									<label class="otp" class:verified={otpVerified} class:error={Boolean(otpError)}><img src="/ryans-jewels/checkout/shipping/message-tick.svg" alt="" /><input inputmode="numeric" autocomplete="one-time-code" maxlength="6" bind:value={otp} oninput={(event) => handleOtpInput(event.currentTarget.value)} placeholder="Enter 6-Digit Verification OTP Code" aria-label="Verification OTP code" aria-invalid={Boolean(otpError)} aria-describedby={otpError ? 'rj-otp-error' : undefined} />{#if otpVerified}<span class="rj-otp-verified"><img src="/ryans-jewels/checkout/shipping/otp-verified.svg" alt="" />Verify</span>{/if}</label>
 									{#if otpError}<p id="rj-otp-error" class="rj-otp-error" role="alert"><img src="/ryans-jewels/checkout/shipping/otp-error.svg" alt="" />{otpError}</p>{/if}
 								</div>
 							</div>
@@ -442,16 +536,42 @@
 								<p><b>{otpSeconds.toFixed(2)}</b> Second</p>
 								<div>
 									<button class="resend" type="button" disabled={otpSending || otpSeconds > 0} onclick={sendEmailOtp}><img src="/ryans-jewels/checkout/shipping/refresh.svg" alt="" />{otpSending ? 'Sending…' : otpSent ? 'Resend Code' : 'Send Code'}</button>
-									<button class="submit" type="submit" disabled={contactSaving}>{contactSaving ? 'VERIFYING…' : 'SUBMIT'}</button>
+									<button class="submit" type="submit" disabled={contactSaving}>{#if contactSaving}<span class="rj-otp-spinner" aria-hidden="true"></span>VERIFYING<span class="rj-otp-loading-dots" aria-hidden="true">...</span>{:else}SUBMIT{/if}</button>
 								</div>
 							</div>
 						</form>
 
-						<form id="rj-shipping-address-form" class="rj-address-card" onsubmit={processShippingAddress}>
+						<form id="rj-shipping-address-form" class="rj-address-card" class:office-address={showOfficeAddressFlow} onsubmit={processShippingAddress}>
 							<header>
 								<h2><img src="/ryans-jewels/checkout/shipping/home.svg" alt="" />Shipping Address</h2>
 								<span><img src="/ryans-jewels/checkout/shipping/saved.svg" alt="" />{addressModule.loadingForSaveToCart || !cartState.cart?.shippingAddress ? 'Saving..' : 'Saved'}</span>
 							</header>
+
+							{#if showOfficeAddressFlow}
+								<div class="rj-address-fields rj-existing-address-fields">
+									<label><b>Full Name<em>*</em></b><span><img src="/ryans-jewels/checkout/shipping/user.svg" alt="" /><input value={savedAddressName(officeBaseAddress)} aria-label="Existing home address full name" readonly /></span></label>
+									<label><b>Flat / Building No / Apartment.<em>*</em></b><span><img src="/ryans-jewels/checkout/shipping/building.svg" alt="" /><input value={officeBaseAddress?.address_1 || ''} aria-label="Existing home building" readonly /></span></label>
+									<label><b>Street / Area / Address<em>*</em></b><span><img src="/ryans-jewels/checkout/shipping/map.svg" alt="" /><input value={officeBaseAddress?.address_2 || ''} aria-label="Existing home street" readonly /></span></label>
+									<label><b>Landmark<em>*</em></b><span><img src="/ryans-jewels/checkout/shipping/gps.svg" alt="" /><input value={officeBaseAddress?.locality || officeBaseAddress?.landmark || ''} aria-label="Existing home landmark" readonly /></span></label>
+									<div class="rj-address-pair">
+										<label><b>Country<em>*</em></b><span><img src="/ryans-jewels/checkout/shipping/global.svg" alt="" /><input value={savedCountryName(officeBaseAddress)} aria-label="Existing home country" readonly /></span></label>
+										<label><b>State<em>*</em></b><span><img src="/ryans-jewels/checkout/shipping/state.svg" alt="" /><input value={officeBaseAddress?.state || ''} aria-label="Existing home state" readonly /><img class="arrow" src="/ryans-jewels/checkout/shipping/arrow-down.svg" alt="" /></span></label>
+									</div>
+									<div class="rj-address-pair">
+										<label><b>City<em>*</em></b><span><img src="/ryans-jewels/checkout/shipping/map.svg" alt="" /><input value={officeBaseAddress?.city || ''} aria-label="Existing home city" readonly /><img class="arrow" src="/ryans-jewels/checkout/shipping/arrow-down.svg" alt="" /></span></label>
+										<label><b>Zip Code<em>*</em></b><span><img src="/ryans-jewels/checkout/shipping/zip.svg" alt="" /><input value={officeBaseAddress?.zip || ''} aria-label="Existing home zip code" readonly /></span></label>
+									</div>
+								</div>
+
+								<footer>
+									<button class="different" type="button" onclick={resetShippingAddress}><img src="/ryans-jewels/checkout/shipping/add.svg" alt="" />Ship to a different address?</button>
+									<div class="rj-address-types">
+										<button type="button" onclick={() => (addressType = 'home')}><img src="/ryans-jewels/checkout/shipping/home-inactive.svg" alt="" />Home</button>
+										<i></i>
+										<button class="active" type="button"><img src="/ryans-jewels/checkout/shipping/office-active.svg" alt="" />Office</button>
+									</div>
+								</footer>
+							{/if}
 
 							<div class="rj-address-fields">
 								<label><b>Full Name<em>*</em></b><span><img src="/ryans-jewels/checkout/shipping/user.svg" alt="" /><input autocomplete="name" bind:value={fullName} placeholder="Enter Full Name" required /></span></label>
@@ -468,14 +588,16 @@
 								</div>
 							</div>
 
-							<footer>
-								<button class="different" type="button" onclick={resetShippingAddress}><img src="/ryans-jewels/checkout/shipping/add.svg" alt="" />Ship to a different address?</button>
-								<div class="rj-address-types">
-									<button class:active={addressType === 'home'} type="button" onclick={() => (addressType = 'home')}><img src="/ryans-jewels/checkout/shipping/home-type.svg" alt="" />Home</button>
-									<i></i>
-									<button class:active={addressType === 'office'} type="button" onclick={() => (addressType = 'office')}><img src="/ryans-jewels/checkout/shipping/office.svg" alt="" />Office</button>
-								</div>
-							</footer>
+							{#if !showOfficeAddressFlow}
+								<footer>
+									<button class="different" type="button" onclick={resetShippingAddress}><img src="/ryans-jewels/checkout/shipping/add.svg" alt="" />Ship to a different address?</button>
+									<div class="rj-address-types">
+										<button class:active={addressType === 'home'} type="button" onclick={() => (addressType = 'home')}><img src="/ryans-jewels/checkout/shipping/home-type.svg" alt="" />Home</button>
+										<i></i>
+										<button class:active={addressType === 'office'} type="button" onclick={() => (addressType = 'office')}><img src="/ryans-jewels/checkout/shipping/office.svg" alt="" />Office</button>
+									</div>
+								</footer>
+							{/if}
 						</form>
 
 						<div class="rj-safe-info"><img src="/ryans-jewels/checkout/shipping/safe.png" alt="" />Your information is safe</div>
@@ -505,7 +627,7 @@
 									<p><span>Total</span><b>{formatPrice(total, currency)}</b></p>
 								</div>
 							</div>
-							{#if hasSavedAddresses}
+							{#if showSavedAddressList}
 								<button class="rj-shipping-process" type="button" disabled={processing || addressModule.loadingForCheckout || addressModule.loadingForSaveToCart} onclick={processSavedAddress}>{processing ? 'PROCESSING…' : 'PROCESS TO CHECKOUT'}</button>
 							{:else}
 								<button class="rj-shipping-process" type="submit" form="rj-shipping-address-form" disabled={processing || addressModule.loadingForCheckout || addressModule.loadingForSaveToCart}>{processing ? 'PROCESSING…' : 'PROCESS TO CHECKOUT'}</button>
@@ -683,6 +805,21 @@
 	{/await}
 </section>
 
+<Dialog.Root bind:open={showRemoveAddressConfirmation}>
+	<Dialog.Content class="w-[calc(100%_-_30px)] max-w-[460px] gap-0 overflow-hidden border-[#cca646] bg-white p-0 shadow-[0_18px_50px_rgba(48,48,48,0.18)] sm:rounded-[6px]">
+		<Dialog.Header class="flex flex-col items-center gap-0 px-8 pb-7 pt-8 text-center">
+			<span class="mb-4 grid size-[58px] place-items-center rounded-full bg-[#fff4f4]"><img class="size-7" src="/ryans-jewels/checkout/shipping/saved-trash.svg" alt="" /></span>
+			<Dialog.Title class="font-['Lato'] text-[22px] font-semibold leading-[26px] tracking-normal text-[#303030]">Remove Address?</Dialog.Title>
+			<Dialog.Description class="mt-3 max-w-[340px] font-['Sarala'] text-[14px] leading-[22px] text-[#707070]">Are you sure you want to remove this address? This action cannot be undone.</Dialog.Description>
+		</Dialog.Header>
+		{#if deleteAddressError}<p class="mx-8 mb-5 rounded-[5px] border border-[#ffd4d4] bg-[#fff8f8] px-4 py-3 text-center font-['Sarala'] text-[13px] leading-5 text-[#c92121]" role="alert">{deleteAddressError}</p>{/if}
+		<Dialog.Footer class="grid grid-cols-2 gap-3 border-t border-[#ececec] bg-[#fafafa] px-8 py-5">
+			<Button variant="plain" class="h-11 rounded-[5px] border border-[#cca646] bg-white font-['Lato'] text-[14px] font-semibold text-[#9f7e2c] hover:bg-[#fffaf0]" disabled={Boolean(deletingAddressId)} onclick={() => { showRemoveAddressConfirmation = false; addressToRemove = null; deleteAddressError = '' }}>Cancel</Button>
+			<Button variant="plain" class="h-11 rounded-[5px] border border-[#a80139] bg-[#a80139] font-['Lato'] text-[14px] font-semibold text-white hover:bg-[#8f0030]" disabled={Boolean(deletingAddressId)} onclick={handleRemoveAddressConfirmation}>{deletingAddressId ? 'Removing…' : 'Remove Address'}</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
+
 <style>
 	:global(.theme-ryans-jewels main.inter-gap:has(> .rj-checkout-overview)) { min-height: auto; }
 	.rj-checkout-overview { min-height: 708px; background: #fff; color: #202020; font-family: 'Lato', sans-serif; }
@@ -760,9 +897,14 @@
 	.rj-customer-actions .resend { display: flex; gap: 10px; align-items: center; padding: 0; background: transparent; color: #4d9cff; }
 	.rj-customer-actions .resend img { width: 20px; height: 20px; }
 	.rj-customer-actions .resend:disabled { opacity: .5; cursor: wait; }
-	.rj-customer-actions .submit { min-width: 88px; height: 34px; padding: 6px 17px; border-radius: 4px; background: #003176; color: #fff; }
+	.rj-customer-actions .submit { display: inline-flex; min-width: 88px; height: 34px; gap: 7px; align-items: center; justify-content: center; padding: 6px 17px; border-radius: 4px; background: #003176; color: #fff; }
 	.rj-customer-actions .submit:disabled { opacity: .6; }
+	.rj-otp-spinner { width: 14px; height: 14px; border: 2px solid rgba(255, 255, 255, .4); border-top-color: #fff; border-radius: 50%; animation: rj-otp-spin .7s linear infinite; }
+	.rj-otp-loading-dots { display: inline-block; width: 0; overflow: hidden; animation: rj-otp-dots 1s steps(4, end) infinite; }
+	@keyframes rj-otp-spin { to { transform: rotate(360deg); } }
+	@keyframes rj-otp-dots { to { width: 12px; } }
 	.rj-address-card { display: flex; box-sizing: border-box; height: 774px; flex-direction: column; margin-top: 25px; padding: 20px 25px; border: 1px solid #c2c2c2; border-radius: 5px; background: #fff; }
+	.rj-address-card.office-address { height: 1413px; }
 	.rj-address-card > header { display: flex; height: 24px; align-items: center; justify-content: space-between; }
 	.rj-address-card > header > span { display: flex; gap: 5px; align-items: center; color: #909090; font: 14px/22px 'Lato', sans-serif; }
 	.rj-address-card > header > span img { width: 24px; height: 24px; }
@@ -774,6 +916,7 @@
 	.rj-address-fields label > span > img:not(.arrow) { width: 24px; height: 24px; flex: 0 0 24px; }
 	.rj-address-fields .arrow { width: 22px; height: 22px; flex: 0 0 22px; }
 	.rj-address-fields select { width: 100%; appearance: none; color: #404040; }
+	.rj-existing-address-fields input[readonly] { cursor: default; }
 	.rj-address-pair { display: grid; height: 84px; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
 	.rj-address-card > footer { display: flex; box-sizing: border-box; height: 46px; align-items: flex-end; justify-content: space-between; margin-top: 30px; padding-top: 16px; border-top: 1px solid #dbdbdb; }
 	.rj-address-card > footer button { border: 0; background: transparent; cursor: pointer; }

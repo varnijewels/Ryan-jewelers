@@ -1,12 +1,13 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button'
+	import { Button } from '$lib/components/ui/button/index.js'
 	import { MyWishlistRenderer } from '$lib/core/composables/index.js'
 	import { Heart, ArrowRight, LoaderCircle, Trash2, ShoppingBag } from '@lucide/svelte'
 	import { fade, fly } from 'svelte/transition'
 	import { page } from '$app/state'
 	import { formatPrice, toast } from '$lib/core/utils/index.js'
 	import LazyImg from '$lib/core/components/image/lazy-img.svelte'
-	import * as Dialog from '$lib/components/ui/dialog'
+	import * as Dialog from '$lib/components/ui/dialog/index.js'
+	import RyansJewelsWishlistPage from '$lib/theme/ryans-jewels/RyansJewelsWishlistPage.svelte'
 
 	let showRemoveConfirmation = $state(false)
 	let itemToRemove = $state<any>(null)
@@ -18,9 +19,12 @@
 </script>
 
 <svelte:head>
-	<title>My Wishlist | Svelte Commerce</title>
+	<title>{page.data?.theme?.name === 'ryans-jewels' ? 'My Wishlist | Ryan Jewelers' : 'My Wishlist | Svelte Commerce'}</title>
 </svelte:head>
 
+{#if page.data?.theme?.name === 'ryans-jewels'}
+	<RyansJewelsWishlistPage />
+{:else}
 <MyWishlistRenderer>
 	{#snippet content({ loading, wishlistItems, moveToCart, removeFromWishlist })}
 		<div class="mx-auto max-w-7xl px-0 md:py-8 md:py-12">
@@ -76,8 +80,9 @@
 								<LazyImg
 									src={item?.product?.thumbnail}
 									alt={item?.product?.title}
-									class="w-full rounded-md object-cover transition-transform duration-500"
-									style="aspect-ratio: 4 / 5; border-radius: 8px;"
+									aspectRatio="4:3"
+									class="w-full rounded-md transition-transform duration-500"
+									style="border-radius: 8px;"
 								/>
 							</a>
 
@@ -109,7 +114,7 @@
 										variant="outline"
 										size="icon"
 										class="h-8 w-[20%] md:h-9"
-										onclick={(e) => {
+										onclick={(e: MouseEvent) => {
 											e.preventDefault()
 											e.stopPropagation()
 											confirmRemove(item)
@@ -122,7 +127,7 @@
 									<Button
 										variant="default"
 										class="h-8 w-[80%] md:h-9"
-										onclick={async (e) => {
+										onclick={async (e: MouseEvent) => {
 											e.preventDefault()
 											e.stopPropagation()
 											await moveToCart(item)
@@ -167,6 +172,7 @@
 		</div>
 	{/snippet}
 </MyWishlistRenderer>
+{/if}
 
 <style>
 	:global(body) {
