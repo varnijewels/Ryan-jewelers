@@ -127,7 +127,7 @@
 					</div>
 					<hr />
 					<div class="rj-saved-methods">
-						<h3>Save Card</h3>
+						<h3>Payment Methods</h3>
 						{#if paymentModule.showError}<p class="rj-payment-error">{paymentModule.errorMessage}</p>{/if}
 						{#each paymentModule.listOfPaymentMethods || [] as method (method.code)}
 							<button class:selected={paymentModule.SELECTED_PG_CODE === method.code} type="button" onclick={() => (paymentModule.SELECTED_PG_CODE = method.code)}>
@@ -136,7 +136,7 @@
 								<i aria-hidden="true"></i>
 							</button>
 						{/each}
-						<button class="add-card" type="button" onclick={() => paymentOptions?.scrollIntoView({ behavior: 'smooth', block: 'center' })}><span><img src="/ryans-jewels/checkout/payment/add.svg" alt="" /></span><b>Add New Card</b></button>
+						<button class="add-card" type="button" onclick={() => paymentOptions?.scrollIntoView({ behavior: 'smooth', block: 'center' })}><span><img src="/ryans-jewels/checkout/payment/add.svg" alt="" /></span><b>Choose Payment Method</b></button>
 					</div>
 				</section>
 			</div>

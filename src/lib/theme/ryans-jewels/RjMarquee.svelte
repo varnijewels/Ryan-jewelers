@@ -16,7 +16,7 @@
 
 {#snippet shapeGroup()}
 	{#each marqueeShapes as item (item.key)}
-		<a class="rj-mq-item" href={item.href}>
+		<span class="rj-mq-item">
 			<img
 				class="rj-mq-icon"
 				src="/ryans-jewels/marquee/{item.key}.svg"
@@ -24,7 +24,7 @@
 				style="--hd:{item.hd}px; --hm:{item.hm}px; {item.rot ? `--rot:${item.rot}deg;` : ''}"
 			/>
 			<span class="rj-mq-text">{item.label}</span>
-		</a>
+		</span>
 		<img class="rj-mq-star" src="/ryans-jewels/marquee/star.svg" alt="" aria-hidden="true" />
 	{/each}
 {/snippet}
@@ -124,9 +124,8 @@
 		white-space: nowrap;
 	}
 
-	.rj-mq-item:hover .rj-mq-text {
-		text-decoration: underline;
-		text-underline-offset: 4px;
+	.rj-mq--shapes .rj-mq-text {
+		font-size: 27px;
 	}
 
 	.rj-mq-star {
@@ -166,7 +165,7 @@
 		}
 
 		.rj-mq--shapes .rj-mq-text {
-			font-size: 26px;
+			font-size: 21px;
 		}
 
 		.rj-mq-star {
@@ -206,8 +205,8 @@
 			height: var(--hm);
 		}
 
-		.rj-mq-text {
-			font-size: 18px;
+		.rj-mq--shapes .rj-mq-text {
+			font-size: 13px;
 			line-height: normal;
 		}
 
@@ -225,6 +224,7 @@
 		}
 
 		.rj-mq--taglines .rj-mq-text {
+			font-size: 18px;
 			line-height: 39px;
 		}
 

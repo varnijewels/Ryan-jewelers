@@ -65,7 +65,7 @@ export const ryansJewelsNavContent: RyansJewelsNavContent = {
 		{ label: 'All Jewellery', href: '/products', dropdown: true },
 		{ label: 'Rings', href: '/categories/rings' },
 		{ label: 'Earrings', href: '/categories/earrings' },
-		{ label: 'Customise', href: '/customise' },
+		{ label: 'Customise', href: '/products' },
 		{ label: 'About us', href: '/about-us' },
 		{ label: 'Contact', href: '/contact-us' }
 	],

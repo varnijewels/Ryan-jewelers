@@ -4,7 +4,7 @@
 	import { page } from '$app/state'
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js'
 	import { MsSearchRenderer } from '$lib/core/composables/index.js'
-	import { AuthButton } from '$lib/core/components/index.js'
+	import { AuthButton, showAuthModal } from '$lib/core/components/index.js'
 	import { priceRoundUp } from '@misiki/kitcommerce-core/utils'
 	import { getCartState } from '$lib/core/stores/index.js'
 	import { ryansJewelsNavContent as nav } from './nav-content.js'
@@ -351,8 +351,7 @@
 					</RjProfileDropdown>
 				{:else}
 					<DropdownMenu.Root>
-						<DropdownMenu.Trigger aria-label="Open account menu" class="rj-guest-trigger">
-							<span class="rj-account">
+						<span class="rj-account">
 							<span class="rj-account-icon" aria-hidden="true">
 								<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
 									<path
@@ -365,11 +364,11 @@
 								<span class="rj-account-greeting">{nav.account.greeting}</span>
 								<span class="rj-account-line">
 									<span class="rj-account-auth">
-										<span class="rj-account-link">{nav.account.signIn}</span><span class="rj-account-or">{nav.account.divider}</span><span
-											class="rj-account-link">{nav.account.register}</span
-										>
+										<button class="rj-account-link" type="button" onclick={() => showAuthModal('login')}>{nav.account.signIn}</button><span
+											class="rj-account-or">{nav.account.divider}</span
+										><button class="rj-account-link" type="button" onclick={() => showAuthModal('signup')}>{nav.account.register}</button>
 									</span>
-									<svg class="rj-i14" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+									<DropdownMenu.Trigger aria-label="Open account menu" class="rj-guest-trigger"><svg class="rj-i14" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
 										<path
 											d="M11.62 5.22083L7.81667 9.02417C7.3675 9.47333 6.6325 9.47333 6.18333 9.02417L2.38 5.22083"
 											stroke="#292D32"
@@ -378,11 +377,10 @@
 											stroke-linecap="round"
 											stroke-linejoin="round"
 										/>
-									</svg>
+									</svg></DropdownMenu.Trigger>
 								</span>
 							</span>
-							</span>
-						</DropdownMenu.Trigger>
+						</span>
 
 						<DropdownMenu.Content align="end" sideOffset={8} class="rj-guest-menu">
 							<AuthButton class="rj-guest-signin" type="login">Sign in / Create Account</AuthButton>
@@ -958,14 +956,22 @@
 	}
 
 	.rj-account-auth {
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
 		font-family: 'Sarala', sans-serif;
 		line-height: 10px;
 		white-space: nowrap;
 	}
 
 	.rj-account-link {
+		padding: 0;
+		border: 0;
+		background: transparent;
 		font-size: 14px;
+		font-family: inherit;
 		color: var(--rj-gold, #cca646);
+		cursor: pointer;
 		text-decoration: underline;
 		text-underline-position: from-font;
 		text-decoration-skip-ink: none;

@@ -8,6 +8,7 @@
 	 * fixed presentation from the source frame.
 	 */
 	import { page } from '$app/state'
+	import { preloadData } from '$app/navigation'
 	import { ProductCardRenderer } from '$lib/core/composables/index.js'
 	import { formatPrice } from '$lib/core/utils/index.js'
 	import { metalSwatchFills } from './home-content.js'
@@ -51,13 +52,29 @@
 	const category = $derived(product?.category?.name || product?.categoryName || product?.collection?.name || '')
 	const price = $derived(selectedChoice?.variant?.price ?? selectedProduct?.price ?? product?.price)
 	const rating = 5.5
+
+	function preloadWhenNear(node: HTMLAnchorElement, target: string) {
+		if (page.route.id !== '/(www)' || typeof IntersectionObserver === 'undefined') return
+
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (!entry?.isIntersecting) return
+				observer.disconnect()
+				void preloadData(target).catch(() => {})
+			},
+			{ rootMargin: '900px 0px' }
+		)
+		observer.observe(node)
+
+		return { destroy: () => observer.disconnect() }
+	}
 </script>
 
 <ProductCardRenderer {product} {aspectRatio}>
 	{#snippet content({ toggleWishlist, isWishlisted, loadingForWishlist })}
 		<article class="rj-card rj-card--{size}" data-testid="product-card-{product?.id}">
 			<div class="rj-card-media">
-				<a class="rj-card-media-link" {href} aria-label={title || 'View product'}>
+				<a class="rj-card-media-link" {href} aria-label={title || 'View product'} use:preloadWhenNear={href}>
 					{#if image}
 						<img src={image} alt={title} loading="lazy" />
 					{:else}

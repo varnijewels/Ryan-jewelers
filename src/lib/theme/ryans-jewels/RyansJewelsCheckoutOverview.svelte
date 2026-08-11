@@ -707,7 +707,7 @@
 				<aside class="rj-checkout-summary">
 					<div class="rj-summary-account">
 						<div class="rj-summary-intro">
-							<h2>Cart Summery</h2>
+							<h2>Cart Summary</h2>
 							<p>You will be forwarded to a page where you will be asked to provide your contact and delivery information.</p>
 						</div>
 

@@ -121,11 +121,6 @@
 				</div>
 
 				<aside class="rj-cart-summary">
-					<button class="rj-gift" type="button" onclick={() => toast.info('Gifting options are available during checkout')}>
-						<span><img src="/ryans-jewels/cart/gift.png" alt="" /><span><b>Gifting Options</b><small>Add Video, Card &amp; Gift Box</small></span></span>
-						<img src="/ryans-jewels/cart/arrow-right.svg" alt="" />
-					</button>
-
 					<div class="rj-cart-coupon">
 						<h2>Discount Code</h2>
 						<form onsubmit={(event) => { event.preventDefault(); handleCoupon() }}>
@@ -136,7 +131,7 @@
 					</div>
 
 					<div class="rj-cart-total">
-						<h2>Cart Summery</h2>
+						<h2>Cart Summary</h2>
 						<div>
 							<p><span>Total Items</span><b>{cartState.cart?.qty || items.reduce((sum: number, item: any) => sum + item.qty, 0)}</b></p>
 							<p><span>Total Item &amp; Price</span><b>{formatPrice(subtotal, currency)}</b></p>
@@ -200,13 +195,6 @@
 	.rj-cart-services b { font-size: 17px; line-height: 18px; }
 	.rj-cart-services small { color: #666; font: 12px/18px 'Sarala', sans-serif; white-space: nowrap; }
 	.rj-cart-summary { display: flex; flex-direction: column; gap: 20px; }
-	.rj-gift { display: flex; box-sizing: border-box; width: 100%; height: 84px; align-items: center; justify-content: space-between; padding: 7px 20px; border: 0; border-radius: 5px; background: #fffec2; color: #202020; cursor: pointer; }
-	.rj-gift > span { display: flex; gap: 15px; align-items: center; }
-	.rj-gift > span > img { width: 70px; height: 70px; object-fit: cover; }
-	.rj-gift > img { width: 24px; height: 24px; }
-	.rj-gift span span { display: flex; width: 168px; flex-direction: column; gap: 5px; align-items: flex-start; }
-	.rj-gift b { font: 500 18px/normal 'Lato', sans-serif; text-transform: capitalize; }
-	.rj-gift small { color: #626262; font: 14px/normal 'Lato', sans-serif; }
 	.rj-cart-coupon, .rj-cart-total { display: flex; flex-direction: column; gap: 10px; }
 	.rj-cart-summary h2 { margin: 0; color: #303030; font: 500 16px/22px 'Lato', sans-serif; text-transform: capitalize; }
 	.rj-cart-coupon form { display: flex; box-sizing: border-box; width: 100%; height: 60px; align-items: center; justify-content: space-between; padding: 17px 15px; border: 1px solid #c2c2c2; border-radius: 5px; background: #fff; }
@@ -273,8 +261,6 @@
 		.rj-cart-item-links .remove::after { content: 'Remove'; }
 		.rj-cart-services { display: grid; grid-template-columns: 1fr; gap: 14px; justify-items: start; padding-left: 20px; }
 		.rj-cart-services img { width: 40px; height: 40px; }
-		.rj-gift { height: 76px; padding-inline: 14px; }
-		.rj-gift > span > img { width: 60px; height: 60px; }
 		.rj-cart-coupon input { width: 135px; font-size: 14px; }
 		.rj-cart-coupon form button { font-size: 12px; }
 		.rj-cart-coupon > p { font-size: 10px; line-height: 16px; }

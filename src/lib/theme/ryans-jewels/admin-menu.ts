@@ -20,7 +20,7 @@ export function resolveAdminMenu(
 	fallbackHome: AdminMenuItem,
 	fallbackItems: AdminMenuItem[]
 ) {
-	const managedItems = [...categories, ...headerLinks]
+	const managedItems = categories.length ? categories : headerLinks
 	if (!managedItems.length) return { home: fallbackHome, items: fallbackItems }
 
 	const home = managedItems.find((item) => item.slug === 'home' || item.name?.toLowerCase() === 'home')

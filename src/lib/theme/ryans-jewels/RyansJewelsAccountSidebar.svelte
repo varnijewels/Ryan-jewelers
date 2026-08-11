@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state'
 	import { getUserState } from '$lib/core/stores/index.js'
-	import { toast } from 'svelte-sonner'
 	import { onMount } from 'svelte'
 
 	const userState = getUserState()
@@ -12,12 +11,11 @@
 		{ label: 'My Wishlist', href: '/my/wishlist', icon: 'dashboard-wishlist.svg' },
 		{ label: 'Track Orders', href: '/order-tracking', icon: 'dashboard-track.svg' },
 		{ divider: true },
-		{ label: 'Save Card', icon: 'dashboard-card.svg', action: () => toast.info('Saved cards will be available with the payment flow') },
 		{ label: 'Address Book', href: '/my/addresses', icon: 'dashboard-address.svg' },
 		{ label: 'Chat with Expert', href: '/contact-us', icon: 'dashboard-chat.svg' },
 		{ divider: true },
 		{ label: 'FAQ', href: '/faqs', icon: 'dashboard-faq.svg' },
-		{ label: 'Teams & Condition', href: '/terms-and-conditions', icon: 'dashboard-terms.svg' },
+		{ label: 'Terms & Conditions', href: '/terms-and-conditions', icon: 'dashboard-terms.svg' },
 		{ divider: true }
 	]
 

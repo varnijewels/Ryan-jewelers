@@ -188,21 +188,20 @@ export const productFilters = [
 export interface MarqueeShape {
 	key: string
 	label: string
-	href: string
 	hd: number
 	hm: number
 	rot?: number
 }
 
 export const marqueeShapes: MarqueeShape[] = [
-	{ key: 'emerald', label: 'Emerald Jewellery', href: '/products?shape=emerald', hd: 40, hm: 26.667 },
-	{ key: 'oval', label: 'Ovel Jewellery', href: '/products?shape=oval', hd: 40.069, hm: 27.634 },
-	{ key: 'radiant', label: 'Radiant Jewellery', href: '/products?shape=radiant', hd: 40, hm: 26.856 },
-	{ key: 'pear', label: 'Pear Jewellery', href: '/products?shape=pear', hd: 40, hm: 33.019, rot: 180 },
-	{ key: 'cushion', label: 'Cushion Jewellery', href: '/products?shape=cushion', hd: 36.94, hm: 26.102 },
-	{ key: 'princess', label: 'Princes Jewellery', href: '/products?shape=princess', hd: 34.49, hm: 25.49 },
-	{ key: 'asscher', label: 'Asscher Jewellery', href: '/products?shape=asscher', hd: 35.818, hm: 26.818, rot: -90 },
-	{ key: 'heart', label: 'Heart Jewellery', href: '/products?shape=heart', hd: 33.203, hm: 23.335 }
+	{ key: 'emerald', label: 'Emerald Jewellery', hd: 40, hm: 26.667 },
+	{ key: 'oval', label: 'Ovel Jewellery', hd: 40.069, hm: 27.634 },
+	{ key: 'radiant', label: 'Radiant Jewellery', hd: 40, hm: 26.856 },
+	{ key: 'pear', label: 'Pear Jewellery', hd: 40, hm: 33.019, rot: 180 },
+	{ key: 'cushion', label: 'Cushion Jewellery', hd: 36.94, hm: 26.102 },
+	{ key: 'princess', label: 'Princes Jewellery', hd: 34.49, hm: 25.49 },
+	{ key: 'asscher', label: 'Asscher Jewellery', hd: 35.818, hm: 26.818, rot: -90 },
+	{ key: 'heart', label: 'Heart Jewellery', hd: 33.203, hm: 23.335 }
 ]
 
 /** Tagline marquee — 1:5870 (desktop) · 63:40617 (tablet) · 77:107439 (mobile). */
@@ -318,7 +317,7 @@ export const namePlateCards: NamePlateCard[] = [
 		name: 'Yellow gold frams50013',
 		category: 'wedding rings',
 		cta: 'Customise now',
-		href: '/customise',
+		href: '/products',
 		crop: { left: -3.61, top: -5.45, width: 109.31 },
 		textWidth: 178
 	},
@@ -329,7 +328,7 @@ export const namePlateCards: NamePlateCard[] = [
 		name: 'Rose gold frams50013',
 		category: 'wedding rings',
 		cta: 'Customise now',
-		href: '/customise',
+		href: '/products',
 		crop: { left: -3.75, top: -3.62, width: 109.31 },
 		textWidth: 178
 	},
@@ -340,7 +339,7 @@ export const namePlateCards: NamePlateCard[] = [
 		name: 'Yellow gold frams50013',
 		category: 'wedding rings',
 		cta: 'Customise now',
-		href: '/customise',
+		href: '/products',
 		crop: { left: -3.56, top: -0.15, width: 109.31 },
 		textWidth: 178
 	}
@@ -356,12 +355,12 @@ export const namePlate = {
 		art: '/ryans-jewels/home/nameplate-word.png',
 		artAlt: 'Diamond-set name plate spelling Martin',
 		cta: 'Customise now',
-		href: '/customise'
+		href: '/products'
 	},
 	eyebrow: 'Top rated collection',
 	title: 'Create a one-of-a -kind piece.',
 	ctaLabel: 'customise now',
-	ctaHref: '/customise',
+	ctaHref: '/products',
 	cards: namePlateCards
 }
 
