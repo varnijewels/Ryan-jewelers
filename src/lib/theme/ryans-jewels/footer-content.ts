@@ -97,11 +97,11 @@ export const ryansJewelsFooter = {
 			width: 148,
 			gap: 10,
 			links: [
-				{ label: 'Rings', href: '/categories/rings' },
-				{ label: 'Earrings', href: '/categories/earrings' },
+				{ label: 'Rings', href: '/products' },
+				{ label: 'Earrings', href: '/products' },
 				{ label: 'Customise', href: '/products' },
 				{ label: 'About us', href: '/about-us' },
-				{ label: 'My Cart', href: '/cart' },
+				{ label: 'My Cart', href: '/checkout/cart' },
 				{ label: 'FAQ', href: '/faqs' },
 				{ label: 'Contact', href: '/contact-us' }
 			]

@@ -19,7 +19,9 @@
 
 	const productState = useProductState()
 	const data = $derived(page.data)
-	const product = $derived(data?.product || {})
+	let selectedProduct = $state<any>(null)
+	let pageProductSlug = $state('')
+	const product = $derived(selectedProduct || data?.product || {})
 	const variants = $derived(product?.variants || [])
 	const currency = $derived(data?.store?.currency?.code || 'USD')
 	let selectedVariant = $state<any>(null)
@@ -32,8 +34,17 @@
 	let postalCode = $state('')
 	let locating = $state(false)
 	let changingMetalColor = $state('')
+	let customizationOpen = $state(false)
+	let customizationLoading = $state(false)
 	let activeTab = $state<'details' | 'reviews'>('details')
 	let visibleReviewCount = $state(2)
+
+	$effect(() => {
+		const slug = data?.product?.slug || ''
+		if (slug === pageProductSlug) return
+		pageProductSlug = slug
+		selectedProduct = null
+	})
 
 	$effect(() => {
 		if (!selectedVariant || !variants.some((variant: any) => variant.id === selectedVariant.id)) {
@@ -65,6 +76,7 @@
 	const stoneShape = $derived(productAttributeValue(attributes, /(center\s*)?(stone|diamond).*shape|shape.*(stone|diamond)/i))
 	const diamondImage = $derived(diamondImageForShape(stoneShape))
 	const stoneSetting = $derived(productAttributeValue(attributes, /(center\s*)?(stone|diamond).*setting|setting.*(stone|diamond)/i))
+	const stoneType = $derived(productAttributeValue(attributes, /(stone|diamond)\s*type|type.*(stone|diamond)/i) || (/lab[\s-]*grown/i.test(`${product?.title || ''} ${product?.description || ''}`) ? 'Lab Grown Diamond' : 'Natural Diamond'))
 	const ringSize = $derived(productAttributeValue(attributes, /ring\s*size/i))
 	const ringHeight = $derived(selectedVariant?.height || product?.height || productAttributeValue(attributes, /ring\s*height/i))
 	const dimensionUnit = $derived(selectedVariant?.dimensionUnit || product?.dimensionUnit || 'mm')
@@ -81,12 +93,19 @@
 	const optionCards = $derived(customizationOptions(productState.productOptions || [], attributes))
 	const metalColorOption = $derived((productState.productOptions || []).find((option: any) => /\bmetal\s*color\b/i.test(option.title || option.type || '')))
 	const metalColorAggregationKey = $derived(Object.keys(product?.ag || {}).find((key) => /\bmetal\s*color\b/i.test(key)) || '')
+	const caratWeightAggregationKey = $derived(Object.keys(product?.ag || {}).find((key) => /(carat|diamond).*weight|weight.*(carat|diamond)/i.test(key)) || '')
+	const ringSizeAggregationKey = $derived(Object.keys(product?.ag || {}).find((key) => /ring\s*size/i.test(key)) || '')
+	const stoneShapeAggregationKey = $derived(Object.keys(product?.ag || {}).find((key) => /(center\s*)?(stone|diamond).*shape|shape.*(stone|diamond)/i.test(key)) || '')
 	const groupedProducts = $derived(Array.isArray(product?.pg) ? product.pg : [])
 	const currentGroupedProduct = $derived(groupedProducts.find((item: any) => item.id === product.id || item.slug === product.slug))
 	const metalColorValues = $derived.by(() => {
 		const values = [...new Set([...(metalColorOption?.values || []).map((item: any) => item.value), ...((metalColorAggregationKey && product?.ag?.[metalColorAggregationKey]) || []), metalColor].filter(Boolean))] as string[]
 		return [...['yellow', 'rose', 'white'].flatMap((tone) => values.filter((value) => metalColorTone(value) === tone)), ...values.filter((value) => !['yellow', 'rose', 'white'].includes(metalColorTone(value)))]
 	})
+	const caratWeightValues = $derived([...new Set([...((caratWeightAggregationKey && product?.ag?.[caratWeightAggregationKey]) || []), caratWeight].filter(Boolean))] as string[])
+	const ringSizeValues = $derived([...new Set([...((ringSizeAggregationKey && product?.ag?.[ringSizeAggregationKey]) || []), ringSize].filter(Boolean))] as string[])
+	const stoneShapeValues = $derived([...new Set([...((stoneShapeAggregationKey && product?.ag?.[stoneShapeAggregationKey]) || []), stoneShape].filter(Boolean))] as string[])
+	const customizationInitial = $derived({ metal: metalColor, carat: caratWeight, size: ringSize, cut: stoneShape, stone: stoneType })
 	const wishlistKey = $derived(`${product?.id}-${selectedVariant?.id || variants[0]?.id || ''}`)
 	const wishlisted = $derived(Boolean(productState.wishlistState?.isWishlisted?.[wishlistKey]))
 
@@ -104,6 +123,16 @@
 
 	function groupedMetalColorProduct(value: string) {
 		return metalColorAggregationKey ? groupedProductForAttribute(groupedProducts, currentGroupedProduct, metalColorAggregationKey, value) : null
+	}
+
+	async function showGroupedProduct(groupedProduct: any) {
+		const result = await preloadData(`/products/${groupedProduct.slug}`)
+		const nextProduct = result.type === 'loaded' ? (result.data as any)?.product : null
+		if (!nextProduct) throw new Error('Product variation is unavailable')
+		const nextVariant = (nextProduct.variants || []).find((variant: any) => variant.id === groupedProduct.variantId) || nextProduct.variants?.[0] || nextProduct
+		selectedProduct = nextProduct
+		selectedVariant = nextVariant
+		activeImage = productImages(nextProduct, nextVariant)[0] || activeImage
 	}
 
 	function metalColorAvailable(value: string) {
@@ -126,7 +155,7 @@
 			activeImage = metalColorImage(images[0] || activeImage, value)
 			await tick()
 			try {
-				await goto(`/products/${groupedProduct.slug}`, { noScroll: true, keepFocus: true })
+				await showGroupedProduct(groupedProduct)
 			} catch (error: any) {
 				activeImage = images[0] || ''
 				toast.error(error?.message || 'Unable to change metal color')
@@ -195,10 +224,58 @@
 	}
 
 	function openCustomization() {
-		const select = document.querySelector<HTMLSelectElement>('.rj-options select')
-		if (!select) return
-		select.focus()
-		try { select.showPicker?.() } catch { select.click() }
+		customizationOpen = true
+	}
+
+	function customizationTarget(selection: { metal: string; carat: string; size: string; cut: string }) {
+		const selectedAttributes = Object.fromEntries([
+			[metalColorAggregationKey, selection.metal],
+			[caratWeightAggregationKey, selection.carat],
+			[ringSizeAggregationKey, selection.size],
+			[stoneShapeAggregationKey, selection.cut]
+		].filter(([key, value]) => key && value))
+		return groupedProductForSelections(groupedProducts, currentGroupedProduct, selectedAttributes)
+	}
+
+	function preloadCustomization(selection: { metal: string; carat: string; size: string; cut: string; stone: string }) {
+		if (selection.stone !== stoneType) return
+		const target = customizationTarget(selection)
+		if (target?.slug && target.slug !== product.slug) void preloadData(`/products/${target.slug}`).catch(() => {})
+	}
+
+	async function applyCustomization(selection: { metal: string; carat: string; size: string; cut: string; stone: string }) {
+		if (selection.stone !== stoneType) {
+			toast.error(`${selection.stone} is not available for this product`)
+			return false
+		}
+		const target = customizationTarget(selection)
+		if (!target?.slug) {
+			toast.error('This customization combination is not available')
+			return false
+		}
+		if (target.slug === product.slug) {
+			toast.success('Customization applied')
+			return true
+		}
+
+		customizationLoading = true
+		activeImage = metalColorImage(images[0] || activeImage, selection.metal)
+		try {
+			await showGroupedProduct(target)
+			toast.success('Customization applied')
+			return true
+		} catch (error: any) {
+			activeImage = images[0] || ''
+			toast.error(error?.message || 'Unable to apply customization')
+			return false
+		} finally {
+			customizationLoading = false
+		}
+	}
+
+	function showRingView() {
+		activeImage = images[1] || images[0] || activeImage
+		setTimeout(() => document.querySelector('.rj-gallery')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
 	}
 
 	async function locateMe() {
@@ -534,6 +611,7 @@
 
 <RjInstagram />
 <LoginModal bind:show={productState.showLoginModal} />
+<RjCustomizeModal bind:open={customizationOpen} initial={customizationInitial} {metalType} metalOptions={metalColorValues} caratOptions={caratWeightValues} sizeOptions={ringSizeValues} cutOptions={stoneShapeValues} stoneOptions={[stoneType]} loading={customizationLoading} onchange={preloadCustomization} onapply={applyCustomization} onringview={showRingView} />
 
 <style>
 	.rj-pdp { color: #404040; font-family: 'Sarala', var(--font-body, sans-serif); }

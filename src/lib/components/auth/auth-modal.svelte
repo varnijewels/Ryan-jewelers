@@ -11,6 +11,7 @@
 	let type: AuthType = $state('login')
 	const modalHistoryKey = '__svelteCommerceAuthModal'
 	let ownsHistoryEntry = false
+	let modalPathname = ''
 	let scrollLock:
 		| {
 				scrollY: number
@@ -55,11 +56,15 @@
 		window.scrollTo(0, scrollY)
 	}
 
-	function removeAuthParamsFromCurrentUrl() {
-		const url = new URL(window.location.href)
+	function withoutAuthParams(url: URL) {
 		for (const parameter of ['show_auth', 'login', 'signup', 'forgot-password']) {
 			url.searchParams.delete(parameter)
 		}
+		return url
+	}
+
+	function removeAuthParamsFromCurrentUrl() {
+		const url = withoutAuthParams(new URL(window.location.href))
 		history.replaceState(history.state, '', url)
 	}
 
@@ -108,12 +113,15 @@
 		if (typeof window === 'undefined') return
 
 		if (show && !ownsHistoryEntry) {
-			history.pushState({ ...history.state, [modalHistoryKey]: true }, '', window.location.href)
+			const modalUrl = new URL(window.location.href)
+			modalPathname = modalUrl.pathname
+			history.replaceState(history.state, '', withoutAuthParams(new URL(modalUrl)))
+			history.pushState({ ...history.state, [modalHistoryKey]: true }, '', modalUrl)
 			ownsHistoryEntry = true
 		} else if (!show && ownsHistoryEntry) {
 			const isCurrentModalEntry = history.state?.[modalHistoryKey] === true
 			ownsHistoryEntry = false
-			if (isCurrentModalEntry) history.back()
+			if (isCurrentModalEntry || location.pathname === modalPathname) history.back()
 		}
 	})
 

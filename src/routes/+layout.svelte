@@ -6,7 +6,7 @@
 	import { GoogleAnalytics } from '$lib/core/components/index.js'
 	import { navigating } from '$app/stores'
 	import { updated } from '$app/state'
-	import { beforeNavigate } from '$app/navigation'
+	import { afterNavigate, beforeNavigate, disableScrollHandling } from '$app/navigation'
 	import { Loader } from '@lucide/svelte'
 	import { onMount, type Snippet } from 'svelte'
 	import type { StoreData } from '$lib/core/types/index.js'
@@ -39,6 +39,24 @@
 		}
 	})
 
+	function resetScroll() {
+		document.documentElement.style.setProperty('scroll-behavior', 'auto', 'important')
+		document.documentElement.scrollTop = 0
+		document.body.scrollTop = 0
+		requestAnimationFrame(() => {
+			requestAnimationFrame(() => {
+				document.documentElement.scrollTop = 0
+				document.body.scrollTop = 0
+				document.documentElement.style.removeProperty('scroll-behavior')
+			})
+		})
+	}
+
+	afterNavigate(() => {
+		disableScrollHandling()
+		resetScroll()
+	})
+
 	onMount(() => {
 		const onVisible = () => {
 			if (document.visibilityState === 'visible' && updated.current) {
@@ -46,7 +64,13 @@
 			}
 		}
 		document.addEventListener('visibilitychange', onVisible)
-		return () => document.removeEventListener('visibilitychange', onVisible)
+		window.addEventListener('popstate', resetScroll)
+		window.addEventListener('pageshow', resetScroll)
+		return () => {
+			document.removeEventListener('visibilitychange', onVisible)
+			window.removeEventListener('popstate', resetScroll)
+			window.removeEventListener('pageshow', resetScroll)
+		}
 	})
 </script>
 

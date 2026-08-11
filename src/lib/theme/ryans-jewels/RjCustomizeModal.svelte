@@ -64,7 +64,7 @@
 			selectedSize = initial.size
 			selectedCut = initial.cut
 			selectedStone = initial.stone
-			setTimeout(() => { if (dialog && !dialog.open) dialog.showModal() })
+			setTimeout(() => { if (open && dialog && !dialog.open) dialog.showModal() })
 		} else if (dialog?.open) dialog.close()
 	})
 
