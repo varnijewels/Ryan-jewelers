@@ -175,9 +175,9 @@ export function metalSwatchKey(value: string): keyof typeof metalSwatchFills | n
 /** Filter tabs above the product grids — 1:5656 / 63:40188 / 77:107013. */
 export const productFilters = [
 	{ label: 'All', href: '/products' },
-	{ label: 'Ring’s', href: '/categories/rings' },
-	{ label: 'Pendents', href: '/categories/pendants' },
-	{ label: 'Earrings', href: '/categories/earrings' }
+	{ label: 'Ring’s', href: '/products?categories=engagement' },
+	{ label: 'Pendents', href: '/products?search=pendants' },
+	{ label: 'Earrings', href: '/products?search=earrings' }
 ]
 
 /**
@@ -395,7 +395,7 @@ export const wideBanner = {
 	heading: 'Redefining Elegance with Unique Charms',
 	subheading: 'Our Collection, Your Timeless Elegance',
 	ctaLabel: 'Know more',
-	ctaHref: '/collections',
+	ctaHref: '/products',
 	background: '/ryans-jewels/home/banner-bg.jpg',
 	image: '/ryans-jewels/home/banner-model.png',
 	imageAlt: 'Model wearing layered diamond necklaces'

@@ -22,11 +22,12 @@
 	let previousListingQueryKey = ''
 
 	const hasMore = $derived(currentPage < (data.products?.totalPages ?? 0))
+	const visibleProducts = (items: any[]) => isRyan ? items.filter((product) => product?.styleCode) : items
 
 	$effect(() => {
 		if (listingQueryKey !== previousListingQueryKey) {
 			previousListingQueryKey = listingQueryKey
-			products = data.products?.data ?? []
+			products = visibleProducts(data.products?.data ?? [])
 			currentPage = Number(page.url.searchParams.get('page') ?? 1)
 		}
 	})
@@ -39,7 +40,7 @@
 			const nextUrl = new URL(page.url)
 			nextUrl.searchParams.set('page', String(currentPage + 1))
 			const result = await searchService.searchWithUrl(nextUrl, page.params.slug)
-			products = [...products, ...result.data]
+			products = [...products, ...visibleProducts(result.data)]
 			currentPage += 1
 		} finally {
 			loadingMore = false

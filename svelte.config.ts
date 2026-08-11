@@ -1,13 +1,9 @@
 import adapter from '@sveltejs/adapter-auto'
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'
 
-// Date-based build version, regenerated on every build (i.e. every push/deploy).
-// SvelteKit writes this into `_app/version.json`; the client polls it and the
-// `updated` store flips when a new build is live, so cached mobile/PWA clients
-// can auto-refresh instead of running stale code. Displayed in the footer.
-const pad = (n: number) => String(n).padStart(2, '0')
-const now = new Date()
-const appVersion = `${now.getFullYear()}.${pad(now.getMonth() + 1)}.${pad(now.getDate())}.${pad(now.getHours())}${pad(now.getMinutes())}`
+// This config is evaluated more than once during a production build, so the
+// version must be stable across server and client compilation.
+const appVersion = process.env.VERCEL_DEPLOYMENT_ID || process.env.VERCEL_GIT_COMMIT_SHA || process.env.npm_package_version || 'local'
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {

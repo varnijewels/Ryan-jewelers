@@ -43,6 +43,35 @@ test('page navigation starts at the top', async ({ page }) => {
 	expect(await page.evaluate(() => scrollY)).toBe(0)
 })
 
+test('mobile account icon opens login and registration', async ({ page }) => {
+	await page.setViewportSize({ width: 412, height: 915 })
+	await page.goto('/')
+	await page.getByRole('button', { name: 'Sign in or register' }).click()
+	await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
+	await page.getByRole('button', { name: 'Open authentication modal' }).filter({ hasText: 'Create an account' }).click()
+	await expect(page.getByRole('heading', { name: 'Create account' })).toBeVisible()
+})
+
+test('Ryan catalog hides non-Ryan placeholder products', async ({ page }) => {
+	await page.goto('/products')
+	await expect(page.locator('a[href="/products/slit-knit-dress"], a[href="/products/satin-crop-top"]')).toHaveCount(0)
+})
+
+test('sitemap serves Ryan pages instead of redirecting to a missing file', async ({ request }) => {
+	const response = await request.get('/sitemap.xml')
+	expect(response.status()).toBe(200)
+	expect(response.headers()['content-type']).toContain('application/xml')
+	expect(await response.text()).toContain('<loc>http://localhost:3000/products</loc>')
+})
+
+for (const path of ['/collections', '/categories/lab-grown-diamond', '/categories/rings', '/categories/earrings', '/categories/pendants']) {
+	test(`${path} redirects to the working catalog`, async ({ request }) => {
+		const response = await request.get(path)
+		expect(response.status()).toBe(200)
+		expect(response.url()).toContain('/products')
+	})
+}
+
 for (const [name, viewport] of Object.entries({ desktop: { width: 1440, height: 900 }, mobile: { width: 412, height: 915 } })) {
 	test(`cart login releases the page scroll on ${name}`, async ({ page }) => {
 		const user = { id: 'auth_test_user', firstName: 'Auth', lastName: 'Test', email: 'hi@litekart.in', role: 'USER' }
