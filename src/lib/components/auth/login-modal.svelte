@@ -13,6 +13,7 @@
 	import { z } from 'zod'
 	import { toast } from '@misiki/kitcommerce-core'
 	import { authService, type User } from '$lib/core/services/index.js'
+	import { goto } from '$app/navigation'
 
 	let { show = $bindable(false), manageHistory = true } = $props()
 
@@ -32,6 +33,51 @@
 	const loginPrompt = $derived(
 		loginModule.isPhoneNumber ? 'Use your phone number to receive a one-time code.' : 'Use your email and password to continue.'
 	)
+
+	function checkoutReturnTo() {
+		const redirect = page.url.searchParams.get('redirect')
+		if (redirect) return decodeURIComponent(redirect)
+		if (typeof sessionStorage === 'undefined') return ''
+		return sessionStorage.getItem('rj-auth-return-to') || ''
+	}
+
+	async function resumeCheckout() {
+		const returnTo = checkoutReturnTo()
+		const user = userState.user as any
+		if (!returnTo || (!user?.userId && !user?.id)) return
+		sessionStorage.removeItem('rj-auth-return-to')
+		show = false
+		await goto(returnTo, { replaceState: true, invalidateAll: true })
+	}
+
+	async function handleLogin(event: SubmitEvent) {
+		if (loginModule.isPhoneNumber) {
+			let phone = loginModule.identifier.replace(/\s+/g, '')
+			if (phone && !phone.startsWith('+')) phone = (page?.data?.store?.storeCountry?.dialCode || '+91') + phone
+			loginModule.identifier = phone
+			await loginModule.handleSubmit(event)
+			return
+		}
+
+		event.preventDefault()
+		loginModule.isLoading = true
+		try {
+			const user = await authService.login({
+				email: loginModule.identifier,
+				password: loginModule.password,
+				cartId: loginModule.cartState.cart?.id
+			})
+			if (!user) return
+			userState.user = user
+			await loginModule.cartState.updateEmail({ email: loginModule.identifier })
+			loginModule.wishlistState.setState()
+			await resumeCheckout()
+		} catch (error: any) {
+			toast.error(error?.message || 'Login failed')
+		} finally {
+			loginModule.isLoading = false
+		}
+	}
 
 	function startResendCooldown() {
 		resendSeconds = 30
@@ -133,7 +179,7 @@
 					document.cookie = `connect.sid=dev-session; path=/; max-age=${60 * 60 * 24 * 30}`
 					document.cookie = `me=${encodeURIComponent(JSON.stringify(mockUser))}; path=/; max-age=${60 * 60 * 24 * 30}`
 					userState.user = mockUser as unknown as User
-					show = false
+					await resumeCheckout()
 					return mockUser as unknown as User
 				}
 				return await originalVerifyOtp.call(authService, args)
@@ -150,7 +196,7 @@
 	$effect(() => {
 		if (loginModule.otp.length === 4 && loginModule.otp !== verifiedOtp && !loginModule.isLoading && !userState.loading) {
 			verifiedOtp = loginModule.otp
-			loginModule.handleVerifyOtp()
+			loginModule.handleVerifyOtp().then(resumeCheckout)
 		} else if (loginModule.otp.length !== 4) {
 			verifiedOtp = ''
 		}
@@ -203,16 +249,7 @@
 			</div>
 			<form
 				onsubmit={async (e) => {
-					if (loginModule.isPhoneNumber) {
-						let phone = loginModule.identifier.replace(/\s+/g, '')
-						if (phone && !phone.startsWith('+')) {
-							const dialCode = page?.data?.store?.storeCountry?.dialCode || '+91'
-							phone = dialCode + phone
-						}
-						loginModule.identifier = phone
-					}
-					const success = await loginModule.handleSubmit(e)
-					if (success) show = false
+					await handleLogin(e)
 				}}
 				class="flex flex-col space-y-5 max-sm:pt-2"
 			>
@@ -323,7 +360,7 @@
 							{/if}
 						</div> -->
 							<div class="flex items-center justify-end">
-								<AuthButton type="forgot-password" extraqueries={{ email: loginModule.identifier }}>
+								<AuthButton type="forgot-password" extraqueries={{ email: loginModule.identifier, redirect: checkoutReturnTo() }}>
 									<Button variant="link" class="-mr-4 text-sm text-gray-600 hover:text-gray-500">Forgot password?</Button>
 								</AuthButton>
 							</div>
@@ -350,7 +387,7 @@
 						<div class="pt-2 text-center">
 							<p class="text-sm text-gray-500 dark:text-gray-400">
 								New to {page?.data?.store?.name}?
-								<AuthButton type="signup" class="ml-1 font-semibold text-gray-900 hover:underline dark:text-white">Create an account</AuthButton>
+								<AuthButton type="signup" extraqueries={{ redirect: checkoutReturnTo() }} class="ml-1 font-semibold text-gray-900 hover:underline dark:text-white">Create an account</AuthButton>
 							</p>
 						</div>
 					{/if}
@@ -427,7 +464,10 @@
 				<div class="space-y-4 text-center">
 					<Button
 						class="h-12 w-full text-base font-semibold shadow-sm"
-						onclick={loginModule.handleVerifyOtp}
+						onclick={async () => {
+							await loginModule.handleVerifyOtp()
+							await resumeCheckout()
+						}}
 						disabled={loginModule.otp.length !== 4 || userState.loading}
 					>
 						{#if userState.loading}

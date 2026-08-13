@@ -3,8 +3,8 @@
 	import { goto } from '$app/navigation'
 	import { page } from '$app/state'
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js'
-	import { MsSearchRenderer } from '$lib/core/composables/index.js'
 	import { AuthButton, showAuthModal } from '$lib/core/components/index.js'
+	import { searchService } from '$lib/core/services/index.js'
 	import { priceRoundUp } from '@misiki/kitcommerce-core/utils'
 	import { getCartState } from '$lib/core/stores/index.js'
 	import { ryansJewelsNavContent as nav } from './nav-content.js'
@@ -28,7 +28,13 @@
 		pathname?: string
 	} = $props()
 
-	let search = $state('')
+	let search = $state(page.url.searchParams.get('search') ?? '')
+	let searchResults = $state<any[]>([])
+	let searchResultCount = $state(0)
+	let searchOpen = $state(false)
+	let searchLoading = $state(false)
+	let searchTimer: ReturnType<typeof setTimeout> | undefined
+	let searchRequest = 0
 	let openMega = $state<string | null>(null)
 	const cartState = getCartState()
 
@@ -37,9 +43,52 @@
 		`${userState?.user?.firstName || ''} ${userState?.user?.lastName || ''}`.trim() || userState?.user?.name || 'My Account'
 	)
 	const cartQty = $derived((cartState?.cart?.lineItems || []).reduce((total: number, item: any) => total + Number(item.qty || 0), 0))
+	const searchPlugin = $derived(page?.data?.store?.plugins?.search)
 	const resolvedMenu = $derived(resolveAdminMenu(navModule.megaMenu, navModule.navMenu, nav.home, nav.menu))
 	const homeLabel = $derived(menuLabel(resolvedMenu.home))
 	const homeHref = '/'
+
+	$effect(() => {
+		search = page.url.searchParams.get('search') ?? ''
+	})
+
+	function scheduleSearch(query: string) {
+		clearTimeout(searchTimer)
+		const request = ++searchRequest
+		searchOpen = !!query.trim()
+		searchResults = []
+		searchResultCount = 0
+		if (!searchOpen) {
+			searchLoading = false
+			return
+		}
+		searchLoading = true
+		searchTimer = setTimeout(async () => {
+			const result = await searchService.searchWithQuery(query.trim())
+			if (request !== searchRequest) return
+			searchResults = (result?.data || []).filter((product: any) => product?.slug).slice(0, 6)
+			searchResultCount = result?.count || searchResults.length
+			searchLoading = false
+		}, 250)
+	}
+
+	function closeSearch() {
+		clearTimeout(searchTimer)
+		searchRequest++
+		searchOpen = false
+		searchLoading = false
+	}
+
+	function submitSearch() {
+		const query = search.trim()
+		if (!query) return
+		closeSearch()
+		goto(`/products?search=${encodeURIComponent(query)}`)
+	}
+
+	function searchCategory(result: any) {
+		return result?.categories?.[0]?.category?.name || result?.categories?.[0]?.name || result?.category?.name || 'Jewellery'
+	}
 </script>
 
 <!-- Utility bar — Figma 1:5409 -->
@@ -184,9 +233,13 @@
 				<span class="rj-brand-name">{nav.brandName}</span>
 			</a>
 
-			<MsSearchRenderer bind:search>
-				{#snippet content({ searchResults, showSearchResults, loading, searchPlugin, closeSearch, handleKeyDown, handleResultClick, showSearch })}
-					<div class="rj-search">
+			<form
+				class="rj-search"
+				onsubmit={(event) => {
+					event.preventDefault()
+					submitSearch()
+				}}
+			>
 						<input
 							class="rj-search-input"
 							type="search"
@@ -195,10 +248,15 @@
 							aria-label={searchPlugin?.placeholder || nav.searchPlaceholder}
 							autocomplete="off"
 							enterkeyhint="search"
-							onfocus={showSearch}
-							onkeydown={handleKeyDown}
+							onfocus={() => search.trim() && (searchOpen = true)}
+							oninput={(event) => scheduleSearch((event.currentTarget as HTMLInputElement).value)}
+							onkeydown={(event) => event.key === 'Escape' && closeSearch()}
+							aria-controls="rj-search-results"
+							aria-expanded={searchOpen}
+							aria-autocomplete="list"
+							role="combobox"
 						/>
-						<span class="rj-search-icon" aria-hidden="true">
+						<button class="rj-search-icon" type="submit" aria-label="Search products">
 							<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
 								<path
 									fill-rule="evenodd"
@@ -207,11 +265,15 @@
 									fill="#B0BABF"
 								/>
 							</svg>
-						</span>
+						</button>
 
-						{#if showSearchResults && search}
-							<div class="rj-search-results">
-								{#if loading}
+						{#if searchOpen && search.trim()}
+							<div class="rj-search-results" id="rj-search-results" aria-live="polite">
+								<div class="rj-search-results-head">
+									<strong>Similar Results</strong>
+									{#if !searchLoading}<span>{searchResultCount} products</span>{/if}
+								</div>
+								{#if searchLoading}
 									{#each Array(4) as _}
 										<div class="rj-search-skeleton"></div>
 									{/each}
@@ -219,29 +281,32 @@
 									<ul>
 										{#each searchResults as result}
 											<li>
-												<button type="button" onclick={() => handleResultClick(result)}>
+												<a href="/products/{result.slug}" onclick={closeSearch}>
 													<span class="rj-search-thumb">
-														{#if result.thumbnail}<img src={result.thumbnail} alt="" />{/if}
+														{#if result.thumbnail || result.image_url}<img src={result.thumbnail || result.image_url} alt="" />{/if}
 													</span>
 													<span class="rj-search-meta">
+														<span class="rj-search-category">{searchCategory(result)}</span>
 														<span class="rj-search-title">{result.name || result.title}</span>
 														{#if result.price}
 															<span class="rj-search-price">{priceRoundUp(result?.price, page?.data?.store?.currency?.code)}</span>
 														{/if}
 													</span>
-												</button>
+													<ChevronRight size={17} aria-hidden="true" />
+												</a>
 											</li>
 										{/each}
 									</ul>
 								{:else}
 									<p class="rj-search-empty">No products found for “{search}”.</p>
 								{/if}
+								<button type="button" class="rj-search-view-all" onclick={submitSearch}>
+									<span>View all results for “{search}”</span><ChevronRight size={18} aria-hidden="true" />
+								</button>
 							</div>
 							<button type="button" class="rj-search-backdrop" tabindex="-1" aria-label="Close search" onclick={closeSearch}></button>
 						{/if}
-					</div>
-				{/snippet}
-			</MsSearchRenderer>
+			</form>
 
 			<div class="rj-actions">
 				<a class="rj-order" href={nav.orderReturn.href}>
@@ -421,7 +486,7 @@
 						{@const label = menuLabel(item)}
 						{@const href = menuHref(item)}
 						{@const menuId = `rj-admin-menu-${index}`}
-						{#if menuChildren(item).length}
+						{#if menuChildren(item).length || item.id}
 							<div class="rj-menu-entry" class:is-open={openMega === menuId} onmouseenter={() => (openMega = menuId)}>
 								<a
 									class="rj-menu-item"
@@ -437,7 +502,7 @@
 										<path d="M10.9329 0.75L6.74143 4.94143C6.24643 5.43643 5.43643 5.43643 4.94143 4.94143L0.75 0.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
 									</svg>
 								</a>
-								<RjAdminMegaMenu category={item} {menuId} onNavigate={() => (openMega = null)} />
+								<RjAdminMegaMenu category={item} {menuId} open={openMega === menuId} onNavigate={() => (openMega = null)} />
 							</div>
 						{:else}
 							<a class="rj-menu-item" {href} aria-current={pathname === href ? 'page' : undefined} onmouseenter={() => (openMega = null)}>
@@ -694,10 +759,14 @@
 		position: absolute;
 		top: 7px;
 		right: 7px;
-		display: block;
+		display: grid;
+		place-items: center;
 		width: 24px;
 		height: 24px;
-		pointer-events: none;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		cursor: pointer;
 	}
 
 	.rj-search-backdrop {
@@ -717,39 +786,65 @@
 		right: 0;
 		max-height: 60vh;
 		overflow-y: auto;
-		padding: 6px;
+		padding: 0;
 		background: #fff;
 		border: 1px solid var(--rj-line-2, #d9d9d9);
-		border-radius: 6px;
+		border-radius: 8px;
 		box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.28);
 	}
 
-	.rj-search-results ul {
-		list-style: none;
-		margin: 0;
-		padding: 0;
+	.rj-search-results-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 16px 18px 12px;
+		border-bottom: 1px solid var(--rj-line-2, #d9d9d9);
+		color: var(--rj-ink, #404040);
 	}
 
-	.rj-search-results li button {
+	.rj-search-results-head strong {
+		font-size: 15px;
+		font-weight: 600;
+	}
+
+	.rj-search-results-head span {
+		font-size: 12px;
+		color: var(--rj-ink-2, #606060);
+	}
+
+	.rj-search-results ul {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 4px;
+		list-style: none;
+		margin: 0;
+		padding: 8px;
+	}
+
+	.rj-search-results li a {
 		display: flex;
 		align-items: center;
 		gap: 12px;
 		width: 100%;
-		padding: 8px;
+		min-height: 78px;
+		padding: 8px 10px;
 		border: 0;
 		background: none;
 		text-align: left;
+		text-decoration: none;
 		cursor: pointer;
 	}
 
-	.rj-search-results li button:hover {
+	.rj-search-results li a:hover,
+	.rj-search-results li a:focus-visible {
 		background: var(--rj-cream, #faf6ea);
+		outline: none;
 	}
 
 	.rj-search-thumb {
 		display: block;
-		width: 44px;
-		height: 44px;
+		width: 62px;
+		height: 62px;
 		flex-shrink: 0;
 		overflow: hidden;
 		border-radius: 4px;
@@ -767,6 +862,15 @@
 		flex-direction: column;
 		gap: 2px;
 		min-width: 0;
+		flex: 1;
+	}
+
+	.rj-search-category {
+		font-size: 11px;
+		line-height: 15px;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--rj-gold, #cca646);
 	}
 
 	.rj-search-title {
@@ -784,8 +888,8 @@
 	}
 
 	.rj-search-skeleton {
-		height: 56px;
-		margin: 4px;
+		height: 78px;
+		margin: 8px;
 		border-radius: 4px;
 		background: var(--rj-surface, #f4f4f4);
 		animation: rj-pulse 1.4s ease-in-out infinite;
@@ -796,6 +900,28 @@
 		font-size: 14px;
 		text-align: center;
 		color: var(--rj-ink-2, #606060);
+	}
+
+	.rj-search-view-all {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 5px;
+		width: 100%;
+		padding: 13px 16px;
+		border: 0;
+		border-top: 1px solid var(--rj-line-2, #d9d9d9);
+		background: #fff;
+		font: inherit;
+		font-size: 13px;
+		color: var(--rj-ink, #404040);
+		cursor: pointer;
+	}
+
+	.rj-search-view-all:hover,
+	.rj-search-view-all:focus-visible {
+		color: var(--rj-gold, #cca646);
+		outline: none;
 	}
 
 	@keyframes rj-pulse {
@@ -1385,6 +1511,14 @@
 	/* ------------------------------ mobile 412 ---------------------------- */
 
 	@media (max-width: 639px) {
+		.rj-search-results ul {
+			grid-template-columns: 1fr;
+		}
+
+		.rj-search-results {
+			max-height: min(65vh, 520px);
+		}
+
 		/* Gold bar becomes two centred rows (77:106801 / 77:106809). */
 		.rj-utility-inner {
 			flex-direction: column;

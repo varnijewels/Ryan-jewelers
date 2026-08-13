@@ -1,4 +1,5 @@
 export type AdminMenuItem = {
+	id?: string
 	name?: string
 	label?: string
 	link?: string | null
@@ -13,6 +14,12 @@ export type AdminMenuItem = {
 export const menuLabel = (item: AdminMenuItem) => item.name || item.label
 export const menuHref = (item: AdminMenuItem) => item.link || item.href || (item.slug ? `/${item.slug}` : '/products')
 export const menuChildren = (item: AdminMenuItem) => item.children || item.items || []
+export const isCollectionGroup = (item: AdminMenuItem) => /^brows(?:e|er)? by collection$/i.test(menuLabel(item)?.trim() || '')
+export const menuGroups = (item: AdminMenuItem) => {
+	const groups = [...menuChildren(item)]
+	if (!groups.some(isCollectionGroup)) groups.push({ name: 'Browser By Collection' })
+	return groups.sort((a, b) => Number(isCollectionGroup(a)) - Number(isCollectionGroup(b)))
+}
 
 export function resolveAdminMenu(
 	categories: AdminMenuItem[] = [],

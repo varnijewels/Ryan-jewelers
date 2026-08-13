@@ -1,5 +1,5 @@
 /**
- * Scroll-reveal action for the Maison Émeraude theme.
+ * Shared scroll-reveal action for storefront themes.
  *
  * Add `data-reveal` (optionally with a `.d1`–`.d4` stagger class) to any element
  * and attach `use:reveal`. The element fades/translates in once it scrolls into
@@ -31,7 +31,11 @@ function ensureObserver() {
 
 export function reveal(node: HTMLElement) {
 	// Respect reduced-motion / no-JS: element is visible immediately if we bail.
-	if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+	if (
+		typeof window === 'undefined' ||
+		!('IntersectionObserver' in window) ||
+		window.matchMedia('(prefers-reduced-motion: reduce)').matches
+	) {
 		node.classList.add('in')
 		return {}
 	}

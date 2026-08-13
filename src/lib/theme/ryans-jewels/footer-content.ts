@@ -101,6 +101,7 @@ export const ryansJewelsFooter = {
 				{ label: 'Earrings', href: '/products' },
 				{ label: 'Customise', href: '/products' },
 				{ label: 'About us', href: '/about-us' },
+				{ label: 'Services', href: '/services' },
 				{ label: 'My Cart', href: '/checkout/cart' },
 				{ label: 'FAQ', href: '/faqs' },
 				{ label: 'Contact', href: '/contact-us' }
@@ -114,7 +115,7 @@ export const ryansJewelsFooter = {
 				{ label: 'Privacy policy', href: '/privacy-policy' },
 				{ label: 'Terms and Condition', href: '/terms-and-conditions' },
 				{ label: 'Disclaimer', href: '/terms-and-conditions' },
-				{ label: 'Shopping policy', href: '/shipping-policy' },
+				{ label: 'Shipping & Returns', href: '/shipping-policy' },
 				{ label: 'Refund policy', href: '/refund-policy' }
 			]
 		}

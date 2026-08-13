@@ -235,8 +235,9 @@
 </div>
 
 {#if data?.store?.plugins?.googleReviewsOptIn?.active}
-	{@html `<script src="https://apis.google.com/js/platform.js?onload=renderOptIn" async defer></script>
-  <script>
+	<!-- Split the tag name so Vite does not scan this generated embed as component JavaScript. -->
+	{@html `<${'script'} src="https://apis.google.com/js/platform.js?onload=renderOptIn" async defer></${'script'}>
+  <${'script'}>
     window.renderOptIn = function() {
       window.gapi.load('surveyoptin', function() {
         window.gapi.surveyoptin.render(
@@ -252,7 +253,7 @@
           });
       });
     }
-  </script>`}
+  </${'script'}>`}
 {/if}
 
 <style>

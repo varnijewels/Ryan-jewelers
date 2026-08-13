@@ -357,6 +357,7 @@
 	transition:
 		opacity 0.8s var(--ease),
 		transform 0.8s var(--ease);
+	transition-delay: var(--rj-reveal-delay, 0ms);
 }
 
 [data-reveal].in {
@@ -380,11 +381,30 @@
 	transition-delay: 0.32s;
 }
 
+[data-theme='ryans-jewels'] .rj-page-enter {
+	animation: rj-page-enter 0.5s var(--rj-ease) both;
+}
+
+@keyframes rj-page-enter {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
 @media (prefers-reduced-motion: reduce) {
 	[data-reveal] {
 		opacity: 1;
 		transform: none;
 		transition: none;
+	}
+
+	[data-theme='ryans-jewels'] .rj-page-enter {
+		animation: none;
 	}
 }
 

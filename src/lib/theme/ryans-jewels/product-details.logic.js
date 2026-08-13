@@ -14,6 +14,13 @@ export function variantForOption(variants, current, optionId, value) {
 		|| current
 }
 
+/** @param {any[]} variants @param {any} current @param {Record<string, string>} selections */
+export function variantForSelections(variants, current, selections) {
+	const wanted = new Map((current?.options || []).map((/** @type {any} */ option) => [option.optionId, option.value]))
+	Object.entries(selections).forEach(([optionId, value]) => value && wanted.set(optionId, value))
+	return variants.find((variant) => [...wanted].every(([optionId, value]) => (variant.options || []).some((/** @type {any} */ option) => option.optionId === optionId && option.value === value))) || null
+}
+
 /** @param {any[]} products @param {any} current @param {string} attribute @param {string} value */
 export function groupedProductForAttribute(products, current, attribute, value) {
 	if (!current) return null
@@ -124,6 +131,8 @@ if (typeof process !== 'undefined' && process.argv[1]?.endsWith('product-details
 		{ id: 'b', options: [{ optionId: 'metal', value: 'Gold' }, { optionId: 'size', value: '7' }] }
 	]
 	console.assert(variantForOption(variants, variants[0], 'size', '7').id === 'b')
+	console.assert(variantForSelections(variants, variants[0], { size: '7' }).id === 'b')
+	console.assert(variantForSelections(variants, variants[0], { size: '8' }) === null)
 	console.assert(discountPercent(75, 100) === 25)
 	console.assert(['yellow', 'rose', 'white'].map((tone) => metalColorTone(`${tone} gold`)).join(',') === 'yellow,rose,white')
 	console.assert(metalColorImage('https://example.com/main_yg.jpg', 'Rose Gold') === 'https://example.com/main_rg.jpg')

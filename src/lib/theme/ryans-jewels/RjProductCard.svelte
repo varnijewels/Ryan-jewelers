@@ -53,6 +53,15 @@
 	const price = $derived(selectedChoice?.variant?.price ?? selectedProduct?.price ?? product?.price)
 	const rating = 5.5
 
+	function listingImage(source: string) {
+		const mediaHost = 'https://media.jewelwesell.com/'
+		return source.startsWith(`${mediaHost}cdn-cgi/image/`)
+			? source
+			: source.startsWith(mediaHost)
+			? source.replace(mediaHost, `${mediaHost}cdn-cgi/image/width=800,format=auto/`)
+			: source
+	}
+
 	function preloadWhenNear(node: HTMLAnchorElement, target: string) {
 		if (page.route.id !== '/(www)' || typeof IntersectionObserver === 'undefined') return
 
@@ -76,7 +85,7 @@
 			<div class="rj-card-media">
 				<a class="rj-card-media-link" {href} aria-label={title || 'View product'} use:preloadWhenNear={href}>
 					{#if image}
-						<img src={image} alt={title} loading="lazy" />
+						<img src={listingImage(image)} alt={title} loading="lazy" />
 					{:else}
 						<span class="rj-card-media-empty" aria-hidden="true"></span>
 					{/if}

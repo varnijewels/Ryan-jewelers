@@ -1,27 +1,93 @@
 <script lang="ts">
-	import { menuChildren, menuHref, type AdminMenuItem } from './admin-menu.js'
+	import { searchService } from '$lib/core/services/index.js'
+	import { isCollectionGroup, menuChildren, menuGroups, menuHref, type AdminMenuItem } from './admin-menu.js'
 
 	let {
 		category,
 		menuId,
+		open = false,
 		onNavigate
 	}: {
 		category: AdminMenuItem
 		menuId: string
+		open?: boolean
 		onNavigate?: () => void
 	} = $props()
+
+	type CollectionProduct = { id: string; title: string; slug?: string; thumbnail?: string; featuredImage?: string }
+	let collectionProducts = $state<CollectionProduct[]>([])
+	let requestedSlug = $state<string | null>(null)
+	const groups = $derived(menuGroups(category))
+	const hasCollection = $derived(groups.some(isCollectionGroup))
+	const isEarrings = $derived(/earrings?/i.test(category.name || ''))
+	const collectionCards = $derived(Array.from({ length: 2 }, (_, index) => collectionProducts[index] || null))
+
+	async function loadCollection(slug: string) {
+		try {
+			const url = new URL('/products?sort=popularity:desc', window.location.origin)
+			const [response, popularityResponse] = await Promise.all([
+				searchService.searchWithUrl(url, slug),
+				fetch(`/api/popularity?category=${encodeURIComponent(slug)}&limit=2`)
+			])
+			const listed = (response?.data || []).filter((product: CollectionProduct) => product.slug)
+			const ranked = popularityResponse.ok ? (await popularityResponse.json()).products || [] : []
+			const current = new Map(listed.map((product: CollectionProduct) => [product.id, product]))
+			collectionProducts = [...ranked.map((product: CollectionProduct) => ({ ...product, ...current.get(product.id) })), ...listed]
+				.filter((product, index, products) => products.findIndex((item) => item.id === product.id) === index)
+				.slice(0, 2)
+		} catch (error) {
+			console.error('Unable to load Browse By Collection products:', error)
+		}
+	}
+
+	$effect(() => {
+		if (!open || !hasCollection || !category.slug || requestedSlug === category.slug) return
+		requestedSlug = category.slug
+		void loadCollection(category.slug)
+	})
 </script>
 
-<div class="rj-admin-mega" id={menuId} aria-label="{category.name || 'Category'} menu">
+<div class="rj-admin-mega" class:rj-admin-mega--collection={hasCollection} id={menuId} aria-label="{category.name || 'Category'} menu">
 	<div class="rj-admin-grid">
-		{#each menuChildren(category) as group}
-			<section class="rj-admin-group">
-				<a class="rj-admin-heading" href={menuHref(group)} onclick={onNavigate}>
-					{#if group.thumbnail}<img src={group.thumbnail} alt="" />{/if}
-					<span>{group.name}</span>
-				</a>
+		{#each groups as group}
+			<section class="rj-admin-group" class:rj-admin-collection={isCollectionGroup(group)}>
+				{#if isCollectionGroup(group)}
+					<div class="rj-admin-collection-head">
+						<h2>Brows By Collection</h2>
+						<a href={menuHref(category)} onclick={onNavigate}>
+							<span>View More</span>
+							<span class="rj-admin-more-arrows" aria-hidden="true">
+								<img src="/ryans-jewels/mega-menu/arrow-11.svg" alt="" />
+								<img src="/ryans-jewels/mega-menu/arrow-11.svg" alt="" />
+							</span>
+						</a>
+					</div>
 
-				{#if menuChildren(group).length}
+					{#each collectionCards as product}
+						{#if product}
+							<a class="rj-admin-collection-card" href="/products/{product.slug}" onclick={onNavigate}>
+								{#if product.thumbnail || product.featuredImage}
+									<img src={product.thumbnail || product.featuredImage} alt={product.title} />
+								{:else}
+									<span class="rj-admin-coming-media">Coming Soon</span>
+								{/if}
+								<span><strong>{product.title}</strong><small>Explore this product from our {category.name} collection.</small></span>
+							</a>
+						{:else}
+							<div class="rj-admin-collection-card is-coming-soon">
+								<span class="rj-admin-coming-media">Coming Soon</span>
+								<span><strong>Coming Soon</strong><small>Products will appear here when they are added from the admin store.</small></span>
+							</div>
+						{/if}
+					{/each}
+				{:else}
+					<a class="rj-admin-heading" href={menuHref(group)} onclick={onNavigate}>
+						{#if group.thumbnail}<img src={group.thumbnail} alt="" />{/if}
+						<span>{group.name}</span>
+					</a>
+				{/if}
+
+				{#if !isCollectionGroup(group) && menuChildren(group).length}
 					<ul>
 						{#each menuChildren(group) as item}
 							<li>
@@ -38,13 +104,29 @@
 			</section>
 		{/each}
 
-		{#if category.thumbnail}
+		{#if category.thumbnail && !hasCollection}
 			<a class="rj-admin-feature" href={menuHref(category)} onclick={onNavigate}>
 				<img src={category.thumbnail} alt={category.name || ''} />
 				<span>{category.name}</span>
 			</a>
 		{/if}
 	</div>
+
+	{#if hasCollection}
+		{#if isEarrings}
+			<div class="rj-admin-earring-piece rj-admin-earring-piece--main"><div><img src="/ryans-jewels/mega-menu/earring-art.png" alt="" /></div></div>
+			<div class="rj-admin-earring-piece rj-admin-earring-piece--reflection"><div><img src="/ryans-jewels/mega-menu/earring-art.png" alt="" /></div></div>
+			<div class="rj-admin-earring-piece rj-admin-earring-piece--small"><div><img src="/ryans-jewels/mega-menu/earring-art.png" alt="" /></div></div>
+			<div class="rj-admin-earring-piece rj-admin-earring-piece--small-reflection"><div><img src="/ryans-jewels/mega-menu/earring-art.png" alt="" /></div></div>
+		{:else}
+			<div class="rj-admin-ring-art" aria-hidden="true">
+				<img class="rj-admin-ring-main" src="/ryans-jewels/mega-menu/ring-main.png" alt="" />
+				<img class="rj-admin-ring-reflection" src="/ryans-jewels/mega-menu/ring-main.png" alt="" />
+				<img class="rj-admin-ring-side" src="/ryans-jewels/mega-menu/ring-side.png" alt="" />
+				<img class="rj-admin-ring-side-reflection" src="/ryans-jewels/mega-menu/ring-side.png" alt="" />
+			</div>
+		{/if}
+	{/if}
 
 	<a class="rj-admin-view-all" href={menuHref(category)} onclick={onNavigate}>
 		<span>View All {category.name}</span>
@@ -85,6 +167,14 @@
 		overflow-y: auto;
 	}
 
+	.rj-admin-mega--collection {
+		height: 440px;
+	}
+
+	.rj-admin-mega--collection .rj-admin-grid {
+		flex: 1;
+	}
+
 	.rj-admin-group {
 		min-width: 0;
 		padding: 0 30px;
@@ -94,6 +184,130 @@
 	.rj-admin-group:nth-child(4n),
 	.rj-admin-group:last-child {
 		border-right: 0;
+	}
+
+	.rj-admin-collection {
+		grid-column: 4;
+		background: #fff;
+	}
+
+	.rj-admin-collection-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		height: 39px;
+		padding: 10px 10px 10px 0;
+		border-bottom: 1px dashed #bcbcbc;
+	}
+
+	.rj-admin-collection-head h2 {
+		margin: 0;
+		font-family: 'Lato', sans-serif;
+		font-size: 16px;
+		font-weight: 500;
+		line-height: normal;
+		color: #202020;
+		white-space: nowrap;
+	}
+
+	.rj-admin-collection-head > a {
+		display: flex;
+		align-items: center;
+		gap: 5px;
+		font-family: 'Lato', sans-serif;
+		font-size: 16px;
+		font-weight: 500;
+		color: #4699ff;
+		text-decoration: none;
+		white-space: nowrap;
+	}
+
+	.rj-admin-more-arrows {
+		position: relative;
+		display: block;
+		width: 17px;
+		height: 11px;
+	}
+
+	.rj-admin-more-arrows img {
+		position: absolute;
+		top: 0;
+		width: 11px;
+		height: 11px;
+	}
+
+	.rj-admin-more-arrows img:first-child { left: 0; }
+	.rj-admin-more-arrows img:last-child { left: 6px; }
+
+	.rj-admin-collection-card {
+		display: flex;
+		align-items: flex-start;
+		gap: 12px;
+		height: 89px;
+		margin-top: 17px;
+		padding: 5px;
+		border-radius: 8px;
+		background: #f7f7f7;
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.rj-admin-collection-card > img {
+		width: 79px;
+		height: 79px;
+		border-radius: 5px;
+		object-fit: cover;
+		flex-shrink: 0;
+	}
+
+	.rj-admin-coming-media {
+		display: flex;
+		width: 79px;
+		height: 79px;
+		align-items: center;
+		justify-content: center;
+		border-radius: 5px;
+		background: #eee;
+		font-family: 'Lato', sans-serif;
+		font-size: 10px;
+		color: #888;
+		text-align: center;
+		flex-shrink: 0;
+	}
+
+	.rj-admin-collection-card > span {
+		display: flex;
+		min-width: 0;
+		flex: 1;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	.rj-admin-collection-card strong {
+		display: -webkit-box;
+		overflow: hidden;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 1;
+		font-family: 'Sarala', sans-serif;
+		font-size: 13px;
+		font-weight: 400;
+		line-height: 21px;
+		color: #303030;
+	}
+
+	.rj-admin-collection-card small {
+		display: -webkit-box;
+		overflow: hidden;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		font-family: 'Lato', sans-serif;
+		font-size: 10px;
+		line-height: 13px;
+		color: #707070;
+	}
+
+	.rj-admin-collection-card.is-coming-soon {
+		cursor: default;
 	}
 
 	.rj-admin-heading {
@@ -170,6 +384,44 @@
 		font-size: 16px;
 		text-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
 	}
+
+	.rj-admin-earring-piece {
+		position: absolute;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		pointer-events: none;
+		z-index: 2;
+	}
+
+	.rj-admin-earring-piece > div {
+		position: relative;
+		overflow: hidden;
+	}
+
+	.rj-admin-earring-piece img {
+		position: absolute;
+		left: -163.95%;
+		top: -195.31%;
+		width: 336.91%;
+		height: 360.63%;
+		max-width: none;
+	}
+
+	.rj-admin-earring-piece--main { right: 52px; top: 302px; width: 139.416px; height: 135.324px; }
+	.rj-admin-earring-piece--main > div { width: 109.65px; height: 102.438px; transform: rotate(21.35deg); }
+	.rj-admin-earring-piece--reflection { right: 52px; top: 377px; width: 149.994px; height: 149.938px; }
+	.rj-admin-earring-piece--reflection > div { width: 109.65px; height: 102.438px; opacity: 0.4; transform: rotate(-44.69deg); }
+	.rj-admin-earring-piece--small { right: 151.5px; top: 339px; width: 95.501px; height: 92.698px; }
+	.rj-admin-earring-piece--small > div { width: 75.111px; height: 70.17px; transform: rotate(158.65deg) scaleY(-1); }
+	.rj-admin-earring-piece--small-reflection { right: 154.8px; top: 400.17px; width: 56.877px; height: 57.075px; }
+	.rj-admin-earring-piece--small-reflection > div { width: 41.713px; height: 38.969px; opacity: 0.2; transform: rotate(132.08deg) scaleY(-1); }
+
+	.rj-admin-ring-art img { position: absolute; object-fit: contain; pointer-events: none; z-index: 2; }
+	.rj-admin-ring-main { right: 35px; top: 274px; width: 182.369px; height: 182.369px; transform: rotate(-90deg); }
+	.rj-admin-ring-reflection { right: 93.51px; top: 340.49px; width: 182.369px; height: 182.369px; opacity: 0.4; transform: rotate(180deg); }
+	.rj-admin-ring-side { right: 22px; top: 288px; width: 157px; height: 157px; }
+	.rj-admin-ring-side-reflection { right: 4px; top: 360px; width: 157px; height: 157px; opacity: 0.4; transform: rotate(-15deg); }
 
 	.rj-admin-view-all {
 		display: flex;

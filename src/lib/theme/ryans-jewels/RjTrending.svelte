@@ -25,12 +25,6 @@
 	}: { products?: any[]; loading?: boolean; limit?: number } = $props()
 
 	const visible = $derived((products || []).slice(0, limit))
-	const figmaEarringImages = [
-		'/ryans-jewels/trending/earring-1.jpg',
-		'/ryans-jewels/trending/earring-2.jpg',
-		'/ryans-jewels/trending/earring-3.jpg',
-		'/ryans-jewels/trending/earring-4.jpg'
-	]
 </script>
 
 <section class="rj-trend" aria-labelledby="rj-trend-heading">
@@ -48,13 +42,9 @@
 
 	{#if visible.length}
 		<ul class="rj-trend-track">
-			{#each visible as product, i (product?.id || product?.slug)}
+			{#each visible as product (product?.id || product?.slug)}
 				<li class="rj-trend-cell">
-					<RjProductCard
-						{product}
-						size="wide"
-						imageOverride={figmaEarringImages[i % figmaEarringImages.length]}
-					/>
+					<RjProductCard {product} size="wide" />
 				</li>
 			{/each}
 		</ul>

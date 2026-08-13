@@ -24,6 +24,10 @@
 	import RjEnquiry from './RjEnquiry.svelte'
 	import RjFaq from './RjFaq.svelte'
 	import RjInstagram from './RjInstagram.svelte'
+	import { onMount } from 'svelte'
+	import { reveal } from '$lib/core/actions/reveal.js'
+
+	let homepage: HTMLDivElement
 
 	let {
 		featuredProducts = [],
@@ -42,9 +46,19 @@
 		aspectWidth?: string
 		aspectHeight?: string
 	} = $props()
+
+	onMount(() => {
+		const cleanups = Array.from(homepage.children).map((node, index) => {
+			const element = node as HTMLElement
+			element.style.setProperty('--rj-reveal-delay', `${Math.min(index, 4) * 55}ms`)
+			const action = reveal(element)
+			return () => action.destroy?.()
+		})
+		return () => cleanups.forEach((cleanup) => cleanup())
+	})
 </script>
 
-<div class="rj-home">
+<div bind:this={homepage} class="rj-home">
 	<!-- 2 — hero (1:5755 / 63:40034 / 77:106848) -->
 	<div class="rj-hero-wrap">
 		<RjHero />

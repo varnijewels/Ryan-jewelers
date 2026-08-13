@@ -3,6 +3,8 @@
 	import { page } from '$app/state'
 	import { toast } from 'svelte-sonner'
 	import { formatPrice } from '$lib/core/utils/index.js'
+	import { showAuthModal } from '$lib/core/components/index.js'
+	import { getUserState } from '$lib/core/stores/index.js'
 
 	let { cartModule, cartState }: { cartModule: any; cartState: any } = $props()
 
@@ -12,6 +14,7 @@
 	let cutoff = $state(0)
 	let deliveryAt = $state(0)
 	let continueShoppingHref = $state('/products')
+	const userState = getUserState()
 
 	const items = $derived(cartState.cart?.lineItems || [])
 	const currency = $derived(page.data?.store?.currency?.code || cartState.cart?.currencyCode || 'USD')
@@ -66,6 +69,18 @@
 		} finally {
 			applyingCoupon = false
 		}
+	}
+
+	async function handleCheckout() {
+		await userState.hasLoaded.catch(() => undefined)
+		const user = userState.user as any
+		if (!user?.userId && !user?.id) {
+			const returnTo = '/checkout/address'
+			sessionStorage.setItem('rj-auth-return-to', returnTo)
+			showAuthModal('login', { redirect: returnTo })
+			return
+		}
+		await cartModule.gotoCheckout()
 	}
 </script>
 
@@ -141,7 +156,7 @@
 						</div>
 					</div>
 
-					<button class="rj-order-now" type="button" disabled={cartModule.loadingForCheckout || cartState.isUpdatingCart} onclick={cartModule.gotoCheckout}>{formatPrice(total, currency)} {cartModule.loadingForCheckout ? 'Loading…' : 'Order Now'}</button>
+					<button class="rj-order-now" type="button" disabled={cartModule.loadingForCheckout || cartState.isUpdatingCart} onclick={handleCheckout}>{formatPrice(total, currency)} {cartModule.loadingForCheckout ? 'Loading…' : 'Order Now'}</button>
 				</aside>
 			</div>
 		{:else}

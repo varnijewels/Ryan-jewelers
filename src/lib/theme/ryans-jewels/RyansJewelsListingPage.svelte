@@ -35,8 +35,9 @@
 		shape: true, quality: true, weight: true, featured: true
 	})
 
+	const searchQuery = $derived(page.url.searchParams.get('search')?.trim() || '')
 	const categoryName = $derived(
-		data.products?.categoryHierarchy?.at(-1)?.name || data.products?.category?.name || 'Wedding Rings'
+		searchQuery ? `Search Results for “${searchQuery}”` : data.products?.categoryHierarchy?.at(-1)?.name || data.products?.category?.name || 'Products'
 	)
 	const categories = $derived(filterState.categories || [])
 	const visibleCategories = $derived(showAllCategories ? categories : categories.slice(0, 6))
@@ -98,7 +99,7 @@
 	<div class="rj-plp-width rj-category-inner">
 		<div class="rj-category-copy">
 			<h1 id="rj-listing-title">{categoryName}</h1>
-			<p>Home / Categories / Ring’s / {categoryName} - {data.products?.count || 265} Design</p>
+			<p>{searchQuery ? `Home / Search Results / ${searchQuery}` : `Home / Categories / Ring’s / ${categoryName}`} - {data.products?.count || 265} Design</p>
 		</div>
 		<div class="rj-category-model" aria-hidden="true">
 			<img src="/ryans-jewels/listing/category-model.png" alt="" />

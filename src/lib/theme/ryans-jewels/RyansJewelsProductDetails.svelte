@@ -2,20 +2,24 @@
 <script lang="ts">
 	import { goto, preloadData } from '$app/navigation'
 	import { page } from '$app/state'
-	import { onMount, tick } from 'svelte'
+	import { onMount } from 'svelte'
 	import { toast } from 'svelte-sonner'
 	import { dateOnly, formatPrice, time, timestampToAgo } from '$lib/core/utils/index.js'
 	import { productService } from '$lib/core/services/index.js'
 	import { useProductState } from '$lib/core/composables/index.js'
 	import LoginModal from '$lib/components/auth/login-modal.svelte'
 	import RjCarousel from './RjCarousel.svelte'
-	import RjCustomizeModal from './RjCustomizeModal.svelte'
+	import RjProductCustomizer from './RjCustomizeModal.svelte'
 	import RjInstagram from './RjInstagram.svelte'
 	import RjProductCard from './RjProductCard.svelte'
 	import RjWideBanner from './RjWideBanner.svelte'
-	import { customizationOptions, diamondImageForShape, discountPercent, groupedProductForAttribute, groupedProductForSelections, metalColorImage, metalColorTone, productAttributeValue, productDetailParagraphs, productImages, toggleStoredId, variantForOption } from './product-details.logic.js'
+	import { customizationOptions, diamondImageForShape, discountPercent, groupedProductForAttribute, groupedProductForSelections, metalColorImage, metalColorTone, productAttributeValue, productDetailParagraphs, productImages, toggleStoredId, variantForOption, variantForSelections } from './product-details.logic.js'
 
 	const COMPARE_STORAGE_KEY = 'ryans-jewels-compare-products'
+	const CUSTOM_METALS = ['Yellow Gold', 'Rose Gold', 'White Gold']
+	const CUSTOM_CARATS = ['0.25 ct', '0.50 ct', '0.75 ct', '1.00 ct', '1.25 ct', '1.50 ct', '1.75 ct', '2.00 ct', '2.25 ct', '2.75 ct', '3.25 ct', '3.75 ct', '4.75 ct', '5.75 ct']
+	const CUSTOM_CUTS = ['Round', 'Radiant', 'Asscher', 'Cushion', 'Princess', 'Emerald', 'Marquise', 'Heart', 'Oval', 'Pear']
+	const CUSTOM_STONES = ['Natural Diamond', 'Lab Grown Diamond', 'Moissanite Diamond']
 
 	const productState = useProductState()
 	const data = $derived(page.data)
@@ -33,9 +37,6 @@
 	let showPriceBreakup = $state(false)
 	let postalCode = $state('')
 	let locating = $state(false)
-	let changingMetalColor = $state('')
-	let customizationOpen = $state(false)
-	let customizationLoading = $state(false)
 	let activeTab = $state<'details' | 'reviews'>('details')
 	let visibleReviewCount = $state(2)
 
@@ -55,7 +56,7 @@
 
 	const images = $derived(productImages(product, selectedVariant))
 	$effect(() => {
-		if (!changingMetalColor && !images.includes(activeImage)) activeImage = images[0] || ''
+		if (!images.includes(activeImage)) activeImage = images[0] || ''
 		productState.selectedImage = activeImage
 	})
 
@@ -76,7 +77,7 @@
 	const stoneShape = $derived(productAttributeValue(attributes, /(center\s*)?(stone|diamond).*shape|shape.*(stone|diamond)/i))
 	const diamondImage = $derived(diamondImageForShape(stoneShape))
 	const stoneSetting = $derived(productAttributeValue(attributes, /(center\s*)?(stone|diamond).*setting|setting.*(stone|diamond)/i))
-	const stoneType = $derived(productAttributeValue(attributes, /(stone|diamond)\s*type|type.*(stone|diamond)/i) || (/lab[\s-]*grown/i.test(`${product?.title || ''} ${product?.description || ''}`) ? 'Lab Grown Diamond' : 'Natural Diamond'))
+	const stoneType = $derived(productAttributeValue(attributes, /(stone|diamond)\s*type|type.*(stone|diamond)/i) || (/lab[\s-]*grown/i.test(`${product?.title || ''} ${product?.description || ''}`) ? 'Lab Grown Diamond' : /diamond/i.test(`${product?.title || ''} ${product?.description || ''}`) ? 'Natural Diamond' : ''))
 	const ringSize = $derived(productAttributeValue(attributes, /ring\s*size/i))
 	const ringHeight = $derived(selectedVariant?.height || product?.height || productAttributeValue(attributes, /ring\s*height/i))
 	const dimensionUnit = $derived(selectedVariant?.dimensionUnit || product?.dimensionUnit || 'mm')
@@ -90,8 +91,12 @@
 	].filter(Boolean).join(' × ') || 'Dimensions unavailable')
 	const diamondInfo = $derived([stoneQuality, caratWeight, stoneShape].filter(Boolean).join(' · ') || 'Diamond details unavailable')
 	const diamondMeta = $derived([stoneSetting ? `${stoneSetting} setting` : '', ringSize ? `Size ${ringSize}` : ''].filter(Boolean).join(' · '))
-	const optionCards = $derived(customizationOptions(productState.productOptions || [], attributes))
-	const metalColorOption = $derived((productState.productOptions || []).find((option: any) => /\bmetal\s*color\b/i.test(option.title || option.type || '')))
+	const productOptions = $derived(Array.isArray(product?.options) ? product.options : productState.productOptions || [])
+	const optionCards = $derived(customizationOptions(productOptions, attributes))
+	const metalColorOption = $derived(productOptions.find((option: any) => /\bmetal\s*color\b/i.test(option.title || option.type || '')))
+	const caratWeightOption = $derived(productOptions.find((option: any) => /(carat|diamond).*weight|weight.*(carat|diamond)/i.test(option.title || option.type || '')))
+	const ringSizeOption = $derived(productOptions.find((option: any) => /ring\s*size|^size$/i.test(option.title || option.type || '')))
+	const stoneShapeOption = $derived(productOptions.find((option: any) => /(center\s*)?(stone|diamond).*shape|shape.*(stone|diamond)|diamond\s*cut/i.test(option.title || option.type || '')))
 	const metalColorAggregationKey = $derived(Object.keys(product?.ag || {}).find((key) => /\bmetal\s*color\b/i.test(key)) || '')
 	const caratWeightAggregationKey = $derived(Object.keys(product?.ag || {}).find((key) => /(carat|diamond).*weight|weight.*(carat|diamond)/i.test(key)) || '')
 	const ringSizeAggregationKey = $derived(Object.keys(product?.ag || {}).find((key) => /ring\s*size/i.test(key)) || '')
@@ -99,12 +104,12 @@
 	const groupedProducts = $derived(Array.isArray(product?.pg) ? product.pg : [])
 	const currentGroupedProduct = $derived(groupedProducts.find((item: any) => item.id === product.id || item.slug === product.slug))
 	const metalColorValues = $derived.by(() => {
-		const values = [...new Set([...(metalColorOption?.values || []).map((item: any) => item.value), ...((metalColorAggregationKey && product?.ag?.[metalColorAggregationKey]) || []), metalColor].filter(Boolean))] as string[]
+		const values = [...new Set([...CUSTOM_METALS, ...(metalColorOption?.values || []).map((item: any) => item.value), ...((metalColorAggregationKey && product?.ag?.[metalColorAggregationKey]) || []), metalColor].filter(Boolean))] as string[]
 		return [...['yellow', 'rose', 'white'].flatMap((tone) => values.filter((value) => metalColorTone(value) === tone)), ...values.filter((value) => !['yellow', 'rose', 'white'].includes(metalColorTone(value)))]
 	})
-	const caratWeightValues = $derived([...new Set([...((caratWeightAggregationKey && product?.ag?.[caratWeightAggregationKey]) || []), caratWeight].filter(Boolean))] as string[])
-	const ringSizeValues = $derived([...new Set([...((ringSizeAggregationKey && product?.ag?.[ringSizeAggregationKey]) || []), ringSize].filter(Boolean))] as string[])
-	const stoneShapeValues = $derived([...new Set([...((stoneShapeAggregationKey && product?.ag?.[stoneShapeAggregationKey]) || []), stoneShape].filter(Boolean))] as string[])
+	const caratWeightValues = $derived([...new Set([...CUSTOM_CARATS, ...(caratWeightOption?.values || []).map((item: any) => item.value), ...((caratWeightAggregationKey && product?.ag?.[caratWeightAggregationKey]) || []), caratWeight].filter(Boolean))].sort((left, right) => parseFloat(String(left)) - parseFloat(String(right))) as string[])
+	const ringSizeValues = $derived([...new Set([...(ringSizeOption?.values || []).map((item: any) => item.value), ...((ringSizeAggregationKey && product?.ag?.[ringSizeAggregationKey]) || []), ringSize].filter(Boolean))].sort((left, right) => parseFloat(String(left)) - parseFloat(String(right))) as string[])
+	const stoneShapeValues = $derived([...new Set([...CUSTOM_CUTS, ...(stoneShapeOption?.values || []).map((item: any) => item.value), ...((stoneShapeAggregationKey && product?.ag?.[stoneShapeAggregationKey]) || []), stoneShape].filter(Boolean))] as string[])
 	const customizationInitial = $derived({ metal: metalColor, carat: caratWeight, size: ringSize, cut: stoneShape, stone: stoneType })
 	const wishlistKey = $derived(`${product?.id}-${selectedVariant?.id || variants[0]?.id || ''}`)
 	const wishlisted = $derived(Boolean(productState.wishlistState?.isWishlisted?.[wishlistKey]))
@@ -135,39 +140,12 @@
 		activeImage = productImages(nextProduct, nextVariant)[0] || activeImage
 	}
 
-	function metalColorAvailable(value: string) {
-		return Boolean(groupedMetalColorProduct(value) || (metalColorOption && !metalColorOption.readonly && (metalColorOption.values || []).some((item: any) => item.value === value)))
-	}
-
 	function preloadMetalColor(value: string) {
 		const groupedProduct = groupedMetalColorProduct(value)
 		if (!groupedProduct?.slug || groupedProduct.slug === product.slug) return
 		void preloadData(`/products/${groupedProduct.slug}`).catch(() => {})
 		const preview = metalColorImage(images[0], value)
 		if (preview) new Image().src = preview
-	}
-
-	async function selectMetalColor(value: string) {
-		if (changingMetalColor || metalColorTone(metalColor) === metalColorTone(value)) return
-		const groupedProduct = groupedMetalColorProduct(value)
-		if (groupedProduct?.slug) {
-			changingMetalColor = value
-			activeImage = metalColorImage(images[0] || activeImage, value)
-			await tick()
-			try {
-				await showGroupedProduct(groupedProduct)
-			} catch (error: any) {
-				activeImage = images[0] || ''
-				toast.error(error?.message || 'Unable to change metal color')
-			} finally {
-				changingMetalColor = ''
-			}
-			return
-		}
-		if (!metalColorOption || metalColorOption.readonly || !(metalColorOption.values || []).some((item: any) => item.value === value)) return
-		const nextVariant = variantForOption(variants, selectedVariant, metalColorOption.id, value)
-		selectedVariant = nextVariant
-		activeImage = productImages(product, nextVariant)[0] || ''
 	}
 
 	async function addToBag() {
@@ -223,10 +201,6 @@
 		}
 	}
 
-	function openCustomization() {
-		customizationOpen = true
-	}
-
 	function customizationTarget(selection: { metal: string; carat: string; size: string; cut: string }) {
 		const selectedAttributes = Object.fromEntries([
 			[metalColorAggregationKey, selection.metal],
@@ -237,40 +211,26 @@
 		return groupedProductForSelections(groupedProducts, currentGroupedProduct, selectedAttributes)
 	}
 
+	function customizationVariant(selection: { metal: string; carat: string; size: string; cut: string }) {
+		const choices = [
+			[metalColorOption, metalColor, selection.metal],
+			[caratWeightOption, caratWeight, selection.carat],
+			[ringSizeOption, ringSize, selection.size],
+			[stoneShapeOption, stoneShape, selection.cut]
+		] as [any, string, string][]
+		if (choices.some(([option, current, selected]) => selected && selected.toLowerCase() !== current.toLowerCase() && !option?.id)) return null
+		return variantForSelections(variants, selectedVariant, Object.fromEntries([
+			[metalColorOption?.id, selection.metal],
+			[caratWeightOption?.id, selection.carat],
+			[ringSizeOption?.id, selection.size],
+			[stoneShapeOption?.id, selection.cut]
+		].filter(([key, value]) => key && value)))
+	}
+
 	function preloadCustomization(selection: { metal: string; carat: string; size: string; cut: string; stone: string }) {
 		if (selection.stone !== stoneType) return
 		const target = customizationTarget(selection)
 		if (target?.slug && target.slug !== product.slug) void preloadData(`/products/${target.slug}`).catch(() => {})
-	}
-
-	async function applyCustomization(selection: { metal: string; carat: string; size: string; cut: string; stone: string }) {
-		if (selection.stone !== stoneType) {
-			toast.error(`${selection.stone} is not available for this product`)
-			return false
-		}
-		const target = customizationTarget(selection)
-		if (!target?.slug) {
-			toast.error('This customization combination is not available')
-			return false
-		}
-		if (target.slug === product.slug) {
-			toast.success('Customization applied')
-			return true
-		}
-
-		customizationLoading = true
-		activeImage = metalColorImage(images[0] || activeImage, selection.metal)
-		try {
-			await showGroupedProduct(target)
-			toast.success('Customization applied')
-			return true
-		} catch (error: any) {
-			activeImage = images[0] || ''
-			toast.error(error?.message || 'Unable to apply customization')
-			return false
-		} finally {
-			customizationLoading = false
-		}
 	}
 
 	function showRingView() {
@@ -423,10 +383,7 @@
 
 			{#if optionCards.length}
 				<div class="rj-custom-section">
-					<div class="rj-custom-head">
-						<h2><img src="/ryans-jewels/product/customize.svg" alt="" />Select Your Customise Variation</h2>
-						<button type="button" onclick={openCustomization}><span>+ Customise</span><span class="rj-custom-arrows"><img src="/ryans-jewels/product/customize-arrow.svg" alt="" /><img src="/ryans-jewels/product/customize-arrow.svg" alt="" /></span></button>
-					</div>
+					<div class="rj-custom-head"><h2><img src="/ryans-jewels/product/customize.svg" alt="" />Your Selected Product Details</h2></div>
 					<div class="rj-options">
 						{#each optionCards as option, index}
 							<label class="rj-option rj-option-{index}">
@@ -454,20 +411,16 @@
 						{/each}
 					</div>
 				</div>
-				<a class="rj-size-guide" href="#rj-specifications"><span>Not sure about your ring size?</span><b><img src="/ryans-jewels/product/size-guide.svg" alt="" />Size Guide</b></a>
+			{/if}
+
+			{#if ringSizeValues.length}<a class="rj-size-guide" href="#rj-specifications"><span>Not sure about your ring size?</span><b><img src="/ryans-jewels/product/size-guide.svg" alt="" />Size Guide</b></a>{/if}
+			{#if metalColorValues.length || caratWeightValues.length || ringSizeValues.length || stoneShapeValues.length || stoneType}
+				<RjProductCustomizer initial={customizationInitial} {metalType} metalOptions={metalColorValues} caratOptions={caratWeightValues} sizeOptions={ringSizeValues} cutOptions={stoneShapeValues} stoneOptions={[...new Set([...CUSTOM_STONES, stoneType].filter(Boolean))]} onchange={preloadCustomization} onringview={showRingView} />
 			{/if}
 
 			<hr />
 
 			<div class="rj-purchase">
-				<div class="rj-metal-colors">
-					<span>Metal Color :</span>
-					<div>
-						{#each metalColorValues as value}
-							<button class="rj-metal-color rj-metal-color--{metalColorTone(value)}" type="button" disabled={Boolean(changingMetalColor) || !metalColorAvailable(value)} onpointerenter={() => preloadMetalColor(value)} onfocus={() => preloadMetalColor(value)} onpointerdown={() => preloadMetalColor(value)} onclick={() => selectMetalColor(value)} aria-label="Select {value}" aria-pressed={metalColorTone(metalColor) === metalColorTone(value)} aria-busy={changingMetalColor === value}></button>
-						{/each}
-					</div>
-				</div>
 				<div class="rj-purchase-actions">
 					<div class="rj-buy-row">
 						<div class="rj-qty" aria-label="Quantity">
@@ -475,10 +428,10 @@
 							<span>{productState.qty}</span>
 							<button type="button" onclick={productState.decrementQuantity} aria-label="Decrease quantity"><img src="/ryans-jewels/product/minus.svg" alt="" /></button>
 						</div>
-						<button class="rj-add" type="button" disabled={!inStock || productState.cartState.isUpdatingCart} onclick={addToBag}>{productState.cartState.showCheckout ? 'Go To Bag' : inStock ? 'Add To Bag' : 'Out Of Stock'}</button>
+						<button class="rj-add" type="button" disabled={!inStock || productState.cartState?.isUpdatingCart} onclick={addToBag}>{productState.cartState?.showCheckout ? 'Go To Bag' : inStock ? 'Add To Bag' : 'Out Of Stock'}</button>
 						<button class="rj-share" type="button" onclick={shareProduct}><img src="/ryans-jewels/product/share.svg" alt="" />Share</button>
 					</div>
-					<button class="rj-buy-now" type="button" disabled={!inStock || productState.cartState.isUpdatingCart} onclick={buyNow}><img src="/ryans-jewels/product/cart.svg" alt="" />Buy Now : {formatPrice(price, currency)}</button>
+					<button class="rj-buy-now" type="button" disabled={!inStock || productState.cartState?.isUpdatingCart} onclick={buyNow}><img src="/ryans-jewels/product/cart.svg" alt="" />Buy Now : {formatPrice(price, currency)}</button>
 				</div>
 			</div>
 
@@ -611,7 +564,6 @@
 
 <RjInstagram />
 <LoginModal bind:show={productState.showLoginModal} />
-<RjCustomizeModal bind:open={customizationOpen} initial={customizationInitial} {metalType} metalOptions={metalColorValues} caratOptions={caratWeightValues} sizeOptions={ringSizeValues} cutOptions={stoneShapeValues} stoneOptions={[stoneType]} loading={customizationLoading} onchange={preloadCustomization} onapply={applyCustomization} onringview={showRingView} />
 
 <style>
 	.rj-pdp { color: #404040; font-family: 'Sarala', var(--font-body, sans-serif); }
@@ -663,13 +615,9 @@
 	.rj-description-copy :global(p) { margin: 0; }
 	.rj-details hr { width: 100%; margin: 1px 0; border: 0; border-top: 1px solid #eee; }
 	.rj-custom-section { display: flex; width: calc(100% - 20px); margin-left: 10px; flex-direction: column; gap: 10px; }
-	.rj-custom-head { display: flex; height: 23px; align-items: center; justify-content: space-between; }
+	.rj-custom-head { display: flex; min-height: 23px; align-items: center; justify-content: space-between; }
 	.rj-custom-head h2 { display: flex; align-items: center; gap: 5px; margin: 0; color: #606060; font: 400 14px 'Sarala', sans-serif; letter-spacing: 0; }
 	.rj-custom-head h2 img { width: 19px; height: 19px; }
-	.rj-custom-head button { display: flex; align-items: center; gap: 2px; padding: 0; border: 0; background: none; color: #cca646; font: 400 14px 'Sarala', sans-serif; cursor: pointer; }
-	.rj-custom-arrows { display: flex; align-items: center; }
-	.rj-custom-arrows img { width: 16px; height: 16px; }
-	.rj-custom-arrows img:first-child { margin-right: -8px; }
 	.rj-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; height: 100px; padding: 2px; overflow: hidden; border-radius: 5px; background: #f6f6f6; }
 	.rj-option { position: relative; display: flex; height: 96px; min-width: 0; flex-direction: column; gap: 20px; padding: 13px 15px; border-radius: 2px; background: #fff; }
 	.rj-option:first-child { border-radius: 4px 2px 2px 4px; }
@@ -706,15 +654,7 @@
 	.rj-option select { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
 	.rj-size-guide { display: flex; box-sizing: border-box; width: calc(100% - 20px); height: 45px; margin-left: 10px; align-items: center; justify-content: space-between; padding: 10px 13px; border-radius: 6px; background: #e5f4ff; color: #404040; font: 12px 'Lato', sans-serif; }
 	.rj-size-guide b { display: flex; gap: 5px; align-items: center; color: #0157a8; font-family: 'Inter', sans-serif; font-weight: 500; } .rj-size-guide img { width: 25px; height: 25px; }
-	.rj-purchase { display: flex; flex-direction: column; gap: 25px; }
-	.rj-metal-colors, .rj-metal-colors > div { display: flex; align-items: center; gap: 10px; }
-	.rj-metal-colors > span { color: #606060; font-size: 14px; white-space: nowrap; }
-	.rj-metal-color { width: 28px; height: 28px; padding: 0; border: 0; border-radius: 7px; cursor: pointer; }
-	.rj-metal-color:disabled { cursor: default; }
-	.rj-metal-color--yellow { background: linear-gradient(221deg, #ffc200 28.66%, #ffe48f 38.95%, #ffc200 49.42%, #ffc200 70.84%); }
-	.rj-metal-color--rose { background: linear-gradient(219deg, rgb(255 102 102 / 50%) 27.78%, #ffeaea 38.54%, #ffb9b9 48.89%, #ff9090 71.86%); }
-	.rj-metal-color--white { background: linear-gradient(221deg, #e8e8e8 28.66%, #fff 38.95%, #efefef 48.86%, #e8e8e8 70.84%); }
-	.rj-metal-color:focus-visible { outline: 2px solid #cca646; outline-offset: 2px; }
+	.rj-purchase { display: flex; box-sizing: border-box; width: calc(100% - 20px); margin-left: 10px; flex-direction: column; gap: 25px; }
 	.rj-purchase-actions { display: flex; flex-direction: column; gap: 20px; }
 	.rj-buy-row { display: grid; grid-template-columns: 138px minmax(0, 1fr) 100px; gap: 10px; height: 55px; }
 	.rj-qty { display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; border: 1px solid #e2e2e2; border-radius: 5px; text-align: center; }
@@ -725,7 +665,7 @@
 	.rj-share, .rj-buy-now { background: #fff; color: #404040; } .rj-buy-now { width: 100%; height: 55px; border-color: #b0b0b0; font-size: 20px; }
 	.rj-buy-now img { width: 27px; height: 27px; }
 	.rj-add:disabled, .rj-buy-now:disabled { opacity: .55; cursor: not-allowed; }
-	.rj-delivery { display: flex; flex-direction: column; gap: 15px; }
+	.rj-delivery { display: flex; box-sizing: border-box; width: calc(100% - 20px); margin-left: 10px; flex-direction: column; gap: 15px; }
 	.rj-delivery > label { padding: 15px; border: 1px solid #efe9e3; border-radius: 5px; }
 	.rj-delivery > label { height: 108px; }
 	.rj-delivery label > span:first-child { display: block; margin-bottom: 10px; font: 14px 'Sarala', sans-serif; }
@@ -841,8 +781,6 @@
 	.rj-related-head h2 { margin: 0; color: #202020; font: 600 18px/22px 'Sarala', sans-serif; letter-spacing: 0; }
 	.rj-related-head p { margin: 0; color: #707070; font: 8px/12px 'Lato', sans-serif; }
 	.rj-related-item { flex: 0 0 calc((100% - 72px) / 4); min-width: 0; }
-	.rj-related-item :global(.rj-card--listing .rj-card-media) { box-sizing: border-box; border: 2px solid transparent; transition: border-color .2s ease; }
-	.rj-related-item:hover :global(.rj-card--listing .rj-card-media), .rj-related-item:focus-within :global(.rj-card--listing .rj-card-media) { border-color: #078bff; }
 	.rj-related-item :global(.rj-card--listing .rj-card-info) { gap: 5px; }
 	.rj-related-item :global(.rj-card--listing .rj-card-swatch) { width: 18px; height: 18px; border-radius: 5px; }
 	.rj-related-item :global(.rj-card--listing .rj-card-name) { font-size: 12px; line-height: 17px; }
@@ -894,7 +832,7 @@
 		.rj-thumbnails { display: flex; gap: 10px; overflow-x: auto; margin-top: 12px; } .rj-thumbnails button { width: 92px; flex: 0 0 92px; }
 		.rj-title-row { grid-template-columns: 1fr auto; gap: 8px; } .rj-title-row h1 { font-size: 22px; line-height: 31px; } .rj-breakup-wrap { width: 40px; } .rj-breakup-wrap > small { display: none; } .rj-breakup { width: 40px; padding: 0; } .rj-breakup span { display: none; }
 		.rj-price-row strong { font-size: 24px; }
-		.rj-custom-section, .rj-size-guide { width: 100%; margin-left: 0; }
+		.rj-custom-section, .rj-size-guide, .rj-purchase, .rj-delivery { width: 100%; margin-left: 0; }
 		.rj-options { grid-template-columns: 1fr; height: auto; } .rj-option { height: 96px; }
 		.rj-buy-row { grid-template-columns: 112px 1fr; } .rj-share { display: none; }
 		.rj-service-row { flex-direction: column; align-items: flex-start; gap: 16px; }

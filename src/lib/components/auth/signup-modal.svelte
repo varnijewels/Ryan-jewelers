@@ -18,6 +18,13 @@
 	})
 
 	const passwordsMismatch = $derived(info.confirmPassword.length > 0 && info.password !== info.confirmPassword)
+
+	function checkoutReturnTo() {
+		const redirect = page.url.searchParams.get('redirect')
+		if (redirect) return decodeURIComponent(redirect)
+		if (typeof sessionStorage === 'undefined') return ''
+		return sessionStorage.getItem('rj-auth-return-to') || ''
+	}
 </script>
 
 <SignupRenderer bind:show bind:info>
@@ -38,7 +45,7 @@
 			>
 				<!-- Close Icon -->
 				<div class="z-50 flex min-h-11 shrink-0 items-center justify-between sm:absolute sm:right-5 sm:top-5 sm:justify-end">
-					<AuthButton type="login">
+					<AuthButton type="login" extraqueries={{ redirect: checkoutReturnTo() }}>
 						<Button
 							type="button"
 							variant="ghost"
@@ -174,7 +181,7 @@
 
 				<div class="space-y-2 text-center">
 					<p class="text-sm text-gray-600 dark:text-gray-300">Already have an account?</p>
-					<AuthButton type="login">
+					<AuthButton type="login" extraqueries={{ redirect: checkoutReturnTo() }}>
 						<Button
 							variant="link"
 							class="inline-flex min-h-11 items-center font-semibold text-gray-950 transition-colors hover:underline dark:text-white"

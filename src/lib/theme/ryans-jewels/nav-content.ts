@@ -69,5 +69,5 @@ export const ryansJewelsNavContent: RyansJewelsNavContent = {
 		{ label: 'About us', href: '/about-us' },
 		{ label: 'Contact', href: '/contact-us' }
 	],
-	offers: { label: 'Best Offers', href: '/products?sort=discount' }
+	offers: { label: 'Best Offers', href: '/best-offers' }
 }

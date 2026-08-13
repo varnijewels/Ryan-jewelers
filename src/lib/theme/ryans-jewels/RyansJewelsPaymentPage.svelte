@@ -87,8 +87,8 @@
 			<div class="rj-payment-left">
 				<ol class="rj-payment-steps" aria-label="Checkout progress">
 					<li class="done"><b>1</b><span>Information</span></li><li aria-hidden="true">----</li>
-					<li class="active"><b>2</b><span>Shipping Address</span></li><li aria-hidden="true">----</li>
-					<li><b>3</b><span>Payment Method</span></li>
+					<li class="done"><b>2</b><span>Shipping Address</span></li><li aria-hidden="true">----</li>
+					<li class="active"><b>3</b><span>Payment Method</span></li>
 				</ol>
 				<hr class="rj-payment-rule" />
 

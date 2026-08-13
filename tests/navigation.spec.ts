@@ -20,8 +20,14 @@ test.describe('Navigation Tests', () => {
 	})
 
 	test('should have working search functionality', async ({ page }) => {
-		await page.fill('[placeholder*="Search"]', 'shirt')
+		const search = page.locator('.rj-search-input')
+		await search.focus()
+		await expect(search).toBeFocused()
+		await search.fill('ring')
+		await expect(page.locator('.rj-search-results-head')).toContainText('Similar Results')
 		await page.keyboard.press('Enter')
-		await expect(page).toHaveURL(/.*\?search=shirt/)
+		await expect(page).toHaveURL(/.*\?search=ring/)
+		await expect(search).toHaveValue('ring')
+		await expect(page.locator('#rj-listing-title')).toContainText('Search Results for')
 	})
 })

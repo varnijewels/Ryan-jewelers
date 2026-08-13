@@ -1,6 +1,13 @@
 <script lang="ts">
 	import { page } from '$app/state'
 	import { AuthButton } from '$lib/core/components/index.js'
+	import { onMount } from 'svelte'
+
+	let returnTo = $state('/')
+
+	onMount(() => {
+		returnTo = sessionStorage.getItem('rj-auth-return-to') || '/'
+	})
 </script>
 
 <svelte:head>
@@ -53,7 +60,7 @@
 			</p>
 
 			<div class="space-y-2">
-				<AuthButton type="login" extraqueries={{ redirect: '/' }}>
+				<AuthButton type="login" extraqueries={{ redirect: returnTo }}>
 					<button
 						class="inline-block w-full rounded-lg bg-gray-900 px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600"
 					>

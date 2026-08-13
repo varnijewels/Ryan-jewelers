@@ -16,12 +16,34 @@
 	 */
 	import { wideBanner } from './home-content.js'
 
-	const { eyebrow, heading, subheading, ctaLabel, ctaHref, background, image, imageAlt } = wideBanner
+	interface Props {
+		eyebrow?: string
+		heading?: string
+		subheading?: string
+		ctaLabel?: string
+		ctaHref?: string
+		background?: string
+		image?: string
+		imageAlt?: string
+		centered?: boolean
+	}
+
+	const {
+		eyebrow = wideBanner.eyebrow,
+		heading = wideBanner.heading,
+		subheading = wideBanner.subheading,
+		ctaLabel = wideBanner.ctaLabel,
+		ctaHref = wideBanner.ctaHref,
+		background = wideBanner.background,
+		image = wideBanner.image,
+		imageAlt = wideBanner.imageAlt,
+		centered = false
+	}: Props = $props()
 </script>
 
-<section class="rj-banner" aria-labelledby="rj-banner-heading">
+<section class="rj-banner" class:is-centered={centered} aria-labelledby="rj-banner-heading">
 	<div class="rj-banner-card" style="background-image: url({background})">
-		<div class="rj-banner-row">
+		<div class="rj-banner-row" class:is-centered={centered}>
 			<div class="rj-banner-text">
 				<div class="rj-banner-copy">
 					<div class="rj-banner-lines">
@@ -37,9 +59,11 @@
 				</a>
 			</div>
 
-			<span class="rj-banner-cutout">
-				<img src={image} alt={imageAlt} loading="lazy" decoding="async" />
-			</span>
+			{#if !centered}
+				<span class="rj-banner-cutout">
+					<img src={image} alt={imageAlt} loading="lazy" decoding="async" />
+				</span>
+			{/if}
 		</div>
 	</div>
 </section>
@@ -50,6 +74,14 @@
 		width: 100%;
 		padding: 50px 60px;
 		background: #fff;
+	}
+
+	.rj-banner.is-centered {
+		padding: 0;
+	}
+
+	.rj-banner.is-centered .rj-banner-card {
+		border-radius: 0;
 	}
 
 	.rj-banner-card {
@@ -71,6 +103,21 @@
 		align-items: center;
 		gap: 3.9308%;
 		width: 100%;
+	}
+
+	.rj-banner-row.is-centered {
+		justify-content: center;
+	}
+
+	.is-centered .rj-banner-text {
+		flex: 0 1 760px;
+		align-items: center;
+		text-align: center;
+	}
+
+	.is-centered .rj-banner-heading,
+	.is-centered .rj-banner-sub {
+		max-width: 760px;
 	}
 
 	/* 1:6203 — 648 wide, 50 between the copy block and the button. */

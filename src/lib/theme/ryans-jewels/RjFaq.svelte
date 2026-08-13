@@ -383,6 +383,7 @@
 		}
 
 		.rj-faq-list {
+			flex: none;
 			margin: 0;
 		}
 

@@ -18,6 +18,7 @@ export default defineConfig(({ command, mode }) => {
 					target: env.PUBLIC_LITEKART_API_URL || 'http://localhost:7000', // Backend server URL
 					changeOrigin: true, // Required for CORS
 					secure: false, // Disable SSL verification if needed
+					bypass: (request) => request.url?.startsWith('/api/popularity') ? request.url : undefined,
 					rewrite: (path) => path.replace(/^\/api/, 'api') // Remove `/api` prefix
 				},
 				'/static': {
