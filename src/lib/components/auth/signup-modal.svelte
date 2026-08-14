@@ -6,6 +6,7 @@
 	import { AuthButton } from '$lib/core/components/index.js'
 	import { SignupRenderer } from '$lib/core/composables/index.js'
 	import { page } from '$app/state'
+	import RyansJewelsAuthPopupShell from '$lib/theme/ryans-jewels/RyansJewelsAuthPopupShell.svelte'
 
 	let { show = $bindable(), manageHistory = true } = $props()
 
@@ -40,8 +41,9 @@
 			hAuto
 			wAuto
 		>
+			<RyansJewelsAuthPopupShell>
 			<div
-				class="flex max-h-[100dvh] w-full transform flex-col overflow-y-auto border border-gray-100/50 bg-white p-6 shadow-2xl ring-1 ring-white/20 transition-all dark:border-gray-700 dark:bg-gray-900 dark:ring-white/5 max-sm:min-h-[100dvh] max-sm:px-5 max-sm:pb-[max(1.5rem,env(safe-area-inset-bottom))] max-sm:pt-[max(1rem,env(safe-area-inset-top))] sm:max-h-[92vh] sm:max-w-[480px] sm:rounded-radius sm:p-8"
+				class="flex max-h-[100dvh] w-full transform flex-col overflow-y-auto bg-transparent p-6 transition-all max-sm:min-h-[100dvh] max-sm:px-5 max-sm:pb-[max(1.5rem,env(safe-area-inset-bottom))] max-sm:pt-[max(1rem,env(safe-area-inset-top))] sm:max-h-[calc(100dvh-32px)] sm:p-8"
 			>
 				<!-- Close Icon -->
 				<div class="z-50 flex min-h-11 shrink-0 items-center justify-between sm:absolute sm:right-5 sm:top-5 sm:justify-end">
@@ -65,15 +67,9 @@
 				</div>
 
 				<div class="flex shrink-0 flex-col items-center space-y-3 pb-1 text-center max-sm:pt-3">
-					{#if page?.data?.store?.logo}
-						<div class="mb-1 flex h-10 items-center justify-center">
-							<img src={page.data.store.logo} alt={page.data.store.name} class="h-9 object-contain dark:brightness-110" />
-						</div>
-					{:else}
-						<div class="mb-1 flex h-12 w-12 items-center justify-center rounded-radius bg-muted shadow-sm ring-1 ring-border">
-							<span class="text-lg font-bold text-gray-900 dark:text-white">{page?.data?.store?.name?.charAt(0) || 'L'}</span>
-						</div>
-					{/if}
+					<div class="mb-1 flex h-11 items-center justify-center">
+						<img src="/ryans-jewels/logo.png" alt="Ryan Jewelers" class="h-10 max-w-[190px] object-contain" />
+					</div>
 					<div class="space-y-2">
 						<div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary ring-1 ring-primary/15">
 							<UserPlus class="h-6 w-6" />
@@ -213,6 +209,7 @@
 					</a>
 				{/if}
 			</div>
+			</RyansJewelsAuthPopupShell>
 		</Modal>
 	{/snippet}
 </SignupRenderer>

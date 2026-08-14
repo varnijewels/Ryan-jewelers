@@ -1,26 +1,18 @@
 import { expect, test } from '@playwright/test'
 
-test('metal color changes the product image without navigating', async ({ page }) => {
-	await page.goto('/products/1-to-5-carat-round-lab-grown-diamond-6-prong-solitaire-engagement-ring-in-14k-gold-19')
+test('customizer loads the real grouped metal product without navigating', async ({ page }) => {
+	await page.goto('/products/175-to-575-carat-round-lab-grown-diamond-halo-engagement-ring-in-14k-gold-398')
 
 	const image = page.locator('.rj-main-image > img')
-	const roseGold = page.locator('.rj-metal-colors button[aria-label="Select Rose Gold"]')
-	await roseGold.scrollIntoViewIfNeeded()
-	const before = { url: page.url(), image: await image.getAttribute('src'), scroll: await page.evaluate(() => scrollY) }
+	const roseGold = page.locator('.rj-customizer-metals button').filter({ hasText: 'Rose Gold' })
+	const goldInfo = page.locator('.rj-detail-fact').filter({ hasText: 'Gold Info' }).locator('p')
+	const before = { url: page.url(), image: await image.getAttribute('src') }
 
 	await roseGold.click()
 	await expect(roseGold).toHaveAttribute('aria-pressed', 'true')
 	await expect.poll(() => image.getAttribute('src')).not.toBe(before.image)
-	expect(page.url()).toBe(before.url)
-	expect(await page.evaluate(() => scrollY)).toBe(before.scroll)
-
-	const roseImage = await image.getAttribute('src')
-	await page.locator('.rj-custom-head button').click()
-	const dialog = page.locator('dialog.rj-customizer')
-	await dialog.locator('.rj-customizer-metals button').filter({ hasText: 'Yellow Gold' }).click()
-	await dialog.getByRole('button', { name: 'CUSTOMISE', exact: true }).click()
-	await expect(dialog).toBeHidden({ timeout: 15_000 })
-	await expect.poll(() => image.getAttribute('src')).not.toBe(roseImage)
+	await expect(image).toHaveAttribute('src', /main_rg\.jpg/)
+	await expect(goldInfo).toContainText('Rose Gold')
 	expect(page.url()).toBe(before.url)
 })
 
@@ -47,9 +39,25 @@ test('mobile account icon opens login and registration', async ({ page }) => {
 	await page.setViewportSize({ width: 412, height: 915 })
 	await page.goto('/')
 	await page.getByRole('button', { name: 'Sign in or register' }).click()
+	await expect(page.locator('.rj-auth-popup')).toBeVisible()
 	await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
 	await page.getByRole('button', { name: 'Open authentication modal' }).filter({ hasText: 'Create an account' }).click()
+	expect(new URL(page.url()).pathname).toBe('/')
+	await expect(page.locator('.rj-auth-popup')).toBeVisible()
 	await expect(page.getByRole('heading', { name: 'Create account' })).toBeVisible()
+})
+
+test('Ryan account pages link the login and registration flow', async ({ page }) => {
+	await page.goto('/auth/login?redirect=%2Fcheckout%2Fcart')
+	await expect(page.getByRole('heading', { name: 'Sign in to your account' })).toBeVisible()
+	await page.getByRole('link', { name: 'Create your account' }).click()
+	await expect(page).toHaveURL(/\/auth\/signup\?redirect=/)
+	await expect(page.getByRole('heading', { name: 'Create your account' })).toBeVisible()
+	await expect(page.getByRole('button', { name: 'Create account' })).toBeDisabled()
+
+	await page.goto('/auth/signup/success?email=test%40example.com')
+	await expect(page.getByRole('heading', { name: 'Check your inbox' })).toBeVisible()
+	await expect(page.getByText('test@example.com')).toBeVisible()
 })
 
 test('Ryan catalog hides non-Ryan placeholder products', async ({ page }) => {

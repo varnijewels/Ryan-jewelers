@@ -14,6 +14,7 @@
 	import { toast } from '@misiki/kitcommerce-core'
 	import { authService, type User } from '$lib/core/services/index.js'
 	import { goto } from '$app/navigation'
+	import RyansJewelsAuthPopupShell from '$lib/theme/ryans-jewels/RyansJewelsAuthPopupShell.svelte'
 
 	let { show = $bindable(false), manageHistory = true } = $props()
 
@@ -65,11 +66,11 @@
 			const user = await authService.login({
 				email: loginModule.identifier,
 				password: loginModule.password,
-				cartId: loginModule.cartState.cart?.id
+				cartId: loginModule.cartState?.cart?.id
 			})
 			if (!user) return
 			userState.user = user
-			await loginModule.cartState.updateEmail({ email: loginModule.identifier })
+			await loginModule.cartState?.updateEmail({ email: loginModule.identifier })
 			loginModule.wishlistState.setState()
 			await resumeCheckout()
 		} catch (error: any) {
@@ -214,8 +215,9 @@
 	hAuto
 	wAuto
 >
+	<RyansJewelsAuthPopupShell>
 	<div
-		class="w-full transform space-y-6 border border-gray-100/50 bg-white p-6 shadow-2xl ring-1 ring-white/20 transition-all dark:border-gray-700 dark:bg-gray-900 dark:ring-white/5 max-sm:min-h-[100dvh] max-sm:px-5 max-sm:pb-[max(1.5rem,env(safe-area-inset-bottom))] max-sm:pt-[max(1rem,env(safe-area-inset-top))] sm:max-w-[480px] sm:rounded-radius sm:p-8"
+		class="w-full transform space-y-6 bg-transparent p-6 transition-all max-sm:min-h-[100dvh] max-sm:px-5 max-sm:pb-[max(1.5rem,env(safe-area-inset-bottom))] max-sm:pt-[max(1rem,env(safe-area-inset-top))] sm:p-8"
 	>
 		<!-- Close Icon -->
 		<div class="z-50 flex min-h-11 items-center justify-end sm:absolute sm:right-5 sm:top-5">
@@ -233,15 +235,9 @@
 
 		{#if loginModule.step === 1}
 			<div class="flex flex-col items-center space-y-3 pb-2 text-center max-sm:pt-5">
-				{#if page?.data?.store?.logo}
-					<div class="mb-1 flex h-10 items-center justify-center">
-						<img src={page.data.store.logo} alt={page.data.store.name} class="h-9 object-contain dark:brightness-110" />
-					</div>
-				{:else}
-					<div class="mb-1 flex h-12 w-12 items-center justify-center rounded-radius bg-muted shadow-sm ring-1 ring-border">
-						<span class="text-lg font-bold text-gray-900 dark:text-white">{page?.data?.store?.name?.charAt(0) || 'L'}</span>
-					</div>
-				{/if}
+				<div class="mb-1 flex h-11 items-center justify-center">
+					<img src="/ryans-jewels/logo.png" alt="Ryan Jewelers" class="h-10 max-w-[190px] object-contain" />
+				</div>
 				<div class="space-y-2">
 					<h1 class="text-3xl font-bold tracking-tight text-gray-950 dark:text-white">Welcome back</h1>
 					<p class="mx-auto max-w-[30ch] text-sm leading-6 text-gray-600 dark:text-gray-300">{loginPrompt}</p>
@@ -491,4 +487,5 @@
 			</div>
 		{/if}
 	</div>
+	</RyansJewelsAuthPopupShell>
 </Modal>

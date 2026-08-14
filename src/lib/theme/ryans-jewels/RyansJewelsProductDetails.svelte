@@ -39,6 +39,7 @@
 	let locating = $state(false)
 	let activeTab = $state<'details' | 'reviews'>('details')
 	let visibleReviewCount = $state(2)
+	let customizationRequest = 0
 
 	$effect(() => {
 		const slug = data?.product?.slug || ''
@@ -130,10 +131,11 @@
 		return metalColorAggregationKey ? groupedProductForAttribute(groupedProducts, currentGroupedProduct, metalColorAggregationKey, value) : null
 	}
 
-	async function showGroupedProduct(groupedProduct: any) {
+	async function showGroupedProduct(groupedProduct: any, request = customizationRequest) {
 		const result = await preloadData(`/products/${groupedProduct.slug}`)
 		const nextProduct = result.type === 'loaded' ? (result.data as any)?.product : null
 		if (!nextProduct) throw new Error('Product variation is unavailable')
+		if (request !== customizationRequest) return
 		const nextVariant = (nextProduct.variants || []).find((variant: any) => variant.id === groupedProduct.variantId) || nextProduct.variants?.[0] || nextProduct
 		selectedProduct = nextProduct
 		selectedVariant = nextVariant
@@ -227,10 +229,19 @@
 		].filter(([key, value]) => key && value)))
 	}
 
-	function preloadCustomization(selection: { metal: string; carat: string; size: string; cut: string; stone: string }) {
-		if (selection.stone !== stoneType) return
+	async function applyCustomization(selection: { metal: string; carat: string; size: string; cut: string; stone: string }) {
+		const request = ++customizationRequest
+		if (selection.stone !== stoneType) return toast.error('This stone type is not available for this product')
 		const target = customizationTarget(selection)
-		if (target?.slug && target.slug !== product.slug) void preloadData(`/products/${target.slug}`).catch(() => {})
+		try {
+			if (target?.slug) return await showGroupedProduct(target, request)
+			const nextVariant = customizationVariant(selection)
+			if (!nextVariant) throw new Error('Product variation is unavailable')
+			selectedVariant = nextVariant
+			activeImage = productImages(product, nextVariant)[0] || activeImage
+		} catch (error: any) {
+			toast.error(error?.message || 'Product variation is unavailable')
+		}
 	}
 
 	function showRingView() {
@@ -415,7 +426,7 @@
 
 			{#if ringSizeValues.length}<a class="rj-size-guide" href="#rj-specifications"><span>Not sure about your ring size?</span><b><img src="/ryans-jewels/product/size-guide.svg" alt="" />Size Guide</b></a>{/if}
 			{#if metalColorValues.length || caratWeightValues.length || ringSizeValues.length || stoneShapeValues.length || stoneType}
-				<RjProductCustomizer initial={customizationInitial} {metalType} metalOptions={metalColorValues} caratOptions={caratWeightValues} sizeOptions={ringSizeValues} cutOptions={stoneShapeValues} stoneOptions={[...new Set([...CUSTOM_STONES, stoneType].filter(Boolean))]} onchange={preloadCustomization} onringview={showRingView} />
+				<RjProductCustomizer initial={customizationInitial} {metalType} metalOptions={metalColorValues} caratOptions={caratWeightValues} sizeOptions={ringSizeValues} cutOptions={stoneShapeValues} stoneOptions={[...new Set([...CUSTOM_STONES, stoneType].filter(Boolean))]} onchange={applyCustomization} onringview={showRingView} />
 			{/if}
 
 			<hr />

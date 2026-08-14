@@ -1159,6 +1159,7 @@
 		font-size: 16px;
 		line-height: 24px;
 		cursor: pointer;
+		text-decoration: none;
 	}
 
 	:global(.rj-guest-rule) {
