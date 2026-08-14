@@ -1,9 +1,9 @@
 <script lang="ts">
 	/**
-	 * "FIND YOUR PERFECT CUT" — nine diamond cut shortcuts.
+	 * "FIND YOUR PERFECT CUT" — diamond cut shortcuts.
 	 * Source: 1:5518 (desktop, one row gap 55, items-end)
 	 *         63:40058 (tablet, one row gap 25)
-	 *         77:106876 (mobile, 5 + 4 split, rows justify-between)
+	 *         77:106876 (mobile, two rows with space between items)
 	 * Per-shape geometry lives in home-content.ts so the markup stays one loop.
 	 */
 	import RjRuleHeading from './RjRuleHeading.svelte'
@@ -74,7 +74,7 @@
 		padding: 0 61px;
 	}
 
-	/* Desktop keeps all nine in a single row (1:5523, gap 55, items-end). */
+	/* Desktop keeps all cuts in a single row (1:5523, items-end). */
 	.rj-cut-rows {
 		display: flex;
 		align-items: flex-end;
@@ -155,7 +155,7 @@
 		}
 
 		.rj-cut-rows {
-			gap: 25px;
+			gap: 20px;
 			width: 100%;
 			justify-content: space-between;
 		}
@@ -184,7 +184,7 @@
 		}
 	}
 
-	/* Mobile 412 — 5 + 4 rows, each justify-between (77:106877 / 77:106952). */
+	/* Mobile 412 — two rows, each justify-between (77:106877 / 77:106952). */
 	@media (max-width: 639px) {
 		.rj-cut-inner {
 			gap: 25px;
@@ -209,7 +209,7 @@
 		}
 
 		.rj-cut-row--two {
-			padding: 0 45px;
+			padding: 0 15px;
 		}
 
 		.rj-shape {

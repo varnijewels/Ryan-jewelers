@@ -11,6 +11,7 @@
 
 	const { data }: Props = $props()
 	const isRyans = $derived(data?.theme?.name === 'ryans-jewels')
+	let activeSection = $state('processing')
 
 	const sections = [
 		{ id: 'processing', label: 'Order processing' },
@@ -23,6 +24,17 @@
 		{ id: 'exceptions', label: 'Exceptions & costs' },
 		{ id: 'contact-us', label: 'Contact us' }
 	]
+
+	function scrollToSection(event: MouseEvent, id: string) {
+		event.preventDefault()
+		const target = document.getElementById(id)
+		if (!target) return
+
+		activeSection = id
+		history.pushState(history.state, '', `#${id}`)
+		const headerHeight = document.querySelector<HTMLElement>('.rj-header')?.getBoundingClientRect().height ?? 0
+		window.scrollTo({ top: window.scrollY + target.getBoundingClientRect().top - headerHeight - 24, behavior: 'smooth' })
+	}
 </script>
 
 <svelte:head>
@@ -64,7 +76,12 @@
 				<p>In this policy</p>
 				<nav aria-label="Shipping and return policy sections">
 					{#each sections as section, index}
-						<a href="#{section.id}"><span>{String(index + 1).padStart(2, '0')}</span>{section.label}</a>
+						<a
+							href="#{section.id}"
+							class:active={activeSection === section.id}
+							aria-current={activeSection === section.id ? 'location' : undefined}
+							onclick={(event) => scrollToSection(event, section.id)}
+						><span>{String(index + 1).padStart(2, '0')}</span>{section.label}</a>
 					{/each}
 				</nav>
 			</aside>
@@ -216,13 +233,14 @@
 	.rj-policy-rule i { width: 8px; height: 8px; border: 1px solid var(--policy-gold); transform: rotate(45deg); }
 
 	.rj-policy-layout { display: grid; width: min(1180px, calc(100% - 80px)); grid-template-columns: 250px minmax(0, 1fr); gap: 80px; margin: 0 auto; padding: 62px 0 110px; }
-	.rj-policy-layout > aside { align-self: start; position: sticky; top: 24px; padding: 26px; border: 1px solid var(--policy-rule); background: var(--policy-cream); }
+	.rj-policy-layout > aside { align-self: start; position: sticky; top: 179px; padding: 26px; border: 1px solid var(--policy-rule); background: var(--policy-cream); }
 	.rj-policy-layout > aside > p { margin-bottom: 18px; color: var(--policy-ink); font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
 	.rj-policy-layout nav { display: flex; flex-direction: column; }
 	.rj-policy-layout nav a { display: grid; grid-template-columns: 28px 1fr; gap: 8px; padding: 10px 0; border-bottom: 1px solid rgb(225 214 190 / 75%); color: var(--policy-copy); font-size: 13px; line-height: 19px; text-decoration: none; transition: color .18s ease, transform .18s ease; }
 	.rj-policy-layout nav a:last-child { border-bottom: 0; }
 	.rj-policy-layout nav a span { color: var(--policy-gold); font-size: 11px; }
-	.rj-policy-layout nav a:hover, .rj-policy-layout nav a:focus-visible { color: var(--policy-ink); transform: translateX(3px); }
+	.rj-policy-layout nav a:hover, .rj-policy-layout nav a:focus-visible { outline: 0; color: var(--policy-ink); transform: translateX(3px); }
+	.rj-policy-layout nav a.active { box-shadow: inset 2px 0 var(--policy-gold); color: var(--policy-ink); font-weight: 700; transform: translateX(3px); }
 
 	.rj-policy-content { min-width: 0; }
 	.rj-policy-content > section { scroll-margin-top: 24px; padding: 0 0 48px; margin-bottom: 48px; border-bottom: 1px solid var(--policy-rule); }
@@ -247,6 +265,10 @@
 		.rj-policy-layout { grid-template-columns: 1fr; gap: 42px; }
 		.rj-policy-layout > aside { position: static; }
 		.rj-policy-layout nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
+	}
+
+	@media (min-width: 901px) and (max-width: 1023px) {
+		.rj-policy-layout > aside { top: 149px; }
 	}
 
 	@media (max-width: 640px) {

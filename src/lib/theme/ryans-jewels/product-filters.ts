@@ -1,6 +1,30 @@
 export const clientFilterKeys = ['uiStatus', 'uiMaterial', 'uiShape', 'uiQuality', 'uiWeight']
 export const clientSorts = new Set(['rating:desc', 'title:asc', 'title:desc'])
 
+export function realCatalogUrl(url: URL) {
+	const filteredUrl = new URL(url)
+	filteredUrl.searchParams.set('tags', 'JewelWeSell')
+	return filteredUrl
+}
+
+export function withoutDemoProducts<T extends Record<string, any>>(products: T[] = []) {
+	return products.filter((product) => {
+		const tags = (product.tags || []).map((tag: any) => String(tag?.name ?? tag))
+		const identifiers = [product.sku, product.styleCode, product.groupedSku]
+		const images = [
+			product.thumbnail,
+			product.img,
+			product.image,
+			...(product.variants || []).flatMap((variant: any) => [variant?.thumbnail, variant?.img])
+		]
+		return (
+			!tags.some((tag: string) => /^(dummy data|demo jewels)$/i.test(tag)) &&
+			!identifiers.some((value) => /^DMY-/i.test(String(value || ''))) &&
+			!images.some((value) => /media\.jewelwesell\.com\/dummy\//i.test(String(value || '')))
+		)
+	})
+}
+
 export function facetOptions(allFilters: Record<string, Record<string, number>> | undefined, keys: string[], fallback?: RegExp) {
 	const options = new Map<string, number>()
 	for (const key of keys) {
@@ -27,7 +51,10 @@ function selectedValues(url: URL, key: string) {
 }
 
 function normalized(value: unknown) {
-	return String(value ?? '').toLowerCase().replace(/[^a-z0-9.]+/g, ' ').trim()
+	return String(value ?? '')
+		.toLowerCase()
+		.replace(/[^a-z0-9.]+/g, ' ')
+		.trim()
 }
 
 function rating(product: any) {
@@ -40,26 +67,34 @@ function rating(product: any) {
 function matchesMetadata(product: any, values: string[]) {
 	if (!values.length) return true
 	const haystack = normalized(JSON.stringify(product))
-	return values.some((value) => normalized(value.replace(/\(\d+\)$/, '')).split(' ').every((word) => haystack.includes(word)))
+	return values.some((value) =>
+		normalized(value.replace(/\(\d+\)$/, ''))
+			.split(' ')
+			.every((word) => haystack.includes(word))
+	)
 }
 
 export function applyClientFilters(products: any[], url: URL) {
 	const statuses = selectedValues(url, 'uiStatus')
 	const filtered = products.filter((product) => {
 		const text = normalized(JSON.stringify(product))
-		const statusMatches = !statuses.length || statuses.some((status) => {
-			if (status === 'In Stock') return Number(product.stock) > 0
-			if (status === 'Out of stock') return Number(product.stock) <= 0
-			if (status === 'Best seller') return Number(product.popularity) > 0 || text.includes('best seller')
-			if (status === 'Top Rated') return rating(product) >= 4
-			return Boolean(product.isFeatured || product.featured || text.includes('featured'))
-		})
+		const statusMatches =
+			!statuses.length ||
+			statuses.some((status) => {
+				if (status === 'In Stock') return Number(product.stock) > 0
+				if (status === 'Out of stock') return Number(product.stock) <= 0
+				if (status === 'Best seller') return Number(product.popularity) > 0 || text.includes('best seller')
+				if (status === 'Top Rated') return rating(product) >= 4
+				return Boolean(product.isFeatured || product.featured || text.includes('featured'))
+			})
 
-		return statusMatches
-			&& matchesMetadata(product, selectedValues(url, 'uiMaterial'))
-			&& matchesMetadata(product, selectedValues(url, 'uiShape'))
-			&& matchesMetadata(product, selectedValues(url, 'uiQuality'))
-			&& matchesMetadata(product, selectedValues(url, 'uiWeight'))
+		return (
+			statusMatches &&
+			matchesMetadata(product, selectedValues(url, 'uiMaterial')) &&
+			matchesMetadata(product, selectedValues(url, 'uiShape')) &&
+			matchesMetadata(product, selectedValues(url, 'uiQuality')) &&
+			matchesMetadata(product, selectedValues(url, 'uiWeight'))
+		)
 	})
 
 	const sort = url.searchParams.get('uiSort')

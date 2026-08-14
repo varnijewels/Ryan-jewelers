@@ -5,6 +5,7 @@
 	import { Button } from '$lib/components/ui/button/index.js'
 	import { toast } from '@misiki/kitcommerce-core'
 	import ProductCard from '$lib/components/product-catalogue/product-card.svelte'
+	import { withoutDemoProducts } from '$lib/theme/ryans-jewels/product-filters.js'
 
 	const { block } = $props()
 
@@ -17,7 +18,7 @@
 			const res = await productService.listFeaturedProducts({
 				page: 1
 			})
-			products = res?.data
+			products = withoutDemoProducts((res?.data || []) as Product[])
 		} catch (e: any) {
 			toast.error(e?.message || 'Failed to load products')
 		} finally {

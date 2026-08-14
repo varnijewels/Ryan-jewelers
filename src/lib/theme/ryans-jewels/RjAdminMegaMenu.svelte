@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { searchService } from '$lib/core/services/index.js'
 	import { isCollectionGroup, menuChildren, menuGroups, menuHref, type AdminMenuItem } from './admin-menu.js'
+	import { realCatalogUrl } from './product-filters.js'
 
 	let {
 		category,
@@ -24,15 +25,15 @@
 
 	async function loadCollection(slug: string) {
 		try {
-			const url = new URL('/products?sort=popularity:desc', window.location.origin)
+			const url = realCatalogUrl(new URL('/products?sort=popularity:desc', window.location.origin))
 			const [response, popularityResponse] = await Promise.all([
 				searchService.searchWithUrl(url, slug),
 				fetch(`/api/popularity?category=${encodeURIComponent(slug)}&limit=2`)
 			])
-			const listed = (response?.data || []).filter((product: CollectionProduct) => product.slug)
+			const listed = (response?.data || []).filter((product: any) => Boolean(product.slug)) as CollectionProduct[]
 			const ranked = popularityResponse.ok ? (await popularityResponse.json()).products || [] : []
-			const current = new Map(listed.map((product: CollectionProduct) => [product.id, product]))
-			collectionProducts = [...ranked.map((product: CollectionProduct) => ({ ...product, ...current.get(product.id) })), ...listed]
+			const current = new Map(listed.map((product) => [product.id, product]))
+			collectionProducts = [...ranked.filter((product: CollectionProduct) => current.has(product.id)).map((product: CollectionProduct) => ({ ...product, ...current.get(product.id) })), ...listed]
 				.filter((product, index, products) => products.findIndex((item) => item.id === product.id) === index)
 				.slice(0, 2)
 		} catch (error) {

@@ -11,6 +11,7 @@
 	import type { ProductSearchResult } from '$lib/core/types'
 	import { SeoHeader } from '$lib/core/components/index.js'
 	import { setCategoryFilterState, setDesktopFilterState } from '$lib/core/composables/index.js'
+	import { realCatalogUrl } from '$lib/theme/ryans-jewels/product-filters.js'
 
 	setDesktopFilterState()
 	setCategoryFilterState()
@@ -29,7 +30,8 @@
 			loading = true
 
 			// For the vendors page, we use a simple query search
-			const result = await searchService.searchWithQuery(query)
+			const url = realCatalogUrl(new URL(`/products?search=${encodeURIComponent(query)}`, window.location.origin))
+			const result = await searchService.searchWithUrl(url)
 
 			vendors = result
 		} catch (error) {

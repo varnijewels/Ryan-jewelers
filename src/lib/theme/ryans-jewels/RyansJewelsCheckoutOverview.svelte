@@ -837,9 +837,8 @@
 	.rj-checkout-steps li { display: flex; gap: 10px; align-items: center; }
 	.rj-checkout-steps li[aria-hidden='true'] { display: block; color: #989898; font-size: 22px; letter-spacing: -1px; }
 	.rj-checkout-steps b { display: grid; box-sizing: border-box; width: 34px; height: 34px; place-items: center; border: 1.5px solid #989898; border-radius: 50%; font-size: 16px; font-weight: 400; }
-	.rj-checkout-steps .active b { font-size: 18px; }
-	.rj-shipping-steps .complete { color: #00a80b; }
-	.rj-shipping-steps .complete b { border-color: #00a80b; background: #00a80b; color: #fff; }
+	.rj-checkout-steps .active, .rj-shipping-steps .complete { color: #00a80b; }
+	.rj-checkout-steps .active b, .rj-shipping-steps .complete b { border-color: #00a80b; background: #00a80b; color: #fff; font-size: 18px; }
 	.rj-checkout-rule { width: 100%; margin: 0; border: 0; border-top: 1px solid #c2c2c2; }
 	.rj-shipping-grid { display: grid; width: min(calc(100% - clamp(120px, 8.333vw, 160px)), 1760px); grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(24px, 1.667vw, 32px); align-items: start; margin: 0 auto 50px; }
 	.rj-shipping-grid.has-saved-addresses { margin-bottom: 60px; }

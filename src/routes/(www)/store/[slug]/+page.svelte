@@ -6,9 +6,10 @@
 	import { toast } from '@misiki/kitcommerce-core'
 	import { goto } from '$app/navigation'
 	import Pagination from '$lib/components/common/pagination.svelte'
+	import { withoutDemoProducts } from '$lib/theme/ryans-jewels/product-filters.js'
 
 	let productsCount = $state(0)
-	let products = $state({})
+	let products = $state<any>({ data: [], noOfPage: 0 })
 	let loading = $state(true)
 	let reviews = $state([])
 	let loadingReviews = $state(true)
@@ -17,7 +18,8 @@
 	const mount = async () => {
 		loading = true
 		try {
-			products = await vendorService.fetchProductsOfVendor(data?.vendor?.id)
+			const response = await vendorService.fetchProductsOfVendor(data?.vendor?.id)
+			products = { ...response, data: withoutDemoProducts(response?.data || []) }
 		} finally {
 			loading = false
 		}

@@ -49,6 +49,23 @@
 	const storefrontProducts = $derived(data?.storefrontProducts || [])
 	const featuredProducts = $derived(activeTheme === 'ryans-jewels' ? storefrontProducts : homepageModule.featuredProducts || [])
 	const trendingProducts = $derived(activeTheme === 'ryans-jewels' ? storefrontProducts : homepageModule.trendingProducts || [])
+	const structuredProducts = $derived(activeTheme === 'ryans-jewels'
+		? storefrontProducts.map((product: any) => ({
+			url: `${sveltePage.url.origin}/products/${product.slug}`,
+			name: product.title,
+			image: product.thumbnail ? [product.thumbnail] : [],
+			description: product.description || '',
+			brandName,
+			manufacturer: brandName,
+			material: product.attributes?.find((attribute: any) => attribute.name === 'Metal Type')?.value || '',
+			offers: {
+				url: `${sveltePage.url.origin}/products/${product.slug}`,
+				priceCurrency: data?.store?.currency?.code || 'USD',
+				price: product.price,
+				availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
+			}
+		}))
+		: homepageModule.featuredProductsStructuredData)
 	const filterButtons = $derived([
 		'All',
 		...featuredCategories
@@ -59,7 +76,7 @@
 
 </script>
 
-<GoogleStructuredDataProductsList products={homepageModule.featuredProductsStructuredData} />
+<GoogleStructuredDataProductsList products={structuredProducts} />
 
 <GoogleStructuredDataOrganization
 	name={brandName}

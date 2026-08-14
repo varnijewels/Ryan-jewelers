@@ -12,6 +12,7 @@
 	import RjProductCustomizer from './RjCustomizeModal.svelte'
 	import RjInstagram from './RjInstagram.svelte'
 	import RjProductCard from './RjProductCard.svelte'
+	import { withoutDemoProducts } from './product-filters.js'
 	import RjWideBanner from './RjWideBanner.svelte'
 	import { customizationOptions, diamondImageForShape, discountPercent, groupedProductForAttribute, groupedProductForSelections, metalColorImage, metalColorTone, productAttributeValue, productDetailParagraphs, productImages, toggleStoredId, variantForOption, variantForSelections } from './product-details.logic.js'
 
@@ -322,7 +323,7 @@
 		relatedLoading = true
 		try {
 			const response = await productService.listRelatedProducts({ page: 1, categoryId: product.categoryId })
-			relatedProducts = (response?.data || []).filter((item: any) => item.id !== product.id).slice(0, 8)
+			relatedProducts = withoutDemoProducts(response?.data || []).filter((item: any) => item.id !== product.id).slice(0, 8)
 		} finally {
 			relatedLoading = false
 		}
@@ -482,8 +483,8 @@
 					<div class="rj-detail-visual">
 						{#if detailImage}<img class="rj-detail-product-image" src={detailImage} alt="Side view of {product.title}" />{/if}
 						<div class="rj-detail-height-label"><i></i><span>{ringHeight ? `${ringHeight} ${dimensionUnit} (Height)` : ringSize ? `Ring Size ${ringSize}` : 'Ring Height'}</span><i></i></div>
-						<img class="rj-detail-height-guide" src="/ryans-jewels/product/detail-height-guide.svg" alt="" />
-						<img class="rj-detail-stone-guide" src="/ryans-jewels/product/detail-stone-guide.svg?v=2" alt="" />
+						<img class="rj-detail-height-guide" src="/ryans-jewels/product/detail-height-guide.svg?v=6" alt="" />
+						<img class="rj-detail-stone-guide" src="/ryans-jewels/product/detail-stone-guide.svg?v=6" alt="" />
 						<div class="rj-detail-stone"><span>{#if diamondImage}<img class="is-shape" src={diamondImage} alt="{stoneShape} diamond" />{:else if activeImage}<img class="is-crop" src={activeImage} alt="{stoneShape || 'Center'} diamond detail" />{/if}</span><small>{stoneShape || 'Center'} Diamond{#if caratWeight}<b>{caratWeight}</b>{/if}</small></div>
 					</div>
 
@@ -719,11 +720,14 @@
 	.rj-detail-main { display: grid; grid-template-columns: minmax(360px, 486fr) minmax(0, 710fr); gap: 24px; align-items: start; }
 	.rj-detail-visual { position: relative; height: 382px; min-width: 0; overflow: hidden; border-radius: 4px; background: #fff; }
 	.rj-detail-product-image { position: absolute; inset: 2% 5% 0 5%; width: 90%; height: 98%; object-fit: contain; }
-	.rj-detail-height-label { position: absolute; z-index: 2; top: 65px; left: 18.5%; display: flex; width: 18px; height: 282px; flex-direction: column; gap: 10px; align-items: center; }
-	.rj-detail-height-label i { width: 1px; flex: 1; background: #717171; }
-	.rj-detail-height-label span { color: #202020; font: 14px/18px 'Lato', sans-serif; writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; }
-	.rj-detail-height-guide { position: absolute; z-index: 2; top: 65px; left: 24.2%; width: 27.5%; height: 282px; }
-	.rj-detail-stone-guide { position: absolute; z-index: 2; top: 55px; left: 46%; width: 30.5%; height: auto; }
+	.rj-detail-height-label { position: absolute; z-index: 2; top: 76px; left: 18.5%; display: grid; width: 18px; height: 242px; place-items: center; }
+	.rj-detail-height-label::before { position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; background: var(--rj-gold, #cca646); content: ''; transform: translateX(-50%); }
+	.rj-detail-height-label i { position: absolute; left: 50%; width: 0; height: 0; border-right: 4px solid transparent; border-left: 4px solid transparent; transform: translateX(-50%); }
+	.rj-detail-height-label i:first-child { top: -1px; border-bottom: 7px solid var(--rj-gold, #cca646); }
+	.rj-detail-height-label i:last-child { bottom: -1px; border-top: 7px solid var(--rj-gold, #cca646); }
+	.rj-detail-height-label span { position: relative; padding: 8px 0; background: #fff; color: #202020; font: 14px/18px 'Lato', sans-serif; writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; }
+	.rj-detail-height-guide { position: absolute; z-index: 2; top: 76px; left: 24.2%; width: 27.5%; height: 242px; }
+	.rj-detail-stone-guide { position: absolute; z-index: 2; top: 55px; left: 46%; width: 36%; height: auto; }
 	.rj-detail-stone { position: absolute; z-index: 3; top: 15px; right: 4%; display: flex; width: 95px; flex-direction: column; gap: 7px; align-items: center; color: #202020; font: 12px/18px 'Lato', sans-serif; }
 	.rj-detail-stone > span { position: relative; display: block; box-sizing: border-box; width: 95px; height: 85px; padding: 3px; overflow: hidden; border: 1.5px solid #e9e9e9; border-radius: 5px; background: #fff; }
 	.rj-detail-stone img.is-shape { width: calc(100% - 5px); height: calc(100% - 5px); margin: 2.5px; border-radius: 4px; object-fit: contain; }
@@ -862,9 +866,9 @@
 		.rj-detail-main { display: flex; flex-direction: column; gap: 22px; align-items: center; }
 		.rj-detail-visual { width: calc(100% - 16px); height: 241px; margin: 0; }
 		.rj-detail-product-image { inset: 0; width: 100%; height: 100%; }
-		.rj-detail-height-label { top: 54px; left: 19.73%; height: 162px; gap: 12px; }
+		.rj-detail-height-label { top: 44px; left: 19.73%; height: 156px; }
 		.rj-detail-height-label span { font-size: 12px; }
-		.rj-detail-height-guide { top: 54px; left: 27.87%; width: 24.3%; height: 162px; }
+		.rj-detail-height-guide { top: 44px; left: 27.87%; width: 24.3%; height: 156px; }
 		.rj-detail-stone-guide { top: 92px; left: 43.9%; width: 34.9%; }
 		.rj-detail-stone { top: 50px; right: 2.9%; width: 57px; font-size: 10px; line-height: normal; }
 		.rj-detail-stone > span { width: 57px; height: 53px; }

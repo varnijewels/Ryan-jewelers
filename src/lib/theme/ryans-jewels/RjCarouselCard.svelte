@@ -13,6 +13,7 @@
 	import { page } from '$app/state'
 	import { ProductCardRenderer } from '$lib/core/composables/index.js'
 	import { formatPrice } from '$lib/core/utils/index.js'
+	import { discountPercent } from './product-details.logic.js'
 
 	/**
 	 * `size` picks the source's two card widths:
@@ -35,6 +36,7 @@
 	const price = $derived(Number(product?.price ?? NaN))
 	const mrp = $derived(Number(product?.mrp ?? NaN))
 	const hasCompare = $derived(Number.isFinite(mrp) && Number.isFinite(price) && mrp > price)
+	const discount = $derived(hasCompare ? discountPercent(price, mrp) : 0)
 </script>
 
 <ProductCardRenderer {product} aspectRatio="279:293">
@@ -47,7 +49,7 @@
 					<span class="rj-tile-photo rj-tile-photo--empty" aria-hidden="true"></span>
 				{/if}
 
-				<span class="rj-tile-badge">30% off</span>
+				{#if discount}<span class="rj-tile-badge">{discount}% off</span>{/if}
 			</a>
 
 			<div class="rj-tile-info">

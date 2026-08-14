@@ -1,4 +1,5 @@
 import { ProductService } from '$lib/core/services'
+import { withoutDemoProducts } from '$lib/theme/ryans-jewels/product-filters.js'
 import type { PageLoad } from './$types'
 
 export const load: PageLoad = async ({ fetch, url }) => {
@@ -12,10 +13,11 @@ export const load: PageLoad = async ({ fetch, url }) => {
 		search: search || undefined,
 		sort: sort || undefined
 	})
+	const products = withoutDemoProducts(productsRes.data || [])
 	return {
-		products: productsRes.data,
+		products,
 		meta: {
-			count: productsRes.count,
+			count: products.length,
 			page: productsRes.page,
 			pageSize: productsRes.pageSize
 		}

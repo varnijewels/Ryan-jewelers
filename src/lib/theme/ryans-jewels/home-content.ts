@@ -40,17 +40,25 @@ export interface DiamondShape {
 /** 1:5523 (desktop) · 63:40058 (tablet) · 77:106876 (mobile) */
 export const diamondShapes: DiamondShape[] = [
 	{
+		key: 'round',
+		label: 'Round',
+		href: '/products?uiShape=Round',
+		d: { w: 58, h: 58, px: 8, py: 9, gap: 13 },
+		t: { w: 38, h: 38, px: 6, py: 8, gap: 13 },
+		m: { w: 38, h: 38, px: 6, py: 8, gap: 13 }
+	},
+	{
 		key: 'oval',
-		label: 'Ovel',
-		href: '/products?shape=oval',
+		label: 'Oval',
+		href: '/products?uiShape=Oval',
 		d: { w: 50, h: 69.084, px: 12, py: 7, gap: 10 },
 		t: { w: 30.21, h: 41.74, px: 6, py: 6, gap: 10 },
 		m: { w: 30.21, h: 41.74, px: 6, py: 6, gap: 10 }
 	},
 	{
 		key: 'radiant',
-		label: 'radiant',
-		href: '/products?shape=radiant',
+		label: 'Radiant',
+		href: '/products?uiShape=Radiant',
 		d: { w: 50, h: 65.723, px: 12, py: 7, gap: 11 },
 		t: { w: 30, h: 39.434, px: 6, py: 7, gap: 11 },
 		m: { w: 30, h: 39.434, px: 6, py: 7, gap: 11 }
@@ -58,7 +66,7 @@ export const diamondShapes: DiamondShape[] = [
 	{
 		key: 'pear',
 		label: 'Pear',
-		href: '/products?shape=pear',
+		href: '/products?uiShape=Pear',
 		rot: 180,
 		d: { w: 40, h: 69.805, px: 15, py: 6, gap: 11 },
 		t: { w: 30, h: 45.354, px: 6, py: 6, gap: 10 },
@@ -67,7 +75,7 @@ export const diamondShapes: DiamondShape[] = [
 	{
 		key: 'cushion',
 		label: 'Cushion',
-		href: '/products?shape=cushion',
+		href: '/products?uiShape=Cushion',
 		d: { w: 58, h: 57.15, px: 10, py: 9, gap: 14 },
 		t: { w: 40, h: 39.414, px: 6, py: 9, gap: 14 },
 		m: { w: 40, h: 39.414, px: 6, py: 9, gap: 14 }
@@ -75,7 +83,7 @@ export const diamondShapes: DiamondShape[] = [
 	{
 		key: 'princess',
 		label: 'Princess',
-		href: '/products?shape=princess',
+		href: '/products?uiShape=Princess',
 		d: { w: 50, h: 50, px: 9, py: 9, gap: 18 },
 		t: { w: 35, h: 35, px: 6, py: 9, gap: 18 },
 		m: { w: 35, h: 35, px: 6, py: 9, gap: 18 }
@@ -83,7 +91,7 @@ export const diamondShapes: DiamondShape[] = [
 	{
 		key: 'asscher',
 		label: 'Asscher',
-		href: '/products?shape=asscher',
+		href: '/products?uiShape=Asscher',
 		rot: -90,
 		box: { w: 71, h: 57 },
 		boxSm: { w: 43, h: 45 },
@@ -94,7 +102,7 @@ export const diamondShapes: DiamondShape[] = [
 	{
 		key: 'emerald',
 		label: 'Emerald',
-		href: '/products?shape=emerald',
+		href: '/products?uiShape=Emerald',
 		d: { w: 40, h: 65.001, px: 16, py: 7, gap: 12 },
 		t: { w: 29.999, h: 37.501, px: 6, py: 7, gap: 12 },
 		m: { w: 28, h: 35, px: 6, py: 7, gap: 12 }
@@ -102,7 +110,7 @@ export const diamondShapes: DiamondShape[] = [
 	{
 		key: 'marquise',
 		label: 'Marquise',
-		href: '/products?shape=marquise',
+		href: '/products?uiShape=Marquise',
 		d: { w: 37, h: 68.339, px: 15, py: 4, gap: 14 },
 		t: { w: 30, h: 55.41, px: 6, py: 4, gap: 12 },
 		m: { w: 24, h: 44.328, px: 6, py: 4, gap: 12 }
@@ -110,7 +118,7 @@ export const diamondShapes: DiamondShape[] = [
 	{
 		key: 'heart',
 		label: 'Heart',
-		href: '/products?shape=heart',
+		href: '/products?uiShape=Heart',
 		d: { w: 70, h: 62.797, px: 9, py: 11, gap: 9 },
 		t: { w: 45, h: 40.37, px: 6, py: 11, gap: 9 },
 		m: { w: 40, h: 35.884, px: 6, py: 11, gap: 9 }

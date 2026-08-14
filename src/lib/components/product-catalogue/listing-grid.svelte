@@ -5,6 +5,7 @@
 	import Skeleton from '$lib/components/ui/skeleton/skeleton.svelte'
 	import { SearchService } from '$lib/core/services/index.js'
 	import RjProductCard from '$lib/theme/ryans-jewels/RjProductCard.svelte'
+	import { realCatalogUrl } from '$lib/theme/ryans-jewels/product-filters.js'
 
 	const data = $derived(page.data)
 	let { ryanLayout = 'grid' }: { ryanLayout?: 'grid' | 'list' } = $props()
@@ -37,7 +38,7 @@
 
 		loadingMore = true
 		try {
-			const nextUrl = new URL(page.url)
+			const nextUrl = isRyan ? realCatalogUrl(page.url) : new URL(page.url)
 			nextUrl.searchParams.set('page', String(currentPage + 1))
 			const result = await searchService.searchWithUrl(nextUrl, page.params.slug)
 			products = [...products, ...visibleProducts(result.data)]

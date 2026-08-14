@@ -191,15 +191,15 @@
 	.rj-payment-loading span { width: 30px; height: 30px; border: 3px solid #e6e6e6; border-top-color: #cca646; border-radius: 50%; animation: spin .8s linear infinite; }
 	.rj-payment-layout { display: grid; width: calc(100% - 120px); max-width: 1800px; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin: 0 auto 65px; }
 	.rj-payment-left { min-width: 0; padding-top: 50px; }
-	.rj-payment-steps { display: flex; height: 34px; align-items: center; justify-content: center; gap: 12px; margin: 0; padding: 0; color: #9e9e9e; font: 16px/26px 'Lato', sans-serif; list-style: none; }
+	.rj-payment-steps { display: flex; height: 34px; align-items: center; justify-content: flex-start; gap: 12px; margin: 0; padding: 0 0 0 21px; color: #989898; font: 16px/normal 'Sarala', sans-serif; list-style: none; }
 	.rj-payment-steps li { display: flex; gap: 10px; align-items: center; white-space: nowrap; }
-	.rj-payment-steps li[aria-hidden='true'] { display: block; color: #9e9e9e; letter-spacing: 2px; }
+	.rj-payment-steps li[aria-hidden='true'] { display: block; color: #989898; font-size: 22px; letter-spacing: -1px; }
 	.rj-payment-steps b { display: grid; width: 34px; height: 34px; place-items: center; border: 1px solid #9e9e9e; border-radius: 50%; font-weight: 400; }
-	.rj-payment-steps .done, .rj-payment-steps .active { color: #00ca28; }
-	.rj-payment-steps .done b, .rj-payment-steps .active b { border-color: #00ca28; background: #00ca28; color: #fff; }
+	.rj-payment-steps .done, .rj-payment-steps .active { color: #00a80b; }
+	.rj-payment-steps .done b, .rj-payment-steps .active b { border-color: #00a80b; background: #00a80b; color: #fff; }
 	.rj-payment-rule { margin: 30px 0 25px; border: 0; border-top: 1px solid #c2c2c2; }
 	.rj-shipping-methods, .rj-payment-details { box-sizing: border-box; border: 1px solid #c2c2c2; border-radius: 6px; background: #fff; }
-	.rj-shipping-methods { min-height: 231px; padding: 24px 23.5px; }
+	.rj-shipping-methods { padding: 24px 23.5px; }
 	.rj-shipping-methods h1, .rj-payment-details h2 { display: flex; gap: 12px; align-items: center; margin: 0; color: #353535; font: 400 22px/22px 'Lato', sans-serif; letter-spacing: normal; text-transform: capitalize; }
 	.rj-shipping-methods h1 img, .rj-payment-details h2 img { width: 24px; height: 24px; }
 	.rj-shipping-list { display: flex; flex-direction: column; margin-top: 30px; }
@@ -215,7 +215,7 @@
 	.rj-shipping-list hr { width: 100%; margin: 18px 0; border: 0; border-top: 1px solid #c2c2c2; }
 	.rj-payment-muted, .rj-payment-error { margin: 25px 0 0; color: #828282; font-size: 14px; }
 	.rj-payment-error { color: #d73535; }
-	.rj-payment-details { min-height: 544px; margin-top: 25px; padding: 20px 25px; }
+	.rj-payment-details { margin-top: 25px; padding: 20px 25px 25px; }
 	.rj-payment-details > header { display: flex; align-items: flex-start; justify-content: space-between; }
 	.rj-payment-details > header > div { display: flex; flex-direction: column; gap: 5px; }
 	.rj-payment-details > header p { margin: 0; color: #828282; font: 14px/22px 'Lato', sans-serif; text-transform: capitalize; }
@@ -298,7 +298,7 @@
 	@keyframes spin { to { transform: rotate(360deg); } }
 	@media (max-width: 1100px) { .rj-payment-layout { width: calc(100% - 60px); grid-template-columns: minmax(0, 1fr); } .rj-payment-right { padding-top: 30px; } }
 	@media (max-width: 700px) {
-		.rj-payment-layout { width: calc(100% - 30px); margin-top: 0; } .rj-payment-left { padding-top: 25px; } .rj-payment-steps { gap: 5px; font-size: 12px; } .rj-payment-steps li[aria-hidden='true'] { display: none; } .rj-payment-steps b { width: 28px; height: 28px; }
+		.rj-payment-layout { width: calc(100% - 30px); margin-top: 0; } .rj-payment-left { padding-top: 25px; } .rj-payment-steps { gap: 5px; padding-left: 0; font-size: 12px; } .rj-payment-steps li[aria-hidden='true'] { display: none; } .rj-payment-steps b { width: 28px; height: 28px; }
 		.rj-shipping-methods, .rj-payment-details { padding: 18px 15px; } .rj-payment-details > header { gap: 15px; } .rj-payment-details > header > span { font-size: 11px; } .rj-provider-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
 		.rj-payment-right { padding: 20px 15px 0; } .rj-payment-products article { grid-template-columns: 72px minmax(0, 1fr); } .product-image { width: 72px; height: 72px; } .product-price { grid-column: 2; flex-direction: row; align-items: center; justify-content: space-between; }
 		.rj-payment-assurance { margin-inline: -15px; } .assurance-row { gap: 12px; overflow-x: auto; } .assurance-row > div { min-width: 150px; } .rj-payment-testimonials h2 { font-size: 20px; } .rj-payment-testimonials > header { width: calc(100% - 30px); } .rj-payment-testimonials > header > div { grid-template-columns: 1fr auto 1fr; }

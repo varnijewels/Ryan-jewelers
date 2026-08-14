@@ -11,6 +11,7 @@
 	import RjAdminMegaMenu from './RjAdminMegaMenu.svelte'
 	import RjProfileDropdown from './RjProfileDropdown.svelte'
 	import { menuChildren, menuHref, menuLabel, resolveAdminMenu } from './admin-menu.js'
+	import { realCatalogUrl } from './product-filters.js'
 
 	let {
 		navModule,
@@ -64,7 +65,7 @@
 		}
 		searchLoading = true
 		searchTimer = setTimeout(async () => {
-			const result = await searchService.searchWithQuery(query.trim())
+			const result = await searchService.searchWithUrl(realCatalogUrl(new URL(`/products?search=${encodeURIComponent(query.trim())}`, window.location.origin)))
 			if (request !== searchRequest) return
 			searchResults = (result?.data || []).filter((product: any) => product?.slug).slice(0, 6)
 			searchResultCount = result?.count || searchResults.length

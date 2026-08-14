@@ -150,11 +150,11 @@ export const instagramStrip = {
 	/** TODO: replace with the store's real Instagram profile. */
 	href: 'https://www.instagram.com/',
 	tiles: [
-		{ src: '/ryans-jewels/instagram/tile-1.png', alt: 'Diamond ring styled on a hand' },
-		{ src: '/ryans-jewels/instagram/tile-2.jpg', alt: 'Diamond jewellery close-up' },
-		{ src: '/ryans-jewels/instagram/tile-3.jpg', alt: 'Model wearing Ryan Jewelers earrings' },
-		{ src: '/ryans-jewels/instagram/tile-4.jpg', alt: 'Diamond necklace detail' },
-		{ src: '/ryans-jewels/instagram/tile-5.jpg', alt: 'Gold and diamond bracelet' },
-		{ src: '/ryans-jewels/instagram/tile-6.jpg', alt: 'Ryan Jewelers ring styling' }
+		{ src: '/ryans-jewels/instagram/tile-1.jpg', alt: 'Model wearing gold heart earrings, necklace and bracelet' },
+		{ src: '/ryans-jewels/instagram/tile-2.jpg', alt: 'Rose gold diamond rings styled on a hand' },
+		{ src: '/ryans-jewels/instagram/tile-3.jpg', alt: 'Model wearing a diamond necklace, earrings and rings' },
+		{ src: '/ryans-jewels/instagram/tile-4.jpg', alt: 'Diamond engagement ring styled on a hand' },
+		{ src: '/ryans-jewels/instagram/tile-5.jpg', alt: 'Layered gold necklaces with a circular pendant' },
+		{ src: '/ryans-jewels/instagram/tile-6.jpg', alt: 'Model wearing gold statement earrings' }
 	]
 }

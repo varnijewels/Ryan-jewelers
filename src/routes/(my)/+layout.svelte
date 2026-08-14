@@ -10,16 +10,34 @@
 	import { StorePlugins } from '$lib/core/components/index.js'
 	import { fade, fly } from 'svelte/transition'
 	import { quintOut } from 'svelte/easing'
+	import { goto } from '$app/navigation'
+	import { onMount } from 'svelte'
 	import RyansJewelsAccountSidebar from '$lib/theme/ryans-jewels/RyansJewelsAccountSidebar.svelte'
 
 	let { children }: { children: Snippet } = $props()
 	let isMobileMenuOpen = $state(false)
+	let accountAllowed = $state(!!(page.data as any)?.user)
 	const isRyansJewels = $derived(page.data?.theme?.name === 'ryans-jewels')
 
   const wishlistPlugin = $derived(page.data?.store?.plugins?.isWishlist)
 	setWishlistState()
 	setCartState()
-	setUserState()
+	const userState = setUserState()
+
+	onMount(async () => {
+		await userState.hasLoaded.catch(() => undefined)
+		const user = (page.data as any)?.user || userState.user
+		if (user?.id || user?.userId) {
+			userState.user = user
+			accountAllowed = true
+			return
+		}
+
+		const returnTo = `${page.url.pathname}${page.url.search}`
+		sessionStorage.setItem('rj-auth-return-to', returnTo)
+		const params = new URLSearchParams({ show_auth: 'true', login: 'true', redirect: returnTo })
+		await goto(`/?${params}`, { replaceState: true })
+	})
 
 	const menuItems = $derived.by(() => {
     const items = [
@@ -55,12 +73,12 @@
 
 <Nav />
 
-{#if isRyansJewels}
+{#if accountAllowed && isRyansJewels}
 	<div class="rj-account-shell">
 		<RyansJewelsAccountSidebar />
 		<main class="rj-account-content">{@render children()}</main>
 	</div>
-{:else}
+{:else if accountAllowed}
 <div class="page-width relative flex min-h-screen flex-col overflow-hidden p-0 md:flex-row md:p-0">
 	<!-- Backdrop overlay for mobile -->
 	{#if isMobileMenuOpen}

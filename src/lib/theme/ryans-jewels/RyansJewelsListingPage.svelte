@@ -26,7 +26,6 @@
 	let selectedSort = $state(page.url.searchParams.get('uiSort') ?? page.url.searchParams.get('sort') ?? 'position')
 	let filterOpen = $state(false)
 	let filterHidden = $state(false)
-	let listView = $state(false)
 	let showAllCategories = $state(false)
 	let showAllQualities = $state(false)
 	let showAllFeatured = $state(false)
@@ -36,8 +35,9 @@
 	})
 
 	const searchQuery = $derived(page.url.searchParams.get('search')?.trim() || '')
+	const selectedShape = $derived(page.url.searchParams.get('uiShape')?.split(',')[0]?.trim() || '')
 	const categoryName = $derived(
-		searchQuery ? `Search Results for “${searchQuery}”` : data.products?.categoryHierarchy?.at(-1)?.name || data.products?.category?.name || 'Products'
+		searchQuery ? `Search Results for “${searchQuery}”` : selectedShape ? `${selectedShape} Diamond Jewelry` : data.products?.categoryHierarchy?.at(-1)?.name || data.products?.category?.name || 'Products'
 	)
 	const categories = $derived(filterState.categories || [])
 	const visibleCategories = $derived(showAllCategories ? categories : categories.slice(0, 6))
@@ -49,7 +49,7 @@
 	const weights = $derived(facetOptions(filterState.allFilters, ['attributes.Total_Carat_Weight_Range', 'attributes.Center_Stone_Ctw', 'options.Carat_Weight']))
 	const featuredProducts = $derived(data.products?.data || [])
 	const featured = $derived(showAllFeatured ? featuredProducts : featuredProducts.slice(0, 3))
-	const shapeIcons = new Set(['oval', 'radiant', 'pear', 'cushion', 'princess', 'asscher', 'emerald', 'marquise', 'heart'])
+	const shapeIcons = new Set(['round', 'oval', 'radiant', 'pear', 'cushion', 'princess', 'asscher', 'emerald', 'marquise', 'heart'])
 	filterState.searchQuery = page.url.searchParams.get('search') ?? ''
 
 	$effect(() => {
@@ -99,7 +99,7 @@
 	<div class="rj-plp-width rj-category-inner">
 		<div class="rj-category-copy">
 			<h1 id="rj-listing-title">{categoryName}</h1>
-			<p>{searchQuery ? `Home / Search Results / ${searchQuery}` : `Home / Categories / Ring’s / ${categoryName}`} - {data.products?.count || 265} Design</p>
+			<p>{searchQuery ? `Home / Search Results / ${searchQuery}` : selectedShape ? `Home / Diamond Shapes / ${selectedShape}` : `Home / Categories / Ring’s / ${categoryName}`} - {data.products?.count ?? 0} Design</p>
 		</div>
 		<div class="rj-category-model" aria-hidden="true">
 			<img src="/ryans-jewels/listing/category-model.png" alt="" />
@@ -134,18 +134,10 @@
 				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5M4 18v-5h5M6.1 9A7 7 0 0 1 18.5 6.5L20 11M4 13l1.5 4.5A7 7 0 0 0 18 15" /></svg>Refresh
 			</button>
 		</div>
-		<div class="rj-view-controls"><span>View as</span>
-			<button class="rj-view-grid" class:active={!listView} type="button" aria-label="Grid view" onclick={() => listView = false}>
-				<svg viewBox="0 0 28 30" aria-hidden="true"><rect x="1" y="1" width="10" height="12" rx="2"/><rect x="17" y="1" width="10" height="12" rx="2"/><rect x="1" y="17" width="10" height="12" rx="2"/><rect x="17" y="17" width="10" height="12" rx="2"/></svg>
-			</button>
-			<button class="rj-view-list" class:active={listView} type="button" aria-label="List view" onclick={() => listView = true}>
-				<svg viewBox="0 0 28 30" aria-hidden="true"><rect x="1" y="1" width="26" height="11" rx="2"/><rect x="1" y="18" width="26" height="11" rx="2"/></svg>
-			</button>
-		</div>
 	</div>
 </section>
 
-<div class="rj-plp-width rj-products-layout" class:filter-hidden={filterHidden} class:list-view={listView}>
+<div class="rj-plp-width rj-products-layout" class:filter-hidden={filterHidden}>
 	{#if filterOpen}<button class="rj-filter-backdrop" aria-label="Close filters" onclick={() => filterOpen = false}></button>{/if}
 	<aside class="rj-sidebar" class:open={filterOpen} aria-label="Product filters">
 		<div class="rj-sidebar-content">
@@ -222,7 +214,7 @@
 	</aside>
 
 	<main class="rj-product-results">
-		<ListingGrid ryanLayout={listView ? 'list' : 'grid'} />
+		<ListingGrid ryanLayout="grid" />
 	</main>
 </div>
 
@@ -241,7 +233,7 @@
 	.rj-category-model img { position: absolute; top: -52.47%; left: 0; width: 100%; height: 152.58%; max-width: none; }
 	.rj-plp-toolbar { margin-top: 23px; border-bottom: 1px solid #d9d9d9; font-family: 'Sarala', var(--font-body, sans-serif); }
 	.rj-toolbar-row { display: flex; align-items: center; justify-content: space-between; height: 33px; padding-bottom: 23px; box-sizing: content-box; }
-	.rj-toolbar-left, .rj-toolbar-button, .rj-sort, .rj-view-controls { display: flex; align-items: center; }
+	.rj-toolbar-left, .rj-toolbar-button, .rj-sort { display: flex; align-items: center; }
 	.rj-toolbar-left { gap: 15px; }
 	.rj-toolbar-button { gap: 8px; padding: 0; border: 0; background: transparent; font: inherit; font-size: 18px; line-height: 26px; color: #505050; cursor: pointer; }
 	.rj-toolbar-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.35; }
@@ -255,15 +247,6 @@
 	.rj-sort select { width: 149px; border: 0; outline: 0; background: transparent; font: inherit; color: #606060; cursor: pointer; }
 	.rj-refresh { gap: 15px; }
 	.rj-refresh svg { width: 24px; height: 24px; }
-	.rj-view-controls { gap: 12px; font-size: 18px; color: #505050; }
-	.rj-view-controls > span { margin-right: 8px; }
-	.rj-view-controls button { width: 28px; height: 31px; padding: 0; border: 0; color: #505050; background: transparent; cursor: pointer; }
-	.rj-view-controls button:first-of-type { color: #cca646; }
-	.rj-view-controls button.active { color: #cca646; }
-	.rj-view-controls button:not(.active) { color: #505050; }
-	.rj-view-controls svg { width: 100%; height: 100%; }
-	.rj-view-grid svg { fill: currentColor; }
-	.rj-view-list svg { fill: none; stroke: currentColor; stroke-width: 1.5; }
 	.rj-mobile-label { display: none; }
 	.rj-products-layout { display: grid; grid-template-columns: 307px minmax(0, 1fr); column-gap: 29px; margin-top: 26px; margin-bottom: 170px; align-items: start; transition: grid-template-columns .45s cubic-bezier(.22, 1, .36, 1), column-gap .45s cubic-bezier(.22, 1, .36, 1); }
 	.rj-products-layout.filter-hidden { grid-template-columns: 0 minmax(0, 1fr); column-gap: 0; }
@@ -335,11 +318,9 @@
 		.rj-toolbar-row { height: 30px; padding-bottom: 15px; }
 		.rj-plp-toolbar { margin-top: 15px; }
 		.rj-toolbar-left { gap: 9px; }
-		.rj-toolbar-divider, .rj-refresh, .rj-view-controls > span { display: none; }
+		.rj-toolbar-divider, .rj-refresh { display: none; }
 		.rj-toolbar-button, .rj-sort { font-size: 14px; gap: 6px; }
 		.rj-sort select { width: 95px; font-size: 13px; }
-		.rj-view-controls { gap: 7px; }
-		.rj-view-controls button { width: 22px; height: 24px; }
 		.rj-products-layout { margin-top: 20px; margin-bottom: 80px; }
 	}
 	@media (max-width: 430px) {

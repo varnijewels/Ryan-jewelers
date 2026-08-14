@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ArrowLeft, Check, LoaderIcon, ShieldCheck, UserPlus, X } from '@lucide/svelte'
+	import { ArrowLeft, Check, LoaderIcon, ShieldCheck, X } from '@lucide/svelte'
 	import Button from '$lib/components/ui/button/button.svelte'
 	import Textbox from '$lib/components/form/textbox.svelte'
 	import Modal from '../common/modal.svelte'
@@ -43,7 +43,7 @@
 		>
 			<RyansJewelsAuthPopupShell>
 			<div
-				class="flex max-h-[100dvh] w-full transform flex-col overflow-y-auto bg-transparent p-6 transition-all max-sm:min-h-[100dvh] max-sm:px-5 max-sm:pb-[max(1.5rem,env(safe-area-inset-bottom))] max-sm:pt-[max(1rem,env(safe-area-inset-top))] sm:max-h-[calc(100dvh-32px)] sm:p-8"
+				class="flex max-h-[100dvh] w-full transform flex-col gap-5 overflow-y-auto bg-transparent p-6 transition-all max-sm:min-h-[100dvh] max-sm:px-5 max-sm:pb-[max(1.5rem,env(safe-area-inset-bottom))] max-sm:pt-[max(1rem,env(safe-area-inset-top))] sm:max-h-[calc(100dvh-32px)] sm:p-8"
 			>
 				<!-- Close Icon -->
 				<div class="z-50 flex min-h-11 shrink-0 items-center justify-between sm:absolute sm:right-5 sm:top-5 sm:justify-end">
@@ -66,14 +66,11 @@
 					</button>
 				</div>
 
-				<div class="flex shrink-0 flex-col items-center space-y-3 pb-1 text-center max-sm:pt-3">
+				<div class="flex shrink-0 flex-col items-center space-y-3 text-center max-sm:pt-3">
 					<div class="mb-1 flex h-11 items-center justify-center">
 						<img src="/ryans-jewels/logo.png" alt="Ryan Jewelers" class="h-10 max-w-[190px] object-contain" />
 					</div>
 					<div class="space-y-2">
-						<div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary ring-1 ring-primary/15">
-							<UserPlus class="h-6 w-6" />
-						</div>
 						<h1 class="text-3xl font-bold tracking-tight text-gray-950 dark:text-white">Create account</h1>
 						<p class="mx-auto max-w-[31ch] text-sm leading-6 text-gray-600 dark:text-gray-300">
 							Save your details for faster checkout and easier order tracking.
@@ -81,7 +78,7 @@
 					</div>
 				</div>
 
-				<form class="space-y-4 max-sm:pt-2" onsubmit={handleSubmit} aria-label="Sign up form">
+				<form class="space-y-4" onsubmit={handleSubmit} aria-label="Sign up form">
 					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<Textbox
 							name="firstName"
@@ -120,31 +117,33 @@
 						autocomplete="email"
 					/>
 
-					<Textbox
-						name="password"
-						type="password"
-						bind:value={info.password}
-						placeholder="Enter a password"
-						schema={schemas.password}
-						label="Password"
-						class="h-14 text-base sm:h-12"
-						required
-						aria-label="Password"
-						autocomplete="new-password"
-					/>
+					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+						<Textbox
+							name="password"
+							type="password"
+							bind:value={info.password}
+							placeholder="Enter a password"
+							schema={schemas.password}
+							label="Password"
+							class="h-14 text-base sm:h-12"
+							required
+							aria-label="Password"
+							autocomplete="new-password"
+						/>
 
-					<Textbox
-						name="confirmPassword"
-						type="password"
-						bind:value={info.confirmPassword}
-						placeholder="Confirm your password"
-						schema={schemas.confirmPassword}
-						label="Confirm password"
-						class="h-14 text-base sm:h-12"
-						required
-						aria-label="Confirm password"
-						autocomplete="new-password"
-					/>
+						<Textbox
+							name="confirmPassword"
+							type="password"
+							bind:value={info.confirmPassword}
+							placeholder="Confirm password"
+							schema={schemas.confirmPassword}
+							label="Confirm password"
+							class="h-14 text-base sm:h-12"
+							required
+							aria-label="Confirm password"
+							autocomplete="new-password"
+						/>
+					</div>
 
 					<div
 						class="flex items-start gap-2 rounded-radius bg-gray-50 p-3 text-xs leading-5 text-gray-600 ring-1 ring-gray-100 dark:bg-gray-800/70 dark:text-gray-300 dark:ring-gray-700"

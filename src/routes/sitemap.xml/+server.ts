@@ -4,7 +4,7 @@ import type { RequestHandler } from './$types'
 export const GET: RequestHandler = async ({ fetch, url }) => {
 	const paths = ['/', '/products', '/about-us', '/contact-us']
 	try {
-		const response = await fetch('/api/ms/products?page=1', {
+		const response = await fetch('/api/ms/products?page=1&tags=JewelWeSell', {
 			headers: { 'x-litekart-store': env.PUBLIC_LITEKART_STORE_ID }
 		})
 		const data = response.ok ? await response.json() : {}

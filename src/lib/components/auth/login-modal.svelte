@@ -45,10 +45,19 @@
 	async function resumeCheckout() {
 		const returnTo = checkoutReturnTo()
 		const user = userState.user as any
-		if (!returnTo || (!user?.userId && !user?.id)) return
-		sessionStorage.removeItem('rj-auth-return-to')
+		if (!user?.userId && !user?.id) return
 		show = false
-		await goto(returnTo, { replaceState: true, invalidateAll: true })
+		if (returnTo) {
+			sessionStorage.removeItem('rj-auth-return-to')
+			await goto(returnTo, { replaceState: true, invalidateAll: true })
+			return
+		}
+
+		const currentUrl = new URL(page.url)
+		currentUrl.searchParams.delete('show_auth')
+		currentUrl.searchParams.delete('login')
+		currentUrl.searchParams.delete('redirect')
+		await goto(`${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`, { replaceState: true, invalidateAll: true })
 	}
 
 	async function handleLogin(event: SubmitEvent) {
@@ -371,7 +380,7 @@
 						{#if loginModule.isPhoneNumber && (loginModule.isLoading || userState.loading)}
 							<LoaderIcon class="mr-2 h-5 w-5 animate-spin" />
 							Sending OTP...
-						{:else if userState.loading && !loginModule.isPhoneNumber}
+						{:else if (loginModule.isLoading || userState.loading) && !loginModule.isPhoneNumber}
 							<LoaderIcon class="mr-2 h-5 w-5 animate-spin" />
 							Signing in...
 						{:else}

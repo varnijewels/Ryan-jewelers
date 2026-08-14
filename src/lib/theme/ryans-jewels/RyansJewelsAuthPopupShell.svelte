@@ -22,7 +22,7 @@
 </div>
 
 <style>
-	.rj-auth-popup { position: relative; display: grid; width: min(920px, calc(100vw - 32px)); max-height: min(760px, calc(100dvh - 32px)); overflow: hidden; border: 1px solid #e5ded1; border-radius: 16px; background: #fff; box-shadow: 0 26px 80px rgba(0, 0, 0, .26); grid-template-columns: minmax(340px, .9fr) minmax(460px, 1.1fr); }
+	.rj-auth-popup { position: relative; display: grid; width: min(920px, calc(100vw - 32px)); max-height: min(760px, calc(100dvh - 32px)); overflow: hidden; border: 1px solid #e5ded1; border-radius: 16px; background: #fff; box-shadow: 0 26px 80px rgba(0, 0, 0, .26); font-family: 'Sarala', var(--font-body, sans-serif); grid-template-columns: minmax(340px, .9fr) minmax(460px, 1.1fr); }
 	.rj-auth-popup > aside { position: relative; min-height: 650px; overflow: hidden; background: #181816; }
 	.rj-auth-popup > aside > img { width: 100%; height: 100%; object-fit: cover; object-position: 49% center; filter: sepia(.1) contrast(1.02); }
 	.rj-auth-popup-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(13, 12, 10, .08), rgba(13, 12, 10, .08) 44%, rgba(13, 12, 10, .9)); }
@@ -30,10 +30,12 @@
 	.rj-auth-popup > aside > a img { width: 142px; max-height: 39px; object-fit: contain; }
 	.rj-auth-popup-story { position: absolute; right: 30px; bottom: 30px; left: 30px; color: #fff; }
 	.rj-auth-popup-story > span { color: #e0b84f; font: 600 10px/15px 'Sarala', sans-serif; letter-spacing: 1.7px; }
-	.rj-auth-popup-story h2 { margin: 9px 0 7px; font: 400 30px/1.2 'Sarala', sans-serif; letter-spacing: -.5px; }
-	.rj-auth-popup-story p { margin: 0; color: rgba(255, 255, 255, .76); font: 400 12px/1.6 'Lato', sans-serif; }
-	.rj-auth-popup-story > div { display: flex; gap: 15px; margin-top: 18px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, .18); color: rgba(255, 255, 255, .82); font: 400 10px 'Lato', sans-serif; }
-	.rj-auth-popup-panel { min-width: 0; overflow-y: auto; background: linear-gradient(150deg, #fff 0%, #fff 68%, #fbf8f1 100%); }
+	.rj-auth-popup-story h2 { margin: 9px 0 7px; font-family: 'Rozha One', var(--font-heading, serif); font-size: 30px; font-weight: 400; line-height: 1.2; letter-spacing: -.5px; }
+	.rj-auth-popup-story p { margin: 0; color: rgba(255, 255, 255, .76); font-family: inherit; font-size: 12px; font-weight: 400; line-height: 1.6; }
+	.rj-auth-popup-story > div { display: flex; gap: 15px; margin-top: 18px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, .18); color: rgba(255, 255, 255, .82); font-family: inherit; font-size: 10px; font-weight: 400; }
+	.rj-auth-popup-panel { min-width: 0; min-height: 0; overflow-y: auto; background: linear-gradient(150deg, #fff 0%, #fff 68%, #fbf8f1 100%); }
+	.rj-auth-popup-panel :global(h1), .rj-auth-popup-panel :global(h2) { font-family: 'Rozha One', var(--font-heading, serif); font-weight: 400; letter-spacing: 0; }
+	.rj-auth-popup-panel :global(input), .rj-auth-popup-panel :global(button), .rj-auth-popup-panel :global(select), .rj-auth-popup-panel :global(textarea) { font-family: inherit; }
 
 	@media (max-width: 840px) {
 		.rj-auth-popup { width: min(480px, calc(100vw - 24px)); grid-template-columns: 1fr; }
