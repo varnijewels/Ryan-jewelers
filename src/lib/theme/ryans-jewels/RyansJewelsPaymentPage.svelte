@@ -9,7 +9,6 @@
 
 	const cartModule = new CartModule()
 	let couponCode = $state('')
-	let returningToAddress = $state(false)
 	let cardSelectionError = $state('')
 	let showCardForm = $state(false)
 	let paymentMode = $state<'card' | 'upi'>('card')
@@ -39,7 +38,8 @@
 	const canPlaceOrder = $derived(
 		(!page.data?.store?.isPhoneMandatory || cartState.cart?.phone) &&
 		(!page.data?.store?.isEmailMandatory || cartState.cart?.email) &&
-		(cartState.cart?.shippingAddress || cartState.cart?.shippingAddressId)
+		(cartState.cart?.shippingAddress || cartState.cart?.shippingAddressId) &&
+		cartState.cart?.shippingRateId
 	)
 	const orderDate = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' }).format(new Date())
 	const providers = [
@@ -54,12 +54,6 @@
 
 	$effect(() => {
 		if (!couponCode && cartState.cart?.couponCode) couponCode = cartState.cart.couponCode
-	})
-
-	$effect(() => {
-		if (!paymentModule.shippingRates?.error?.message || returningToAddress) return
-		returningToAddress = true
-		paymentModule.handleAddressChange()
 	})
 
 	function itemDescription(item: any) {
@@ -149,10 +143,7 @@
 </script>
 
 <section class="rj-payment-page">
-	{#if paymentModule.loadingForPaymentMethods}
-		<div class="rj-payment-loading"><span></span><p>Loading secure payment options…</p></div>
-	{:else}
-		<div class="rj-payment-layout">
+	<div class="rj-payment-layout">
 			<div class="rj-payment-left">
 				<ol class="rj-payment-steps" aria-label="Checkout progress">
 					<li class="done"><b>1</b><span>Information</span></li><li aria-hidden="true">----</li>
@@ -164,7 +155,8 @@
 				<section class="rj-shipping-methods" aria-labelledby="rj-shipping-method-title">
 					<h1 id="rj-shipping-method-title"><img src="/ryans-jewels/checkout/payment/shipping-method.svg" alt="" />Shipping Method</h1>
 					{#if paymentModule.shippingRates?.error?.message}
-						<p class="rj-payment-muted">Returning to your delivery address…</p>
+						<p class="rj-payment-error" role="alert">{paymentModule.shippingRates.error.message}</p>
+						<a class="rj-payment-address-link" href="/checkout/address?step=shipping">Update delivery address</a>
 					{:else if paymentModule.shippingRates?.data?.length}
 						<div class="rj-shipping-list">
 							{#each paymentModule.shippingRates.data as rate, index (rate.id)}
@@ -186,6 +178,7 @@
 						<div><h2 id="rj-payment-details-title"><img src="/ryans-jewels/checkout/payment/payment-details.svg" alt="" />Payment Details</h2><p>All transaction are safe and secure</p></div>
 						<span><img src="/ryans-jewels/checkout/payment/lock.svg" alt="" />Secure And Encrypted</span>
 					</header>
+					{#if paymentModule.loadingForPaymentMethods}<p class="rj-payment-status" role="status">Loading secure payment options…</p>{/if}
 					<div class="rj-provider-grid" aria-label="Payment providers">
 						{#each providers as provider}
 							{@const method = providerMethod(provider)}
@@ -311,17 +304,16 @@
 					<div class="payment-brands"><div><img src="/ryans-jewels/checkout/shipping/mastercard.png" alt="Mastercard" /><img src="/ryans-jewels/checkout/shipping/paypal.png" alt="PayPal" /><img src="/ryans-jewels/checkout/shipping/visa.png" alt="Visa" /><img src="/ryans-jewels/checkout/shipping/amex.png" alt="American Express" /><img src="/ryans-jewels/checkout/shipping/apple-pay.png" alt="Apple Pay" /><img src="/ryans-jewels/checkout/shipping/discover.png" alt="Discover" /></div><p>Learn more about our <a href="/terms-and-conditions">TERMS &amp; POLICIES</a></p></div>
 				</div>
 			</div>
-		</div>
+	</div>
 
-		<RjInstagram />
-	{/if}
+	<RjInstagram />
 </section>
 
 <style>
 	:global(.theme-ryans-jewels main.inter-gap:has(> .rj-payment-page)) { min-height: auto; }
 	.rj-payment-page { width: 100%; color: #303030; font-family: 'Lato', sans-serif; }
-	.rj-payment-loading { display: flex; min-height: 700px; flex-direction: column; gap: 15px; align-items: center; justify-content: center; }
-	.rj-payment-loading span { width: 30px; height: 30px; border: 3px solid #e6e6e6; border-top-color: #cca646; border-radius: 50%; animation: spin .8s linear infinite; }
+	.rj-payment-status { margin: 20px 0 0; color: #686868; font-size: 14px; }
+	.rj-payment-address-link { display: inline-block; margin-top: 10px; color: #a80139; font-size: 14px; text-decoration: underline; }
 	.rj-payment-layout { display: grid; width: calc(100% - 120px); max-width: 1800px; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin: 0 auto 65px; }
 	.rj-payment-left { min-width: 0; padding-top: 50px; }
 	.rj-payment-steps { display: flex; height: 34px; align-items: center; justify-content: flex-start; gap: 12px; margin: 0; padding: 0 0 0 21px; color: #989898; font: 16px/normal 'Sarala', sans-serif; list-style: none; }

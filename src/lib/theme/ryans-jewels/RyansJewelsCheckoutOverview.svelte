@@ -6,13 +6,13 @@
 	import { z } from 'zod'
 	import { AddressSchema } from '$lib/core/components/index.js'
 	import { CartModule, checkoutAddressSchema, emptyAddress } from '$lib/core/composables/index.js'
-	import { addressService, cartService, checkoutService } from '$lib/core/services/index.js'
+	import { addressService, cartService } from '$lib/core/services/index.js'
 	import { Button } from '$lib/components/ui/button/index.js'
 	import * as Dialog from '$lib/components/ui/dialog/index.js'
 	import { formatPrice } from '$lib/core/utils/index.js'
 	import RjInstagram from './RjInstagram.svelte'
 	import RjProductCard from './RjProductCard.svelte'
-	import { checkoutGate, shippingRatesAvailable } from './checkout-overview.logic.js'
+	import { checkoutGate } from './checkout-overview.logic.js'
 	import { findAddressReplacement, groupSavedAddresses, savedAddressId, splitCustomerName } from './shipping-address.logic.js'
 
 	let { addressModule, cartState }: { addressModule: any; cartState: any } = $props()
@@ -349,17 +349,9 @@
 
 	async function proceedToPayment() {
 		try {
-			const rates = (await checkoutService.getShippingRates({ cartId: cartState.cart?.id })) as unknown as {
-				data?: unknown[]
-				error?: { message?: string }
-			}
-			if (!shippingRatesAvailable(rates)) {
-				toast.error(rates?.error?.message || 'No shipping method is available for this address')
-				return
-			}
 			await addressModule.handleProceedToPayment()
 		} catch (cause: any) {
-			toast.error(cause?.message || 'Unable to check delivery availability')
+			toast.error(cause?.message || 'Unable to open the payment page')
 		}
 	}
 

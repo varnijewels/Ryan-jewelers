@@ -9,11 +9,6 @@ export function checkoutGate({ hasAddress, userId, email, password, guestCheckou
 	return validEmail && password ? 'login' : 'credentials'
 }
 
-/** @param {{ data?: unknown[], error?: { message?: string } } | null | undefined} result */
-export function shippingRatesAvailable(result) {
-	return !result?.error?.message && Array.isArray(result?.data) && result.data.length > 0
-}
-
 if (typeof process !== 'undefined' && process.argv[1]?.endsWith('checkout-overview.logic.js')) {
 	/** @param {Partial<CheckoutGateValues>} values */
 	const gate = (values) => checkoutGate({ hasAddress: false, userId: '', email: '', password: '', ...values })
@@ -22,7 +17,5 @@ if (typeof process !== 'undefined' && process.argv[1]?.endsWith('checkout-overvi
 	console.assert(gate({ email: 'guest@example.com', guestCheckout: true }) === 'address')
 	console.assert(gate({ email: 'buyer@example.com', password: 'secret' }) === 'login')
 	console.assert(gate({ email: 'bad-email', password: 'secret' }) === 'credentials')
-	console.assert(shippingRatesAvailable({ data: [{ id: 'economy' }] }))
-	console.assert(!shippingRatesAvailable({ data: [], error: { message: 'Country not deliverable' } }))
 	console.log('checkout overview logic: ok')
 }
