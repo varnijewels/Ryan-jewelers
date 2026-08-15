@@ -4,6 +4,7 @@
 	import Blocks from '$lib/components/page-blocks/blocks.svelte'
 	import { reveal } from '$lib/core/actions/reveal.js'
 	import RjWideBanner from '$lib/theme/ryans-jewels/RjWideBanner.svelte'
+	import { ryansSeoText } from '$lib/theme/ryans-jewels/seo.js'
 
 	interface Props {
 		data: {
@@ -58,7 +59,10 @@
 	]
 </script>
 
-<SeoHeader metaTitle={data?.page?.metaTitle || 'About Ryan Jewelers'} />
+<SeoHeader
+	metaTitle={ryansSeoText(data?.page?.metaTitle, 'About Ryan Jewelers')}
+	metaDescription={ryansSeoText(data?.page?.metaDescription, 'Discover the story, craftsmanship and values behind Ryan Jewelers lab grown diamond jewelry.')}
+/>
 
 {#if isRyans}
 	<div class="rj-about">

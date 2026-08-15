@@ -4,8 +4,7 @@
 	 * Source: 1:6133 / 1:6161 / 1:6147 (desktop, well 222×270)
 	 *         · 63:40574 etc (tablet, well 222×222) · 77:107396 etc (mobile, 164×164)
 	 *
-	 * Theme content, not commerce data — no price; the rating treatment is fixed
-	 * presentation from the source frame.
+	 * Theme content, not commerce data — no price or customer rating.
 	 */
 	import type { NamePlateCard } from './home-content.js'
 
@@ -28,13 +27,6 @@
 		<span class="rj-cust-name">{card.name}</span>
 		<span class="rj-cust-meta">
 			<span class="rj-cust-category">{card.category}</span>
-			<span class="rj-cust-rating" aria-label="Rating 5.5">
-				<span class="rj-cust-stars">
-					<img class="rj-cust-star" src="/ryans-jewels/home/star.svg" alt="" aria-hidden="true" />
-					<img class="rj-cust-star" src="/ryans-jewels/home/star.svg" alt="" aria-hidden="true" />
-				</span>
-				<span class="rj-cust-rating-value">5.5</span>
-			</span>
 		</span>
 		<span class="rj-cust-cta">{card.cta}</span>
 	</span>
@@ -98,9 +90,7 @@
 		color: #8b8b8b;
 	}
 
-	.rj-cust-meta,
-	.rj-cust-rating,
-	.rj-cust-stars {
+	.rj-cust-meta {
 		display: flex;
 		align-items: center;
 	}
@@ -108,31 +98,6 @@
 	.rj-cust-meta {
 		gap: 10px;
 		width: 100%;
-	}
-
-	.rj-cust-rating {
-		gap: 2px;
-	}
-
-	.rj-cust-stars {
-		gap: 1px;
-	}
-
-	.rj-cust-star {
-		width: 19px;
-		height: 19px;
-		flex-shrink: 0;
-	}
-
-	.rj-cust-rating-value {
-		display: flex;
-		align-items: center;
-		height: 19px;
-		font-family: 'Khmer MN', sans-serif;
-		font-size: 20px;
-		line-height: 19px;
-		color: #555;
-		transform: translateY(2px);
 	}
 
 	.rj-cust-cta {

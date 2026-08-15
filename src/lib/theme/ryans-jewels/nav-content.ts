@@ -17,7 +17,7 @@ export interface RyansJewelsNavContent {
 	logo: string
 	utility: {
 		dailyDeals: RyansJewelsNavLink
-		giftCard: RyansJewelsNavLink
+		giftCard: RyansJewelsNavLink | null
 		helpContact: RyansJewelsNavLink
 		postalCodeLabel: string
 		countryCode: string
@@ -43,7 +43,7 @@ export const ryansJewelsNavContent: RyansJewelsNavContent = {
 	logo: '/ryans-jewels/logo.png',
 	utility: {
 		dailyDeals: { label: 'Daily Deals', href: '/products?sort=discount' },
-		giftCard: { label: 'Gift Card', href: '/gift-card' },
+		giftCard: null,
 		helpContact: { label: 'Help & Contact', href: '/contact-us' },
 		postalCodeLabel: 'Enter postal code',
 		countryCode: 'IN',

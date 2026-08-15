@@ -1,7 +1,43 @@
 import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('$lib/core/load-functions/index.js', () => ({
+	layoutServer: ({ locals }: any) => ({ store: locals.storeDetails })
+}))
+
+vi.mock('$lib/core/services/index.js', () => ({
+	UserService: class {
+		constructor(private fetch: typeof globalThis.fetch) {}
+
+		async getMe() {
+			const response = await this.fetch('/api/users/me', undefined)
+			if (!response.ok) throw new Error('Invalid session')
+			return response.json()
+		}
+	}
+}))
+
+vi.mock('$lib/theme/index.js', () => ({
+	resolveStorefrontTheme: () => ({ name: 'ryans-jewels', source: 'default', available: [] })
+}))
+
 import { load } from '../src/routes/(my)/+layout.server.js'
+import { load as loadRoot } from '../src/routes/+layout.server.js'
+import { load as loadMessages } from '../src/routes/(www)/messages/+page.server.js'
 
 describe('Ryan account auth guard', () => {
+	it('restores the logged-in user from the server session on refresh', async () => {
+		const user = { id: 'user-1', role: 'USER' }
+		const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(user), { status: 200, headers: { 'content-type': 'application/json' } }))
+		const result = await loadRoot({
+			cookies: { get: (name: string) => (name === 'connect.sid' ? 'valid-session' : undefined) },
+			fetch,
+			locals: { storeDetails: { id: 'store-1' } }
+		} as any)
+
+		expect(fetch).toHaveBeenCalledWith('/api/users/me', undefined)
+		expect(result.user).toEqual(user)
+	})
+
 	it('rejects a stale session and keeps the requested account return URL', async () => {
 		const fetch = vi.fn().mockResolvedValue(new Response('{}', { status: 401, headers: { 'content-type': 'application/json' } }))
 		const request = load({
@@ -13,6 +49,19 @@ describe('Ryan account auth guard', () => {
 		await expect(request).rejects.toMatchObject({
 			status: 307,
 			location: '/?show_auth=true&login=true&redirect=%2Fmy%2Forders%3Fstatus%3Dopen'
+		})
+	})
+
+	it('requires login before serving the messages page', async () => {
+		const request = loadMessages({
+			cookies: { get: () => undefined },
+			fetch: vi.fn(),
+			url: new URL('https://shop.test/messages?conversation=123')
+		} as any)
+
+		await expect(request).rejects.toMatchObject({
+			status: 307,
+			location: '/?show_auth=true&login=true&redirect=%2Fmessages%3Fconversation%3D123'
 		})
 	})
 })

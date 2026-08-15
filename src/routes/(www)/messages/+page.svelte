@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { date } from '$lib/core/utils'
+	import { date } from '$lib/core/utils/index.js'
 	import Textarea from '$lib/components/ui/textarea/textarea.svelte'
 	import { MessagesModule } from '$lib/core/composables/index.js'
 	import Skeleton from '$lib/components/ui/skeleton/skeleton.svelte'
@@ -112,7 +112,7 @@
 									{m?.message?.from === messagesModule.me?.id ? 'bg-gray-50' : 'text-primary-700 bg-inherit'}"
 								>
 									<div class={m?.message?.from == messagesModule.me?.id ? 'self-end' : 'self-start'}>
-										{@html m?.message?.message}
+										{m?.message?.message}
 									</div>
 									<div class="ml-auto text-xs text-gray-400 {m?.message?.from == messagesModule.me?.id ? 'self-end' : 'self-start'}">
 										{date(m?.message?.created_at)}
@@ -371,7 +371,7 @@
 									{m.message?.from === messagesModule.me?.id ? 'bg-gray-50' : 'text-primary-700 bg-inherit'}"
 									>
 										<div class={m.message?.from == messagesModule.me?.id ? 'self-end' : 'self-start'}>
-											{@html m.message?.message}
+											{m.message?.message}
 										</div>
 										<div class="ml-auto text-xs text-gray-400 {m.message?.from == messagesModule.me?.id ? 'self-end' : 'self-start'}">
 											{date(m.message?.updatedAt)}

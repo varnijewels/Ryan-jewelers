@@ -2,6 +2,7 @@ import { wwwProductsLoad } from '$lib/core/load-functions/index.js'
 import { applyClientFilters, clientFilterKeys, clientSorts, realCatalogUrl } from '$lib/theme/ryans-jewels/product-filters.js'
 
 export const load = async (event: any) => {
+	event.depends('app:products')
 	const requestUrl = realCatalogUrl(event.url)
 	const hasClientFilters = clientFilterKeys.some((key) => requestUrl.searchParams.has(key))
 	const hasClientSort = clientSorts.has(requestUrl.searchParams.get('uiSort') || '')

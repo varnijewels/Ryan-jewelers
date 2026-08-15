@@ -1,6 +1,7 @@
 <script lang="ts">
 	import RjCarouselCard from '$lib/theme/ryans-jewels/RjCarouselCard.svelte'
 	import RjInstagram from '$lib/theme/ryans-jewels/RjInstagram.svelte'
+	import { SeoHeader } from '$lib/core/components/index.js'
 
 	let { data } = $props()
 	const products = $derived((data?.offerProducts || []).slice(0, 8))
@@ -12,10 +13,10 @@
 	]
 </script>
 
-<svelte:head>
-	<title>Best Jewelry Offers | Ryan Jewelers</title>
-	<meta name="description" content="Explore current Ryan Jewelers offers on diamond rings, earrings, necklaces and meaningful gifts." />
-</svelte:head>
+<SeoHeader
+	metaTitle="Best Jewelry Offers | Ryan Jewelers"
+	metaDescription="Explore current Ryan Jewelers offers on diamond rings, earrings, necklaces and meaningful gifts."
+/>
 
 <main class="rj-offers">
 	<section class="rj-offers-hero" aria-labelledby="rj-offers-title">

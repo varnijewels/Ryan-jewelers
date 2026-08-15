@@ -1,5 +1,6 @@
 <script lang="ts">
 	import RjWideBanner from '$lib/theme/ryans-jewels/RjWideBanner.svelte'
+	import { SeoHeader } from '$lib/core/components/index.js'
 
 	const services = [
 		{
@@ -41,13 +42,10 @@
 	]
 </script>
 
-<svelte:head>
-	<title>Jewelry Services | Ryan Jewelers</title>
-	<meta
-		name="description"
-		content="Explore jewelry repair, custom design, ring sizing, cleaning, appraisal and watch care services from Ryan Jewelers."
-	/>
-</svelte:head>
+<SeoHeader
+	metaTitle="Jewelry Services | Ryan Jewelers"
+	metaDescription="Explore jewelry repair, custom design, ring sizing, cleaning, appraisal and watch care services from Ryan Jewelers."
+/>
 
 <div class="rj-services">
 	<RjWideBanner

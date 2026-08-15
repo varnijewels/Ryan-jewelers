@@ -4,6 +4,7 @@
 	import { page } from '$app/state'
 	import { SeoHeader } from '$lib/core/components/index.js'
 	import ListingScehma from '$lib/components/product-catalogue/listing-scehma.svelte'
+	import { ryansSeoText } from '$lib/theme/ryans-jewels/seo.js'
 
 	setDesktopFilterState()
 	setCategoryFilterState()
@@ -13,12 +14,16 @@
 
 <ListingScehma />
 <SeoHeader
-	metaTitle={data.page?.metaTitle ||
+	metaTitle={ryansSeoText(
+		data.page?.metaTitle,
 		(data.products?.categoryHierarchy?.length > 0
-			? `${data.products.categoryHierarchy[data.products.categoryHierarchy.length - 1].name} — Shop Trendy Fashion Online | Arialshop`
-			: "Women's Fashion Online — Stylish Dresses, Co-ord Sets & More | Arialshop")}
-	metaDescription={data.page?.metaDescription ||
-		"Explore Arialshop's exclusive collection of women's fashion. Shop the latest trendy dresses, elegant co-ord sets, and seasonal styles at the best prices. Enjoy free delivery on orders over ₹999, easy 7-day returns, and premium quality. Refresh your wardrobe with Arialshop today!"}
+			? `${data.products.categoryHierarchy[data.products.categoryHierarchy.length - 1].name} | Ryan Jewelers`
+			: 'Lab Grown Diamond Jewelry | Ryan Jewelers')
+	)}
+	metaDescription={ryansSeoText(
+		data.page?.metaDescription,
+		'Explore lab grown diamond rings, earrings, pendants and fine jewelry from Ryan Jewelers. Discover timeless designs crafted for every meaningful moment.'
+	)}
 	metaKeywords={data.page?.metaKeywords ?? ''}
 	image={data.page?.logo ?? ''}
 />

@@ -4,7 +4,7 @@
 	import { SeoHeader } from '$lib/core/components/index.js'
 </script>
 
-<SeoHeader metaTitle="Blog | Insights & News" />
+<SeoHeader metaTitle="Jewelry Blog | Ryan Jewelers" metaDescription="Explore Ryan Jewelers guides, stories and insights about lab grown diamonds and fine jewelry." />
 
 <BlogRenderer>
 	{#snippet content({ loading, error, posts, formatDate, loadBlogPosts })}

@@ -166,7 +166,10 @@
 		min-height: 0;
 		padding: 22px 35px;
 		overflow-y: auto;
+		scrollbar-width: none;
 	}
+
+	.rj-admin-grid::-webkit-scrollbar { display: none; }
 
 	.rj-admin-mega--collection {
 		height: 440px;

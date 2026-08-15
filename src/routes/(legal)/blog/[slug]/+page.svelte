@@ -38,7 +38,7 @@
 	})
 </script>
 
-<SeoHeader metaTitle={post?.title} />
+<SeoHeader metaTitle={post?.title ? `${post.title} | Ryan Jewelers` : 'Jewelry Blog | Ryan Jewelers'} />
 
 <div class="mx-auto max-w-4xl px-4 py-8">
 	{#if loading}

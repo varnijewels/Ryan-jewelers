@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { SeoHeader } from '$lib/core/components/index.js'
+	import { ryansSeoText } from '$lib/theme/ryans-jewels/seo.js'
 
 	let { data } = $props()
 
-	let seoProps = {
-		metaTitle: `${data.page.metaTitle || data.page.name || ''}`,
-		metaDescription: `${data.page.metaDescription || data.page.name || ''}`,
+	const seoProps = $derived({
+		metaTitle: ryansSeoText(data.page.metaTitle, `${data.page.name || ''} | Ryan Jewelers`),
+		metaDescription: ryansSeoText(data.page.metaDescription, data.page.name || ''),
 		metaKeywords: `${data.page.metaKeywords || data.page.name || ''}`
-	}
+	})
 </script>
 
 <SeoHeader {...seoProps} />

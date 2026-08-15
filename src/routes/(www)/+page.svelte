@@ -16,6 +16,7 @@
 	import { themeHomepages } from '$lib/theme/homepages.js'
 	import Slider from '$lib/components/home/slider.svelte'
 	import Blocks from '$lib/components/page-blocks/blocks.svelte'
+	import { canonicalProductPath } from '$lib/theme/ryans-jewels/seo.js'
 
 	let { data } = $props()
 
@@ -51,7 +52,7 @@
 	const trendingProducts = $derived(activeTheme === 'ryans-jewels' ? storefrontProducts : homepageModule.trendingProducts || [])
 	const structuredProducts = $derived(activeTheme === 'ryans-jewels'
 		? storefrontProducts.map((product: any) => ({
-			url: `${sveltePage.url.origin}/products/${product.slug}`,
+			url: `${sveltePage.url.origin}${canonicalProductPath(product)}`,
 			name: product.title,
 			image: product.thumbnail ? [product.thumbnail] : [],
 			description: product.description || '',
@@ -59,7 +60,7 @@
 			manufacturer: brandName,
 			material: product.attributes?.find((attribute: any) => attribute.name === 'Metal Type')?.value || '',
 			offers: {
-				url: `${sveltePage.url.origin}/products/${product.slug}`,
+				url: `${sveltePage.url.origin}${canonicalProductPath(product)}`,
 				priceCurrency: data?.store?.currency?.code || 'USD',
 				price: product.price,
 				availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
@@ -80,7 +81,7 @@
 
 <GoogleStructuredDataOrganization
 	name={brandName}
-	url={`https://${PUBLIC_LITEKART_DOMAIN}`}
+	url={PUBLIC_LITEKART_DOMAIN}
 	logo={data?.store?.logo}
 	description={themeDescription}
 	sameAs={data?.store?.socialSharing?.active
@@ -108,9 +109,9 @@
 
 <GoogleStructuredDataWebsite
 	name={brandName}
-	url={`https://${PUBLIC_LITEKART_DOMAIN}`}
+	url={PUBLIC_LITEKART_DOMAIN}
 	description={themeDescription}
-	searchUrl={`https://${PUBLIC_LITEKART_DOMAIN}/search?q={search_term_string}`}
+	searchUrl={`${PUBLIC_LITEKART_DOMAIN}/products?search={search_term_string}`}
 />
 
 <SeoHeader
@@ -119,6 +120,10 @@
 	metaKeywords={page?.metaKeywords}
 	image={themeContent.seoImage || page?.logo || data?.store?.logo}
 />
+
+{#if activeTheme === 'ryans-jewels'}
+	<h1 class="sr-only">Ryan Jewelers — Lab Grown Diamonds and Fine Jewelry</h1>
+{/if}
 
 <svelte:component
 	this={ThemeHomepage}

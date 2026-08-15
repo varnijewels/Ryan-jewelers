@@ -7,13 +7,13 @@
 	 * Source: 1:6072 (desktop 285 / media 279×293) · 63:40337 (tablet 261 / 255×201)
 	 *         · 77:107275 (mobile 235 / 229×181)
 	 *
-	 * Product content is live API data; the 30% badge and 5.5 rating treatment
-	 * are fixed presentation from the source frame.
+	 * Product content is live API data; the card treatment follows the source frame.
 	 */
 	import { page } from '$app/state'
 	import { ProductCardRenderer } from '$lib/core/composables/index.js'
 	import { formatPrice } from '$lib/core/utils/index.js'
 	import { discountPercent } from './product-details.logic.js'
+	import { productRating } from './product-filters.js'
 
 	/**
 	 * `size` picks the source's two card widths:
@@ -32,7 +32,7 @@
 	const category = $derived(
 		product?.category?.name || product?.categoryName || product?.collection?.name || ''
 	)
-	const rating = 5.5
+	const rating = $derived(productRating(product))
 	const price = $derived(Number(product?.price ?? NaN))
 	const mrp = $derived(Number(product?.mrp ?? NaN))
 	const hasCompare = $derived(Number.isFinite(mrp) && Number.isFinite(price) && mrp > price)
@@ -56,11 +56,13 @@
 				<div class="rj-tile-top">
 					<div class="rj-tile-meta">
 						<span class="rj-tile-category">{category}</span>
-						<span class="rj-tile-rating" aria-label="Rating {rating}">
-							<img class="rj-tile-star" src="/ryans-jewels/home/star.svg" alt="" aria-hidden="true" />
-							<img class="rj-tile-star" src="/ryans-jewels/home/star.svg" alt="" aria-hidden="true" />
-							<span class="rj-tile-rating-value">{rating}</span>
-						</span>
+						{#if rating}
+							<span class="rj-tile-rating" aria-label="Rating {rating} out of 5">
+								<img class="rj-tile-star" src="/ryans-jewels/home/star.svg" alt="" aria-hidden="true" />
+								<img class="rj-tile-star" src="/ryans-jewels/home/star.svg" alt="" aria-hidden="true" />
+								<span class="rj-tile-rating-value">{rating}</span>
+							</span>
+						{/if}
 					</div>
 
 					<a class="rj-tile-name" {href}>{title}</a>

@@ -57,11 +57,11 @@ function normalized(value: unknown) {
 		.trim()
 }
 
-function rating(product: any) {
-	if (Array.isArray(product.ratings) && product.ratings.length) {
-		return product.ratings.reduce((sum: number, item: any) => sum + Number(item.rating || 0), 0) / product.ratings.length
-	}
-	return Number(product.averageRating || product.rating || 0)
+export function productRating(product: any) {
+	const raw = Array.isArray(product?.ratings) && product.ratings.length
+		? product.ratings.reduce((sum: number, item: any) => sum + Number(item.rating || 0), 0) / product.ratings.length
+		: Number(product?.averageRating || product?.rating || 0)
+	return Number.isFinite(raw) ? Math.min(5, Math.max(0, Math.round(raw * 10) / 10)) : 0
 }
 
 function matchesMetadata(product: any, values: string[]) {
@@ -84,7 +84,7 @@ export function applyClientFilters(products: any[], url: URL) {
 				if (status === 'In Stock') return Number(product.stock) > 0
 				if (status === 'Out of stock') return Number(product.stock) <= 0
 				if (status === 'Best seller') return Number(product.popularity) > 0 || text.includes('best seller')
-				if (status === 'Top Rated') return rating(product) >= 4
+				if (status === 'Top Rated') return productRating(product) >= 4
 				return Boolean(product.isFeatured || product.featured || text.includes('featured'))
 			})
 
@@ -98,7 +98,7 @@ export function applyClientFilters(products: any[], url: URL) {
 	})
 
 	const sort = url.searchParams.get('uiSort')
-	if (sort === 'rating:desc') return filtered.sort((a, b) => rating(b) - rating(a))
+	if (sort === 'rating:desc') return filtered.sort((a, b) => productRating(b) - productRating(a))
 	if (sort === 'title:asc' || sort === 'title:desc') {
 		const direction = sort === 'title:asc' ? 1 : -1
 		return filtered.sort((a, b) => direction * String(a.title || a.name || '').localeCompare(String(b.title || b.name || '')))

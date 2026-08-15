@@ -40,16 +40,6 @@ export function savedAddressId(address, cart, addresses = []) {
 	return addresses.find((candidate) => candidate?.id && candidate.id !== 'new' && sameAddress(candidate, address))?.id || ''
 }
 
-/** @param {string | null} value */
-export function parseHiddenAddressIds(value) {
-	try {
-		const parsed = JSON.parse(value || '[]')
-		return Array.isArray(parsed) ? parsed.filter((id) => typeof id === 'string') : []
-	} catch {
-		return []
-	}
-}
-
 if (typeof process !== 'undefined' && process.argv[1]?.endsWith('shipping-address.logic.js')) {
 	console.assert(JSON.stringify(splitCustomerName('Sujal Amreliya')) === JSON.stringify({ firstName: 'Sujal', lastName: 'Amreliya' }))
 	console.assert(JSON.stringify(splitCustomerName('Sujal')) === JSON.stringify({ firstName: 'Sujal', lastName: 'Sujal' }))
@@ -60,7 +50,5 @@ if (typeof process !== 'undefined' && process.argv[1]?.endsWith('shipping-addres
 	const cartAddress = { address_1: 'Cart address' }
 	console.assert(savedAddressId(cartAddress, { shippingAddress: cartAddress, shippingAddressId: 'cart-address-id' }) === 'cart-address-id')
 	console.assert(savedAddressId({ firstName: 'Sujal', address_1: 'Mota varacha', zip: '395010' }, {}, [{ id: 'saved-id', firstName: 'Sujal', address_1: 'Mota varacha', zip: '395010' }]) === 'saved-id')
-	console.assert(JSON.stringify(parseHiddenAddressIds('["one",2,"two"]')) === '["one","two"]')
-	console.assert(parseHiddenAddressIds('invalid').length === 0)
 	console.log('shipping address logic: ok')
 }

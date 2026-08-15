@@ -1,5 +1,6 @@
 import type { Handle } from '@sveltejs/kit'
-import { StoreService } from '$lib/core/services'
+import { StoreService } from '$lib/core/services/index.js'
+import { applySecurityHeaders } from '$lib/server/security-headers.js'
 import { env } from '$env/dynamic/public'
 import { env as privateEnv } from '$env/dynamic/private'
 
@@ -8,9 +9,11 @@ function isLocalOrIpAddress(url: string): boolean {
 	return url.includes('localhost') || url.includes('127.0.0.1') || /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(url)
 }
 
+const noindexPrefixes = ['/auth', '/checkout', '/my', '/messages', '/profile', '/order-tracking', '/enquiry']
+
 export const init = async () => {
 	if (env.PUBLIC_SHOPIFY_STORE_DOMAIN) {
-		const { BaseService } = await import('$lib/core/services')
+		const { BaseService } = await import('$lib/core/services/index.js')
 		BaseService.setShopifyCredentials(
 			env.PUBLIC_SHOPIFY_STORE_DOMAIN,
 			privateEnv.SHOPIFY_ADMIN_ACCESS_TOKEN,
@@ -19,7 +22,7 @@ export const init = async () => {
 	}
 
 	if (env.PUBLIC_MEDUSA_PUBLISHABLE_API_KEY) {
-		const { BaseService } = await import('$lib/core/services')
+		const { BaseService } = await import('$lib/core/services/index.js')
 		BaseService.setMedusaPublisableKey(env.PUBLIC_MEDUSA_PUBLISHABLE_API_KEY)
 		BaseService.setRegionId(env.PUBLIC_MEDUSA_REGION_ID)
 	}
@@ -57,6 +60,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const response = await resolve(event, {
 		filterSerializedResponseHeaders: (name) => name === 'content-type'
 	})
+	if (noindexPrefixes.some((prefix) => url.pathname === prefix || url.pathname.startsWith(`${prefix}/`))) {
+		response.headers.set('X-Robots-Tag', 'noindex, follow')
+	}
+	applySecurityHeaders(response, url.protocol)
 	// response.headers.set('x-litekart-store', storeDetailsCache?.id || '')
 	return response
 }

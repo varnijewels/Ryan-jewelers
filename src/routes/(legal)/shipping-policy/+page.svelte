@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Blocks from '$lib/components/page-blocks/blocks.svelte'
 	import type { Page } from '$lib/core/types/index.js'
+	import { SeoHeader } from '$lib/core/components/index.js'
 
 	interface Props {
 		data: {
@@ -37,13 +38,10 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Shipping &amp; Return Policy | Ryan Jewelers</title>
-	<meta
-		name="description"
-		content="Review Ryan Jewelers shipping, tracking, return, refund and exchange information before placing your order."
-	/>
-</svelte:head>
+<SeoHeader
+	metaTitle="Shipping & Return Policy | Ryan Jewelers"
+	metaDescription="Review Ryan Jewelers shipping, tracking, return, refund and exchange information before placing your order."
+/>
 
 {#if isRyans}
 	<div class="rj-policy">

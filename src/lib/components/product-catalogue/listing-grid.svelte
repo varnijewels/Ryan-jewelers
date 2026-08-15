@@ -11,26 +11,17 @@
 	let { ryanLayout = 'grid' }: { ryanLayout?: 'grid' | 'list' } = $props()
 	const isRyan = $derived(page.data?.theme?.name === 'ryans-jewels')
 	const searchService = new SearchService(fetch)
-	const listingQueryKey = $derived.by(() => {
-		const params = new URLSearchParams(page.url.search)
-		params.delete('page')
-		return `${page.url.pathname}?${params.toString()}`
-	})
 
 	let products = $state<any[]>([])
 	let currentPage = $state(1)
 	let loadingMore = $state(false)
-	let previousListingQueryKey = ''
 
 	const hasMore = $derived(currentPage < (data.products?.totalPages ?? 0))
 	const visibleProducts = (items: any[]) => isRyan ? items.filter((product) => product?.styleCode) : items
 
 	$effect(() => {
-		if (listingQueryKey !== previousListingQueryKey) {
-			previousListingQueryKey = listingQueryKey
-			products = visibleProducts(data.products?.data ?? [])
-			currentPage = Number(page.url.searchParams.get('page') ?? 1)
-		}
+		products = visibleProducts(data.products?.data ?? [])
+		currentPage = Number(page.url.searchParams.get('page') ?? 1)
 	})
 
 	async function loadNextPage() {

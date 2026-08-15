@@ -1,12 +1,11 @@
 <script lang="ts">
 	import { ChevronRight } from '@lucide/svelte'
+	import { SeoHeader } from '$lib/core/components/index.js'
 
 	let { data } = $props()
 </script>
 
-<svelte:head>
-	<title>Categories</title>
-</svelte:head>
+<SeoHeader metaTitle="Jewelry Categories | Ryan Jewelers" metaDescription="Browse Ryan Jewelers lab grown diamond rings, earrings, pendants and fine jewelry by category." />
 <div class="container max-w-6xl px-4 py-4 md:py-10">
 	<h1 class="mb-6 text-xl font-medium md:text-2xl">Shop by Category</h1>
 

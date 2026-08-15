@@ -4,8 +4,7 @@
 	 * Source: 1:5663 (desktop 272 / media 250) · 63:40199 (tablet 226 / media 208)
 	 *         · 77:107021 (mobile 190 / media 174)
 	 *
-	 * Product content is live API data; the three swatches and 5.5 display are
-	 * fixed presentation from the source frame.
+	 * Product content is live API data; the three swatches follow the source frame.
 	 */
 	import { page } from '$app/state'
 	import { preloadData } from '$app/navigation'
@@ -13,6 +12,7 @@
 	import { formatPrice } from '$lib/core/utils/index.js'
 	import { metalSwatchFills } from './home-content.js'
 	import { metalColorImage, metalVariantChoices } from './product-details.logic.js'
+	import { productRating } from './product-filters.js'
 
 	/**
 	 * `size` picks the two card boxes the source uses for this card:
@@ -51,7 +51,7 @@
 	)
 	const category = $derived(product?.category?.name || product?.categoryName || product?.collection?.name || '')
 	const price = $derived(selectedChoice?.variant?.price ?? selectedProduct?.price ?? product?.price)
-	const rating = 5.5
+	const rating = $derived(productRating(product))
 
 	function listingImage(source: string) {
 		const mediaHost = 'https://media.jewelwesell.com/'
@@ -133,11 +133,13 @@
 
 					<div class="rj-card-meta">
 						{#if category}<span class="rj-card-category">{category}</span>{/if}
-						<span class="rj-card-rating" aria-label="Rating {rating}">
-							<img class="rj-card-star" src="/ryans-jewels/home/star.svg" alt="" aria-hidden="true" />
-							<img class="rj-card-star" src="/ryans-jewels/home/star.svg" alt="" aria-hidden="true" />
-							<span class="rj-card-rating-value">{rating}</span>
-						</span>
+						{#if rating}
+							<span class="rj-card-rating" aria-label="Rating {rating} out of 5">
+								<img class="rj-card-star" src="/ryans-jewels/home/star.svg" alt="" aria-hidden="true" />
+								<img class="rj-card-star" src="/ryans-jewels/home/star.svg" alt="" aria-hidden="true" />
+								<span class="rj-card-rating-value">{rating}</span>
+							</span>
+						{/if}
 					</div>
 				</div>
 

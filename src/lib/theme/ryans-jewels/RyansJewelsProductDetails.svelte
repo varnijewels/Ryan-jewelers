@@ -12,7 +12,7 @@
 	import RjProductCustomizer from './RjCustomizeModal.svelte'
 	import RjInstagram from './RjInstagram.svelte'
 	import RjProductCard from './RjProductCard.svelte'
-	import { withoutDemoProducts } from './product-filters.js'
+	import { productRating, withoutDemoProducts } from './product-filters.js'
 	import RjWideBanner from './RjWideBanner.svelte'
 	import { customizationOptions, diamondImageForShape, discountPercent, groupedProductForAttribute, groupedProductForSelections, metalColorImage, metalColorTone, productAttributeValue, productDetailParagraphs, productImages, toggleStoredId, variantForOption, variantForSelections } from './product-details.logic.js'
 
@@ -67,7 +67,7 @@
 	const discount = $derived(discountPercent(price, mrp))
 	const category = $derived(product?.category?.name || [...(product?.categoryHierarchy || [])].reverse().find((item: any) => item.name !== product.title)?.name || '')
 	const ratings = $derived(Array.isArray(product?.ratings) ? product.ratings : [])
-	const rating = $derived(ratings.length ? Math.round((ratings.reduce((sum: number, item: any) => sum + Number(item.rating || 0), 0) / ratings.length) * 10) / 10 : 0)
+	const rating = $derived(productRating(product))
 	const inStock = $derived(!product?.manageInventory || Number(selectedVariant?.stock ?? product?.stock ?? 0) > 0)
 	const attributes = $derived(Array.isArray(product?.attributes) ? product.attributes : [])
 	const detailSku = $derived(selectedVariant?.sku || product?.sku || product?.id || '')
@@ -507,7 +507,7 @@
 					{#if ratings.length}
 						<div class="rj-review-cards">
 							{#each ratings.slice(0, visibleReviewCount) as review}
-								{@const reviewerName = reviewValue(review, 'name', 'reviewerName', 'userName') || 'Verified Customer'}
+								{@const reviewerName = reviewValue(review, 'name', 'reviewerName', 'userName') || 'Customer'}
 								{@const createdAt = reviewValue(review, 'createdAt', 'created_at', 'date')}
 								{@const reviewCopy = reviewValue(review, 'review', 'message', 'comment')}
 								<article class="rj-review-card">
@@ -569,7 +569,7 @@
 	{#if ratings.length}
 		<section class="rj-reviews">
 			<p>Customer Reviews</p><h2>Don't Take Our Word For It</h2>
-			<div class="rj-review-grid">{#each ratings.slice(0, 3) as review}<article><div class="rj-review-stars">★★★★★</div><p>{review.message || review.review || 'Beautiful jewellery and excellent craftsmanship.'}</p><b>{review.name || 'Verified Customer'}</b></article>{/each}</div>
+			<div class="rj-review-grid">{#each ratings.slice(0, 3) as review}<article><div class="rj-review-stars">★★★★★</div>{#if review.message || review.review}<p>{review.message || review.review}</p>{/if}<b>{review.name || 'Customer'}</b></article>{/each}</div>
 		</section>
 	{/if}
 </div>

@@ -26,9 +26,10 @@
 	const isEmailOk = $derived(addressModule.isEmailOk)
 	const isPhoneOk = $derived(addressModule.isPhoneOk)
 	const isRyansJewels = $derived(page.data?.theme?.name === 'ryans-jewels')
+	const guestCheckoutEnabled = $derived(Boolean(page.data?.store?.plugins?.isGuestCheckout?.active))
 
 	onMount(async () => {
-		if (!isRyansJewels) return
+		if (!isRyansJewels || guestCheckoutEnabled) return
 		await userState.hasLoaded.catch(() => undefined)
 		if (userState.user?.userId || userState.user?.id) return
 		const returnTo = page.url.pathname + page.url.search

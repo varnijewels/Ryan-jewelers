@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state'
-	import { goto } from '$app/navigation'
+	import { goto, invalidate } from '$app/navigation'
 	import { formatPrice } from '$lib/core/utils/index.js'
 	import { getDesktopFilterState } from '$lib/core/composables/index.js'
 	import ListingGrid from '$lib/components/product-catalogue/listing-grid.svelte'
@@ -130,7 +130,7 @@
 				{#each sortOptions as option}<option value={option[0]}>{option[1]}</option>{/each}
 			</select></label>
 			<span class="rj-toolbar-divider"></span>
-			<button class="rj-toolbar-button rj-refresh" type="button" onclick={() => location.reload()}>
+			<button class="rj-toolbar-button rj-refresh" type="button" onclick={() => invalidate('app:products')}>
 				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5M4 18v-5h5M6.1 9A7 7 0 0 1 18.5 6.5L20 11M4 13l1.5 4.5A7 7 0 0 0 18 15" /></svg>Refresh
 			</button>
 		</div>

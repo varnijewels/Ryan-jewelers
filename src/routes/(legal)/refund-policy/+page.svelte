@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Blocks from '$lib/components/page-blocks/blocks.svelte'
 	import type { Page } from '$lib/core/types'
+	import { SeoHeader } from '$lib/core/components/index.js'
 
 	interface Props {
 		data: {
@@ -10,9 +11,7 @@
 	let { data }: Props = $props()
 </script>
 
-<svelte:head>
-	<title>Refund Policy</title>
-</svelte:head>
+<SeoHeader metaTitle="Refund Policy | Ryan Jewelers" metaDescription="Review the Ryan Jewelers refund policy and eligibility requirements." />
 
 <section class="mt-20 min-h-screen">
 	<div class="container mx-auto flex max-w-7xl flex-col px-4 md:px-10">

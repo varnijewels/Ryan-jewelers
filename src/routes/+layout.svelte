@@ -19,11 +19,23 @@
 			source: 'admin' | 'env' | 'default'
 			available: string[]
 		}
+		user?: any
 		timestamp: number
 		error?: string
 	}
 	let { children, data }: { children: Snippet; data: LayoutData } = $props()
-	setUserState()
+	const userState = setUserState()
+
+	$effect(() => {
+		const user = data?.user ?? null
+		let active = true
+		userState.hasLoaded.catch(() => undefined).then(() => {
+			if (active) userState.user = user
+		})
+		return () => {
+			active = false
+		}
+	})
 
 	const themeFontsUrl = $derived(getThemeFontsUrl(data?.theme?.name || 'default'))
 

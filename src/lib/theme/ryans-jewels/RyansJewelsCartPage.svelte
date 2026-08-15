@@ -21,6 +21,7 @@
 	const subtotal = $derived(Number(cartState.cart?.subtotal || 0))
 	const discount = $derived(Number(cartState.cart?.discountAmount || 0))
 	const total = $derived(Number(cartState.cart?.total ?? subtotal - discount))
+	const guestCheckoutEnabled = $derived(Boolean(page.data?.store?.plugins?.isGuestCheckout?.active))
 	const deliveryDate = $derived(deliveryAt ? `${new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(deliveryAt)} ${new Intl.DateTimeFormat('en-US', { month: 'short' }).format(deliveryAt)} ${new Date(deliveryAt).getDate()}` : '—')
 	const countdown = $derived.by(() => {
 		const seconds = Math.max(0, Math.floor((cutoff - now) / 1000))
@@ -72,13 +73,15 @@
 	}
 
 	async function handleCheckout() {
-		await userState.hasLoaded.catch(() => undefined)
-		const user = userState.user as any
-		if (!user?.userId && !user?.id) {
-			const returnTo = '/checkout/address'
-			sessionStorage.setItem('rj-auth-return-to', returnTo)
-			showAuthModal('login', { redirect: returnTo })
-			return
+		if (!guestCheckoutEnabled) {
+			await userState.hasLoaded.catch(() => undefined)
+			const user = userState.user as any
+			if (!user?.userId && !user?.id) {
+				const returnTo = '/checkout/address'
+				sessionStorage.setItem('rj-auth-return-to', returnTo)
+				showAuthModal('login', { redirect: returnTo })
+				return
+			}
 		}
 		await cartModule.gotoCheckout()
 	}

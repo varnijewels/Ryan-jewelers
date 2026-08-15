@@ -5,6 +5,7 @@
 	import { Button } from '$lib/components/ui/button/index.js'
 	import * as Dialog from '$lib/components/ui/dialog/index.js'
 	import { metalSwatchFills } from './home-content.js'
+	import { productRating } from './product-filters.js'
 
 	let showRemoveConfirmation = $state(false)
 	let itemToRemove = $state<any>(null)
@@ -47,6 +48,7 @@
 				<div class="rj-wishlist-grid">
 					{#each wishlistItems as item (`${item.productId}-${item.variantId}`)}
 						{@const value = product(item)}
+						{@const rating = productRating(value)}
 						<article class="rj-wishlist-card">
 							<div class="rj-wishlist-media">
 								<a href={href(item)} aria-label={value.title || 'View product'}>
@@ -68,11 +70,13 @@
 									<a href={href(item)} title={value.title}>{value.title}</a>
 									<div class="rj-wishlist-meta">
 										<span>{category(item)}</span>
-										<div aria-label="Rating 5.5">
-											<img src="/ryans-jewels/home/star.svg" alt="" />
-											<img src="/ryans-jewels/home/star.svg" alt="" />
-											<b>5.5</b>
-										</div>
+										{#if rating}
+											<div aria-label="Rating {rating} out of 5">
+												<img src="/ryans-jewels/home/star.svg" alt="" />
+												<img src="/ryans-jewels/home/star.svg" alt="" />
+												<b>{rating}</b>
+											</div>
+										{/if}
 									</div>
 								</div>
 

@@ -7,6 +7,7 @@
 	import { page } from '$app/state'
 	import { ContactUsRenderer } from '$lib/core/composables/index.js'
 	import { fade, fly } from 'svelte/transition'
+	import { SeoHeader } from '$lib/core/components/index.js'
 
 	let info = $state({
 		name: '',
@@ -18,7 +19,7 @@
 		{
 			icon: Mail,
 			title: 'Email',
-			value: page?.data?.store?.businessEmail || 'support@sveltecommerce.com',
+			value: page?.data?.store?.businessEmail || 'Use the contact form',
 			description: 'Our team will respond within 24 hours.'
 		},
 		{
@@ -30,9 +31,10 @@
 	]
 </script>
 
-<svelte:head>
-	<title>Contact Us | Svelte Commerce</title>
-</svelte:head>
+<SeoHeader
+	metaTitle="Contact Ryan Jewelers"
+	metaDescription="Contact Ryan Jewelers for help with products, orders, shipping, returns and custom jewelry questions."
+/>
 
 <div class="min-h-screen bg-[#fafafa] py-12 md:py-24">
 	<div class="container mx-auto max-w-6xl px-4">

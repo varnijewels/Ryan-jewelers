@@ -6,14 +6,14 @@
 	import { z } from 'zod'
 	import { AddressSchema } from '$lib/core/components/index.js'
 	import { CartModule, checkoutAddressSchema, emptyAddress } from '$lib/core/composables/index.js'
-	import { cartService, checkoutService } from '$lib/core/services/index.js'
+	import { addressService, cartService, checkoutService } from '$lib/core/services/index.js'
 	import { Button } from '$lib/components/ui/button/index.js'
 	import * as Dialog from '$lib/components/ui/dialog/index.js'
 	import { formatPrice } from '$lib/core/utils/index.js'
 	import RjInstagram from './RjInstagram.svelte'
 	import RjProductCard from './RjProductCard.svelte'
 	import { checkoutGate, shippingRatesAvailable } from './checkout-overview.logic.js'
-	import { findAddressReplacement, groupSavedAddresses, parseHiddenAddressIds, savedAddressId, splitCustomerName } from './shipping-address.logic.js'
+	import { findAddressReplacement, groupSavedAddresses, savedAddressId, splitCustomerName } from './shipping-address.logic.js'
 
 	let { addressModule, cartState }: { addressModule: any; cartState: any } = $props()
 
@@ -48,10 +48,9 @@
 	let deleteAddressError = $state('')
 	let showRemoveAddressConfirmation = $state(false)
 	let addressToRemove = $state<any>(null)
-	let hiddenAddressIds = $state<string[]>([])
 	let addingSavedAddress = $state(false)
 	let otpTimer: ReturnType<typeof setInterval> | undefined
-	let contactForm: HTMLFormElement
+	let contactForm = $state<HTMLFormElement>()
 
 	const items = $derived(cartState.cart?.lineItems || [])
 	const currency = $derived(page.data?.store?.currency?.code || cartState.cart?.currencyCode || 'USD')
@@ -62,28 +61,15 @@
 	const total = $derived(Number(cartState.cart?.total ?? subtotal + tax - discount))
 	const products = $derived((page.data?.checkoutProducts || []).slice(0, 5))
 	const isShippingStep = $derived(page.url.searchParams.get('step') === 'shipping')
+	const guestCheckoutEnabled = $derived(Boolean(page.data?.store?.plugins?.isGuestCheckout?.active))
 	const countries = $derived(page.data?.store?.countries || [])
-	const visibleAddresses = $derived((addressModule.addresses || []).filter((address: any) => !hiddenAddressIds.includes(String(address?.id || ''))))
-	const visibleCartAddress = $derived(hiddenAddressIds.includes(String(cartState.cart?.shippingAddressId || cartState.cart?.shippingAddress?.id || '')) ? null : cartState.cart?.shippingAddress)
-	const savedAddresses = $derived(groupSavedAddresses(visibleAddresses, visibleCartAddress))
+	const savedAddresses = $derived(groupSavedAddresses(addressModule.addresses || [], cartState.cart?.shippingAddress))
 	const hasSavedAddresses = $derived(savedAddresses.all.length > 0)
 	const showSavedAddressList = $derived(hasSavedAddresses && !addingSavedAddress)
 	const officeBaseAddress = $derived(savedAddresses.home[0] || null)
 	const showOfficeAddressFlow = $derived(addingSavedAddress && addressType === 'office' && Boolean(officeBaseAddress))
 	const otpVerified = $derived(verifiedEmail === addressModule.email?.trim().toLowerCase() && verifiedOtp === otp)
 	const orderDate = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' }).format(new Date())
-	const testimonials = [
-		{ name: 'Johan Michel', avatar: '/ryans-jewels/product/testimonials/avatar-1.jpg', text: 'A diamond ring is handed down as a very rich part of our tradition. It was a memorable fulfillment to design and then manufacture the wedding ring. It was truly a pleasure to support it.', date: 'August 29, 2025' },
-		{ name: 'Emilio Lindgren', avatar: '/ryans-jewels/product/testimonials/avatar-2.jpg', text: 'A truly divine and inspired homage to what creativity as well as beauty, the most stylish range of gems and jewels.', date: 'August 29, 2025' },
-		{ name: 'Melinda Guskowski', avatar: '/ryans-jewels/product/testimonials/avatar-3.jpg', text: 'The products added spark to celebrations. It looked great in the festive look and was made to perfection.', date: 'August 29, 2025' },
-		{ name: 'Ernesto Feeney', avatar: '/ryans-jewels/product/testimonials/avatar-4.jpg', text: 'I had an amazing experience with this product. The quality exceeded my expectations and the customer service was incredibly helpful.', date: 'August 29, 2025' },
-		{ name: 'Clara Walker', avatar: '/ryans-jewels/product/testimonials/avatar-5.jpg', text: 'A flawless finish and a beautiful design. The jewellery feels timeless and is perfect for every celebration.', date: 'August 29, 2025' },
-		{ name: 'Joy Zboncak', avatar: '/ryans-jewels/product/testimonials/avatar-6.jpg', text: 'The remarkable local contents of a true unique design, this jewellery has always provided the most refined styles.', date: 'August 29, 2025' },
-		{ name: 'Naomi Grady', avatar: '/ryans-jewels/product/testimonials/avatar-7.jpg', text: 'The ring was just lovely. It was well built and the detailing made it a wonderful gift for the one we love.', date: 'August 29, 2025' },
-		{ name: 'Denise Lind', avatar: '/ryans-jewels/product/testimonials/avatar-8.jpg', text: 'The exceptional design reflects the beauty of a royal diamond, showing a marvellous finish in every detail.', date: 'August 29, 2025' },
-		{ name: 'Ernest Von', avatar: '/ryans-jewels/product/testimonials/avatar-9.jpg', text: 'The beautiful design of Ryan Jewels has been something we have always loved. Very classy and crafted perfectly.', date: 'August 29, 2025' },
-		{ name: 'Amy Zboncak', avatar: '/ryans-jewels/product/testimonials/avatar-10.jpg', text: 'Beautiful quality, elegant styling and excellent service. The entire experience was smooth from start to finish.', date: 'August 29, 2025' }
-	]
 
 	$effect(() => {
 		const savedEmail = addressModule.userState?.user?.email || cartState.cart?.email
@@ -111,9 +97,9 @@
 	onMount(() => {
 		continueShoppingHref = sessionStorage.getItem('rj-continue-shopping') || '/products'
 		try {
-			hiddenAddressIds = parseHiddenAddressIds(localStorage.getItem('rj-hidden-address-ids'))
+			localStorage.removeItem('rj-hidden-address-ids')
 		} catch {
-			hiddenAddressIds = []
+			// Storage can be unavailable in privacy mode; deletion still uses the API.
 		}
 	})
 
@@ -297,17 +283,6 @@
 		showRemoveAddressConfirmation = true
 	}
 
-	function hideSavedAddress(addressId: string) {
-		// ponytail: the API has no archive endpoint; replace this browser-side archive when the backend adds one.
-		hiddenAddressIds = [...new Set([...hiddenAddressIds, addressId])]
-		try {
-			localStorage.setItem('rj-hidden-address-ids', JSON.stringify(hiddenAddressIds))
-		} catch {
-			// The address still disappears for this session when browser storage is unavailable.
-		}
-		addressModule.addresses = (addressModule.addresses || []).filter((candidate: any) => candidate.id !== addressId)
-	}
-
 	async function removeSavedAddress(address: any) {
 		const addressId = savedAddressId(address, cartState.cart, addressModule.addresses || [])
 		if (!addressId) {
@@ -336,7 +311,8 @@
 				}
 				addressModule.currentAddress = replacement ? { ...replacement } : emptyAddress('new')
 			}
-			hideSavedAddress(addressId)
+			await addressService.deleteAddress(addressId)
+			addressModule.addresses = (addressModule.addresses || []).filter((candidate: any) => candidate.id !== addressId)
 			toast.success('Address removed')
 			return true
 		} catch (error) {
@@ -373,7 +349,10 @@
 
 	async function proceedToPayment() {
 		try {
-			const rates = await checkoutService.getShippingRates({ cartId: cartState.cart?.id })
+			const rates = (await checkoutService.getShippingRates({ cartId: cartState.cart?.id })) as unknown as {
+				data?: unknown[]
+				error?: { message?: string }
+			}
 			if (!shippingRatesAvailable(rates)) {
 				toast.error(rates?.error?.message || 'No shipping method is available for this address')
 				return
@@ -432,7 +411,8 @@
 			hasAddress: Boolean(cartState.cart?.shippingAddress),
 			userId: addressModule.userState?.user?.userId,
 			email,
-			password
+			password,
+			guestCheckout: guestCheckoutEnabled
 		})
 		if (gate === 'payment') {
 			await goto('/checkout/address?step=shipping')
@@ -440,7 +420,7 @@
 		}
 
 		if (gate === 'credentials') {
-			error = 'Enter a valid email and password to continue.'
+			error = guestCheckoutEnabled ? 'Enter a valid email to continue.' : 'Enter a valid email and password to continue.'
 			return
 		}
 
@@ -714,7 +694,7 @@
 						<div class="rj-login-fields">
 							<label for="checkout-email">Email Address</label>
 							<div><img src="/ryans-jewels/checkout/sms.svg" alt="" /><input id="checkout-email" type="email" autocomplete="email" bind:value={email} placeholder="Enter Your Email Address" /></div>
-							<label for="checkout-password">Password</label>
+							<label for="checkout-password">{guestCheckoutEnabled ? 'Password (optional)' : 'Password'}</label>
 							<div class="rj-password-field">
 								<input id="checkout-password" type={showPassword ? 'text' : 'password'} autocomplete="current-password" bind:value={password} placeholder="Enter Your Password" />
 								<button class="rj-password-eye" type="button" onclick={() => showPassword = !showPassword} aria-label={showPassword ? 'Hide password' : 'Show password'} aria-describedby="checkout-password-rules"><img src="/ryans-jewels/checkout/eye-slash.svg" alt="" /></button>
@@ -765,36 +745,6 @@
 					<i></i>
 					<a href="/products">View More <img src="/ryans-jewels/checkout/view-more-arrow.svg" alt="" /></a>
 					<i></i>
-				</div>
-			</section>
-
-			<section class="rj-testimonials" aria-labelledby="rj-testimonials-title">
-				<header class="rj-testimonial-heading">
-					<div><i></i><h2 id="rj-testimonials-title">Don't take our word for it.</h2><i></i></div>
-					<p>Trust our customers</p>
-				</header>
-
-				<div class="rj-review-rows">
-					{#each [testimonials, testimonials] as row, rowIndex}
-						<div class:offset={rowIndex === 1} class="rj-review-row">
-							{#each row as review}
-								<article class="rj-review-card">
-									<header>
-										<div class="rj-review-author">
-											<img class="rj-review-avatar" src={review.avatar} alt="" />
-											<div class="rj-review-person">
-												<b>{review.name}</b>
-												<div><img src="/ryans-jewels/product/testimonials/stars.svg" alt="4.5 out of 5 stars" /><i></i><small>4.5 Review</small></div>
-											</div>
-										</div>
-										<div class="rj-review-count"><span><img src="/ryans-jewels/product/testimonials/heart.svg" alt="" />4.5k</span><span><img src="/ryans-jewels/product/testimonials/comment.svg" alt="" />500</span></div>
-									</header>
-									<p>{review.text}</p>
-									<footer><time>{review.date}</time><span><img src="/ryans-jewels/product/testimonials/instagram.png" alt="" />Instagram</span></footer>
-								</article>
-							{/each}
-						</div>
-					{/each}
 				</div>
 			</section>
 
@@ -1053,32 +1003,6 @@
 	.rj-view-more > i { height: 1px; background: #c2c2c2; }
 	.rj-view-more a { display: flex; box-sizing: border-box; height: 50px; gap: 8px; align-items: center; justify-content: center; padding: 12px; border: 1px solid #c2c2c2; border-radius: 5px; color: #303030; font: 22px/26px 'Lato', sans-serif; text-decoration: none; }
 	.rj-view-more img { width: 23px; height: 23px; }
-	.rj-testimonials { box-sizing: border-box; height: 573px; margin-top: 63px; padding-top: 33px; overflow: hidden; background: #fafafa; }
-	.rj-testimonial-heading { width: min(1010px, calc(100% - 80px)); height: 65px; margin: 0 auto; text-align: center; }
-	.rj-testimonial-heading > div { display: grid; grid-template-columns: minmax(0, 340px) auto minmax(0, 340px); gap: 5px; align-items: center; }
-	.rj-testimonial-heading i { height: 2px; background: #9e9e9e; }
-	.rj-testimonial-heading h2 { margin: 0; color: #202020; font: 600 28px/34px 'Lato', sans-serif; letter-spacing: normal; white-space: nowrap; }
-	.rj-testimonial-heading p { margin: 5px 0 0; color: #a80139; font: 16px/21px 'Sarala', sans-serif; }
-	.rj-review-rows { display: flex; flex-direction: column; gap: 17px; margin-top: 41px; }
-	.rj-review-row { display: flex; box-sizing: border-box; width: 100%; height: 180px; flex: 0 0 180px; gap: 27px; align-items: center; padding-block: 5px; }
-	.rj-review-row.offset { justify-content: flex-end; }
-	.rj-review-card { display: flex; box-sizing: border-box; width: 310px; height: 170px; flex: 0 0 310px; flex-direction: column; gap: 13px; padding: 11.5px; overflow: hidden; border: 2.5px solid #ececec; border-radius: 5px; background: #fff; color: #303030; font-family: 'Lato', sans-serif; }
-	.rj-review-card > header { display: flex; height: 36px; flex: 0 0 36px; align-items: center; justify-content: space-between; }
-	.rj-review-author { display: flex; gap: 10px; align-items: center; }
-	.rj-review-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
-	.rj-review-person { display: flex; width: 107px; flex-direction: column; gap: 2px; }
-	.rj-review-person b { font-size: 12px; line-height: 14px; white-space: nowrap; }
-	.rj-review-person > div { display: flex; height: 14px; gap: 4px; align-items: center; }
-	.rj-review-person > div > img { width: 54px; height: 10px; }
-	.rj-review-person i { width: 1px; height: 14px; background: #e9e9e9; }
-	.rj-review-person small { color: #b5b5b5; font: 10px/normal 'Sarala', sans-serif; white-space: nowrap; }
-	.rj-review-count { display: flex; gap: 12px; align-items: center; }
-	.rj-review-count span { display: flex; gap: 5px; align-items: center; color: #606060; font: 10px/normal 'Sarala', sans-serif; }
-	.rj-review-count img { width: 15px; height: 15px; }
-	.rj-review-card > p { display: -webkit-box; height: 62px; margin: 0; overflow: hidden; color: #555; font-size: 10px; line-height: 15px; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; }
-	.rj-review-card footer { display: flex; min-height: 18px; align-items: center; justify-content: space-between; color: #252525; font-size: 10px; line-height: normal; }
-	.rj-review-card footer span { display: flex; gap: 5px; align-items: center; color: #555; }
-	.rj-review-card footer img { width: 18px; height: 18px; }
 	.rj-checkout-instagram { margin-top: 25px; }
 	@media (min-width: 1600px) {
 		.rj-recommend-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
@@ -1112,13 +1036,10 @@
 		.rj-order-assurance { height: auto; }
 		.rj-checkout-products { width: calc(100% - 30px); }
 		.rj-section-heading > div { grid-template-columns: 25px auto minmax(0, 1fr); gap: 6px; }
-		.rj-section-heading h2, .rj-testimonial-heading h2 { font-size: 20px; line-height: 26px; }
+		.rj-section-heading h2 { font-size: 20px; line-height: 26px; }
 		.rj-section-heading p { margin-left: 0; font-size: 10px; }
 		.rj-recommend-grid { gap: 12px; }
 		.rj-view-more { margin-top: 35px; }
-		.rj-testimonial-heading { width: calc(100% - 30px); }
-		.rj-testimonial-heading > div { grid-template-columns: minmax(20px, 1fr) auto minmax(20px, 1fr); }
-		.rj-review-row.offset { justify-content: flex-start; transform: translateX(-80px); }
 		.rj-checkout-steps { gap: 7px; padding-left: 0; overflow-x: auto; font-size: 12px; }
 		.rj-checkout-steps li { gap: 5px; }
 		.rj-checkout-steps li[aria-hidden='true'] { font-size: 15px; }

@@ -2,6 +2,7 @@
 	import { SeoHeader, GoogleStructuredDataBreadcrumb } from '$lib/core/components/index.js'
 	import Breadcrumb from '$lib/components/ui/breadcrumb.svelte'
 	import { page } from '$app/state'
+	import { ryansSeoText } from '$lib/theme/ryans-jewels/seo.js'
 	//import { PUBLIC_LITEKART_DOMAIN } from '$env/static/public'
 	const PUBLIC_LITEKART_DOMAIN = $derived(page.url.origin)
 
@@ -9,8 +10,8 @@
 </script>
 
 <SeoHeader
-	metaTitle={data.category.metaTitle || `Category - ${data.category.name}`}
-	metaDescription={data.category.metaDescription}
+	metaTitle={ryansSeoText(data.category.metaTitle, `${data.category.name} | Ryan Jewelers`)}
+	metaDescription={ryansSeoText(data.category.metaDescription, `Explore ${data.category.name} from Ryan Jewelers.`)}
 	metaKeywords={data.category.metaKeywords}
 	image={data.category.banner}
 />
@@ -26,8 +27,8 @@
 
 <GoogleStructuredDataBreadcrumb
 	breadcrumbs={[
-		{ name: 'Home', item: `https://${PUBLIC_LITEKART_DOMAIN}` },
-		{ name: data.category.name, item: `https://${PUBLIC_LITEKART_DOMAIN}/categories/${data.category.slug}` }
+		{ name: 'Home', item: PUBLIC_LITEKART_DOMAIN },
+		{ name: data.category.name, item: `${PUBLIC_LITEKART_DOMAIN}/categories/${data.category.slug}` }
 	]}
 />
 <div class="min-h-screen bg-gray-50">

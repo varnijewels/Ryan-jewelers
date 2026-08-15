@@ -22,6 +22,7 @@
 	import { page } from '$app/state'
 	import { Button } from '$lib/components/ui/button/index.js'
 	import RyansJewelsProductDetails from '$lib/theme/ryans-jewels/RyansJewelsProductDetails.svelte'
+	import { canonicalProductPath, ryansSeoText } from '$lib/theme/ryans-jewels/seo.js'
 	//import { PUBLIC_LITEKART_DOMAIN } from '$env/static/public'
 	const PUBLIC_LITEKART_DOMAIN = $derived(page.url.origin)
 
@@ -29,22 +30,27 @@
   const data = $derived(page.data)
 	const showPincodeCheck = $derived(productState.wareHousePluginEnabled && productState.isIndianPincodesPluginEnabled)
 	const activeTheme = $derived(page.data?.theme?.name ?? 'default')
+	const canonicalUrl = $derived(`${page.url.origin}${canonicalProductPath(data?.product)}`)
+	const structuredProduct = $derived({ ...productState.structuredData, url: canonicalUrl })
 </script>
 
 <SeoHeader
-	metaTitle={data?.product?.metaTitle || `${data?.product?.title} — Buy Online at Arialshop | Free Delivery`}
-	metaDescription={data?.product?.metaDescription ||
-		`${data?.product?.title}. ${data?.product?.description?.replace(/<[^>]*>?/gm, '').slice(0, 160)}... Discover premium quality ${data?.product?.title} at Arialshop. Enjoy free delivery on orders over ₹999 and easy 7-day returns. Shop now!`}
+	metaTitle={ryansSeoText(data?.product?.metaTitle, `${data?.product?.title} | Ryan Jewelers`)}
+	metaDescription={ryansSeoText(
+		data?.product?.metaDescription,
+		`${data?.product?.title}. ${data?.product?.description?.replace(/<[^>]*>?/gm, '').slice(0, 140)} Explore this lab grown diamond design from Ryan Jewelers.`
+	)}
 	metaKeywords={data?.product?.keywords || ''}
 	image={data?.product?.thumbnail || ''}
+	{canonicalUrl}
 />
 
-<GoogleStructuredDataProduct product={productState.structuredData} />
+<GoogleStructuredDataProduct product={structuredProduct} />
 
 <GoogleStructuredDataBreadcrumb
   breadcrumbs={data?.product?.categoryHierarchy?.map((item: any, index: number) => ({
   name: item.name,
-  item: index === data?.product?.categoryHierarchy?.length - 1 ? undefined : `https://${PUBLIC_LITEKART_DOMAIN}${item.slug}`
+  item: index === data?.product?.categoryHierarchy?.length - 1 ? undefined : `${PUBLIC_LITEKART_DOMAIN}${item.slug}`
   })) || []}
 />
 

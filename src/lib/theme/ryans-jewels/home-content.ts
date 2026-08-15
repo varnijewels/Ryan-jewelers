@@ -300,8 +300,7 @@ export const bestSellers = {
  * tablet 63:40549 · mobile 77:107373 (panel) + 77:107388 (head + cards)
  *
  * These three tiles are theme-owned customisation promos, not a product list:
- * they carry no price, their CTA is "Customise now", and the static 5.5 rating
- * is presentation copied from the source frame.
+ * they carry no price or customer rating, and their CTA is "Customise now".
  */
 export interface NamePlateCard {
 	key: string

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { SeoHeader } from '$lib/core/components/index.js'
+
 	const sections = [
 		{
 			id: 'lab-grown-diamonds',
@@ -110,10 +112,10 @@
 	]
 </script>
 
-<svelte:head>
-	<title>Frequently Asked Questions | Ryan Jewelers</title>
-	<meta name="description" content="Find answers about Ryan Jewelers lab-grown diamonds, orders, payments, returns, exchanges, custom jewelry and certification." />
-</svelte:head>
+<SeoHeader
+	metaTitle="Frequently Asked Questions | Ryan Jewelers"
+	metaDescription="Find answers about Ryan Jewelers lab-grown diamonds, orders, payments, returns, exchanges, custom jewelry and certification."
+/>
 
 <div class="rj-faq-page">
 	<header class="rj-faq-hero">

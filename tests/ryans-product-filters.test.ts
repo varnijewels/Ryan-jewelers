@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applyClientFilters, facetOptions, realCatalogUrl, withoutDemoProducts } from '../src/lib/theme/ryans-jewels/product-filters.js'
+import { applyClientFilters, facetOptions, productRating, realCatalogUrl, withoutDemoProducts } from '../src/lib/theme/ryans-jewels/product-filters.js'
 import { diamondShapes } from '../src/lib/theme/ryans-jewels/home-content.js'
 
 const products = [
@@ -22,6 +22,12 @@ describe('Ryan product filters', () => {
 			{ name: 'Platinum', count: 1 }
 		])
 		expect(facetOptions(facets, ['missing'], /ring/i)).toEqual([{ name: 'Rings', count: 4 }])
+	})
+
+	it('shows only real ratings and keeps them inside the five-star scale', () => {
+		expect(productRating({ ratings: [{ rating: 4 }, { rating: 5 }] })).toBe(4.5)
+		expect(productRating({ averageRating: 7 })).toBe(5)
+		expect(productRating({})).toBe(0)
 	})
 
 	it('links every homepage cut to the working shape filter', () => {

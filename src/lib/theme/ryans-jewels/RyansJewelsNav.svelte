@@ -98,6 +98,7 @@
 		<div class="rj-utility-group">
 			<a class="rj-utility-link" href={nav.utility.dailyDeals.href}>{nav.utility.dailyDeals.label}</a>
 
+			{#if nav.utility.giftCard}
 			<a class="rj-utility-link rj-utility-link--icon" href={nav.utility.giftCard.href}>
 				<svg class="rj-i20" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
 					<path
@@ -143,6 +144,7 @@
 				</svg>
 				<span>{nav.utility.giftCard.label}</span>
 			</a>
+			{/if}
 
 			<a class="rj-utility-link rj-utility-link--icon" href={nav.utility.helpContact.href}>
 				<svg class="rj-i20" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
