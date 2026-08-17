@@ -107,17 +107,17 @@
 
 		{#if variant === 'earrings'}
 			<div class="rj-earring-art" aria-hidden="true">
-				<div class="rj-earring-piece rj-earring-piece--main"><div><img src="/ryans-jewels/mega-menu/earring-art.png" alt="" /></div></div>
-				<div class="rj-earring-piece rj-earring-piece--reflection"><div><img src="/ryans-jewels/mega-menu/earring-art.png" alt="" /></div></div>
-				<div class="rj-earring-piece rj-earring-piece--small"><div><img src="/ryans-jewels/mega-menu/earring-art.png" alt="" /></div></div>
-				<div class="rj-earring-piece rj-earring-piece--small-reflection"><div><img src="/ryans-jewels/mega-menu/earring-art.png" alt="" /></div></div>
+				<div class="rj-earring-piece rj-earring-piece--main"><div><img src="/ryans-jewels/mega-menu/earring-art.webp" alt="" /></div></div>
+				<div class="rj-earring-piece rj-earring-piece--reflection"><div><img src="/ryans-jewels/mega-menu/earring-art.webp" alt="" /></div></div>
+				<div class="rj-earring-piece rj-earring-piece--small"><div><img src="/ryans-jewels/mega-menu/earring-art.webp" alt="" /></div></div>
+				<div class="rj-earring-piece rj-earring-piece--small-reflection"><div><img src="/ryans-jewels/mega-menu/earring-art.webp" alt="" /></div></div>
 			</div>
 		{:else}
 			<div class="rj-rings-jewel" aria-hidden="true">
-				<img class="rj-rings-ring-main" src="/ryans-jewels/mega-menu/ring-main.png" alt="" />
-				<img class="rj-rings-ring-reflection" src="/ryans-jewels/mega-menu/ring-main.png" alt="" />
-				<img class="rj-rings-ring-side" src="/ryans-jewels/mega-menu/ring-side.png" alt="" />
-				<img class="rj-rings-ring-side-reflection" src="/ryans-jewels/mega-menu/ring-side.png" alt="" />
+				<img class="rj-rings-ring-main" src="/ryans-jewels/mega-menu/ring-main.webp" alt="" />
+				<img class="rj-rings-ring-reflection" src="/ryans-jewels/mega-menu/ring-main.webp" alt="" />
+				<img class="rj-rings-ring-side" src="/ryans-jewels/mega-menu/ring-side.webp" alt="" />
+				<img class="rj-rings-ring-side-reflection" src="/ryans-jewels/mega-menu/ring-side.webp" alt="" />
 			</div>
 		{/if}
 	</section>

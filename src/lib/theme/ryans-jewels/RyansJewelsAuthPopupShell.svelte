@@ -8,7 +8,7 @@
 	<aside>
 		<img src="/ryans-jewels/home/hero-desktop.png" alt="Diamond engagement ring crafted by Ryan Jewelers" />
 		<div class="rj-auth-popup-shade"></div>
-		<a href="/" aria-label="Ryan Jewelers home"><img src="/ryans-jewels/logo.png" alt="Ryan Jewelers" /></a>
+		<a href="/" aria-label="Ryan Jewelers home"><img src="/ryans-jewels/logo.webp" alt="Ryan Jewelers" /></a>
 		<div class="rj-auth-popup-story">
 			<span>CRAFTED FOR YOUR STORY</span>
 			<h2>Where every detail holds a little more meaning.</h2>

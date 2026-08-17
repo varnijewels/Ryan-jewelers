@@ -41,6 +41,16 @@ export function discountPercent(price, mrp) {
 	return mrp > price && price >= 0 ? Math.round(((mrp - price) / mrp) * 100) : 0
 }
 
+/** @param {string} source */
+export function listingImage(source) {
+	const mediaHost = 'https://media.jewelwesell.com/'
+	return source.startsWith(`${mediaHost}cdn-cgi/image/`)
+		? source
+		: source.startsWith(mediaHost)
+		? source.replace(mediaHost, `${mediaHost}cdn-cgi/image/width=800,format=auto/`)
+		: source
+}
+
 /** @param {unknown} value */
 export function metalColorTone(value) {
 	const name = String(value || '').toLowerCase()
@@ -134,6 +144,8 @@ if (typeof process !== 'undefined' && process.argv[1]?.endsWith('product-details
 	console.assert(variantForSelections(variants, variants[0], { size: '7' }).id === 'b')
 	console.assert(variantForSelections(variants, variants[0], { size: '8' }) === null)
 	console.assert(discountPercent(75, 100) === 25)
+	console.assert(listingImage('https://media.jewelwesell.com/items/ring.png') === 'https://media.jewelwesell.com/cdn-cgi/image/width=800,format=auto/items/ring.png')
+	console.assert(listingImage('https://media.jewelwesell.com/cdn-cgi/image/width=400/items/ring.png') === 'https://media.jewelwesell.com/cdn-cgi/image/width=400/items/ring.png')
 	console.assert(['yellow', 'rose', 'white'].map((tone) => metalColorTone(`${tone} gold`)).join(',') === 'yellow,rose,white')
 	console.assert(metalColorImage('https://example.com/main_yg.jpg', 'Rose Gold') === 'https://example.com/main_rg.jpg')
 	console.assert(metalColorImage('https://example.com/ring_YG_1_wg.png', 'Yellow Gold') === 'https://example.com/ring_YG_1.png')

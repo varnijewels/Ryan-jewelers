@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page as sveltePage } from '$app/state'
 	import { fly } from 'svelte/transition'
+	import { onMount } from 'svelte'
 	import { X } from '@lucide/svelte'
 	import { Button } from '$lib/components/ui/button'
 	import {
@@ -17,6 +18,7 @@
 	import Slider from '$lib/components/home/slider.svelte'
 	import Blocks from '$lib/components/page-blocks/blocks.svelte'
 	import { canonicalProductPath } from '$lib/theme/ryans-jewels/seo.js'
+	import { withoutDemoProducts } from '$lib/theme/ryans-jewels/product-filters.js'
 
 	let { data } = $props()
 
@@ -37,19 +39,20 @@
 		sections?: any[]
 	}
 
-	const page = (data?.page || {}) as ExtendedPage
-	const homepageModule = new HomepageModule()
 	const activeTheme = $derived(data?.theme?.name || 'default')
+	const page = (data?.page || {}) as ExtendedPage
+	const homepageModule = activeTheme === 'ryans-jewels' ? null : new HomepageModule()
 	const ThemeHomepage = $derived(themeHomepages[activeTheme] || themeHomepages['default'])
 	const rendersApiPageAddons = $derived(activeTheme === 'default')
 	const themeContent = $derived(getThemeHomepageContent(activeTheme))
 	const brandName = $derived(themeContent.brandName || data?.store?.name || 'Store')
 	const themeDescription = $derived(themeContent.description || page?.metaDescription || '')
 
-	const featuredCategories = $derived(homepageModule.featuredCategories || [])
-	const storefrontProducts = $derived(data?.storefrontProducts || [])
-	const featuredProducts = $derived(activeTheme === 'ryans-jewels' ? storefrontProducts : homepageModule.featuredProducts || [])
-	const trendingProducts = $derived(activeTheme === 'ryans-jewels' ? storefrontProducts : homepageModule.trendingProducts || [])
+	const featuredCategories = $derived(homepageModule?.featuredCategories || [])
+	let storefrontProducts = $state(data?.storefrontProducts || [])
+	let storefrontProductsLoading = $state(activeTheme === 'ryans-jewels' && !storefrontProducts.length)
+	const featuredProducts = $derived(activeTheme === 'ryans-jewels' ? storefrontProducts : homepageModule?.featuredProducts || [])
+	const trendingProducts = $derived(activeTheme === 'ryans-jewels' ? storefrontProducts : homepageModule?.trendingProducts || [])
 	const structuredProducts = $derived(activeTheme === 'ryans-jewels'
 		? storefrontProducts.map((product: any) => ({
 			url: `${sveltePage.url.origin}${canonicalProductPath(product)}`,
@@ -66,7 +69,7 @@
 				availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
 			}
 		}))
-		: homepageModule.featuredProductsStructuredData)
+		: homepageModule?.featuredProductsStructuredData || [])
 	const filterButtons = $derived([
 		'All',
 		...featuredCategories
@@ -74,6 +77,16 @@
 			.filter(Boolean)
 			.slice(0, 6)
 	])
+
+	onMount(async () => {
+		if (activeTheme !== 'ryans-jewels' || storefrontProducts.length) return
+		try {
+			const response = await fetch('/api/ms/products?page=1&sort=createdAt%3Adesc&tags=JewelWeSell')
+			if (response.ok) storefrontProducts = withoutDemoProducts((await response.json())?.hits || [])
+		} finally {
+			storefrontProductsLoading = false
+		}
+	})
 
 </script>
 
@@ -140,7 +153,7 @@
 	{trendingProducts}
 	{filterButtons}
 	{homepageModule}
-	loading={homepageModule.loading}
+	loading={activeTheme === 'ryans-jewels' ? storefrontProductsLoading : homepageModule?.loading || false}
 	desktopBanners={page?.desktopBanners}
 	mobileBanners={page?.mobileBanners}
 	currencyCode={data?.store?.currency?.code}
@@ -152,7 +165,7 @@
 	<Blocks layouts={data?.page?.layouts || []} />
 {/if}
 
-{#if homepageModule.showRecentOrderPopup}
+{#if homepageModule?.showRecentOrderPopup}
 	<div transition:fly={{ x: 50, duration: 150 }} class="fixed bottom-20 right-4 z-50">
 		<div class="flex max-w-[320px] gap-3 border-l-4 border-primary bg-white p-3.5 shadow-lg">
 			<a href="/products/{homepageModule.selectedRecentOrder?.slug || ''}" class="flex gap-3 text-foreground">

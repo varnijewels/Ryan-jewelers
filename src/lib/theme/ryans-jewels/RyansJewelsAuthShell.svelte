@@ -20,7 +20,7 @@
 			<img src="/ryans-jewels/home/hero-desktop.png" alt="Diamond engagement ring crafted by Ryan Jewelers" />
 			<div class="rj-auth-shade"></div>
 			<a class="rj-auth-mark" href="/" aria-label="Ryan Jewelers home">
-				<img src="/ryans-jewels/logo.png" alt="Ryan Jewelers" />
+				<img src="/ryans-jewels/logo.webp" alt="Ryan Jewelers" />
 			</a>
 			<div class="rj-auth-story">
 				<span>CRAFTED FOR YOUR STORY</span>
@@ -40,7 +40,7 @@
 				<span>RYAN JEWELERS</span>
 			</div>
 			<div class="rj-auth-card">
-				<img class="rj-auth-logo" src="/ryans-jewels/logo.png" alt="Ryan Jewelers" />
+				<img class="rj-auth-logo" src="/ryans-jewels/logo.webp" alt="Ryan Jewelers" />
 				<header>
 					<span>{eyebrow}</span>
 					<h1>{title}</h1>

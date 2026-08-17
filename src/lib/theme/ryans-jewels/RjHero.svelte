@@ -9,11 +9,42 @@
 	const { hero } = ryansJewelsHome
 </script>
 
+<svelte:head>
+	<link
+		rel="preload"
+		as="image"
+		href={hero.mobileImage}
+		media="(max-width: 639px)"
+		fetchpriority="high"
+	/>
+	<link
+		rel="preload"
+		as="image"
+		href={hero.image}
+		media="(min-width: 640px)"
+		fetchpriority="high"
+	/>
+</svelte:head>
+
 <section class="rj-hero">
 	<a class="rj-hero-link" href={hero.href} aria-label={hero.imageAlt}>
-		<video class="rj-hero-img" autoplay muted loop playsinline poster={hero.image} aria-hidden="true">
-			<source src={hero.video} type="video/mp4" />
-		</video>
+		<div class="rj-hero-media">
+			<picture class="rj-hero-picture">
+				<source media="(max-width: 639px)" srcset={hero.mobileImage} />
+				<img
+					class="rj-hero-img"
+					src={hero.image}
+					alt=""
+					width="1440"
+					height="745"
+					fetchpriority="high"
+					decoding="async"
+				/>
+			</picture>
+			<video class="rj-hero-video" autoplay muted loop playsinline preload="none" aria-hidden="true">
+				<source src={hero.video} type="video/mp4" media="(min-width: 640px)" />
+			</video>
+		</div>
 	</a>
 </section>
 
@@ -30,12 +61,29 @@
 		margin: 0 auto;
 	}
 
+	.rj-hero-media {
+		position: relative;
+	}
+
+	.rj-hero-picture {
+		display: block;
+	}
+
 	.rj-hero-img {
 		display: block;
 		width: 100%;
 		height: auto;
 		/* 1440 x 745 */
 		aspect-ratio: 1440 / 745;
+		object-fit: cover;
+	}
+
+	.rj-hero-video {
+		position: absolute;
+		inset: 0;
+		display: block;
+		width: 100%;
+		height: 100%;
 		object-fit: cover;
 	}
 
@@ -50,6 +98,10 @@
 	@media (max-width: 639px) {
 		.rj-hero-img {
 			aspect-ratio: 412 / 290;
+		}
+
+		.rj-hero-video {
+			display: none;
 		}
 	}
 </style>

@@ -276,7 +276,7 @@ export const rarePassion = {
 	leadStrong: 'lab-grown diamond',
 	leadAfter: ' pieces that are as ethical as they are elegant.',
 	body: 'We believe that every woman deserves the brilliance of a diamond — not just as a luxury, but as a right.',
-	image: '/ryans-jewels/home/passion-card.png',
+	image: '/ryans-jewels/home/passion-card.webp',
 	imageAlt: 'Hands wearing Ryan Jewelers emerald and diamond rings',
 	badge: {
 		shape: '/ryans-jewels/home/passion-badge.svg',
@@ -319,7 +319,7 @@ export interface NamePlateCard {
 export const namePlateCards: NamePlateCard[] = [
 	{
 		key: 'kayla',
-		image: '/ryans-jewels/home/nameplate-card-1.png',
+		image: '/ryans-jewels/home/nameplate-card-1.webp',
 		imageAlt: 'Diamond-set name plate pendant reading Kayla',
 		name: 'Yellow gold frams50013',
 		category: 'wedding rings',
@@ -330,7 +330,7 @@ export const namePlateCards: NamePlateCard[] = [
 	},
 	{
 		key: 'laura',
-		image: '/ryans-jewels/home/nameplate-card-2.png',
+		image: '/ryans-jewels/home/nameplate-card-2.webp',
 		imageAlt: 'Diamond-set name plate pendant reading Laura',
 		name: 'Rose gold frams50013',
 		category: 'wedding rings',
@@ -341,7 +341,7 @@ export const namePlateCards: NamePlateCard[] = [
 	},
 	{
 		key: 'third',
-		image: '/ryans-jewels/home/nameplate-card-3.png',
+		image: '/ryans-jewels/home/nameplate-card-3.webp',
 		imageAlt: 'Diamond-set personalised name plate pendant',
 		name: 'Yellow gold frams50013',
 		category: 'wedding rings',
@@ -357,9 +357,9 @@ export const namePlate = {
 	background: '/ryans-jewels/home/nameplate-bg.jpg',
 	panel: {
 		/** 1:6111 — deep violet gradient, radius 5 on the right corners. */
-		background: '/ryans-jewels/home/nameplate-panel.png',
+		background: '/ryans-jewels/home/nameplate-panel.webp',
 		heading: 'Create your personalised name Plate!',
-		art: '/ryans-jewels/home/nameplate-word.png',
+		art: '/ryans-jewels/home/nameplate-word.webp',
 		artAlt: 'Diamond-set name plate spelling Martin',
 		cta: 'Customise now',
 		href: '/products'
@@ -432,7 +432,7 @@ export const trending = {
 export const enquiry = {
 	title: 'Create Your Signature Piece',
 	subtitle: 'Customise your Own Orders',
-	logo: '/ryans-jewels/logo.png',
+	logo: '/ryans-jewels/logo.webp',
 	background: '/ryans-jewels/home/marble-bg.jpg',
 	nameLabel: 'First name',
 	namePlaceholder: 'Enter name',
@@ -459,7 +459,7 @@ export const faq = {
 	heading: 'Frequently Asking Questions',
 	intro:
 		'We believe true luxury lies in exceptional craftsmanship, timeless design, and conscious choices',
-	sideImage: '/ryans-jewels/home/faq-side.png',
+	sideImage: '/ryans-jewels/home/faq-side.webp',
 	categories: [
 		{ label: '1. Lab-Grown Diamonds -', href: '/faqs#lab-grown-diamonds' },
 		{ label: '2. Why Customers Trust Us', href: '/faqs#why-customers-trust-us' },
@@ -493,7 +493,8 @@ export const faq = {
 export const ryansJewelsHome = {
 	hero: {
 		video: '/ryans-jewels/home/hero.mp4',
-		image: '/ryans-jewels/home/hero-desktop.png',
+		image: '/ryans-jewels/home/hero-desktop.webp',
+		mobileImage: '/ryans-jewels/home/hero-mobile.webp',
 		imageAlt: 'Ryan Jewelers diamond engagement ring',
 		href: '/products',
 		/** static slide counter shown in the source (1:5513 / 63:40050 / 77:106851) */
@@ -508,7 +509,7 @@ export const ryansJewelsHome = {
 	/** floating help widget, 1:6500 */
 	chat: {
 		label: 'How can i help you?',
-		logo: '/ryans-jewels/logo.png',
+		logo: '/ryans-jewels/logo.webp',
 		href: '/contact-us'
 	}
 }

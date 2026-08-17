@@ -115,16 +115,16 @@
 
 	{#if hasCollection}
 		{#if isEarrings}
-			<div class="rj-admin-earring-piece rj-admin-earring-piece--main"><div><img src="/ryans-jewels/mega-menu/earring-art.png" alt="" /></div></div>
-			<div class="rj-admin-earring-piece rj-admin-earring-piece--reflection"><div><img src="/ryans-jewels/mega-menu/earring-art.png" alt="" /></div></div>
-			<div class="rj-admin-earring-piece rj-admin-earring-piece--small"><div><img src="/ryans-jewels/mega-menu/earring-art.png" alt="" /></div></div>
-			<div class="rj-admin-earring-piece rj-admin-earring-piece--small-reflection"><div><img src="/ryans-jewels/mega-menu/earring-art.png" alt="" /></div></div>
+			<div class="rj-admin-earring-piece rj-admin-earring-piece--main"><div><img src="/ryans-jewels/mega-menu/earring-art.webp" alt="" /></div></div>
+			<div class="rj-admin-earring-piece rj-admin-earring-piece--reflection"><div><img src="/ryans-jewels/mega-menu/earring-art.webp" alt="" /></div></div>
+			<div class="rj-admin-earring-piece rj-admin-earring-piece--small"><div><img src="/ryans-jewels/mega-menu/earring-art.webp" alt="" /></div></div>
+			<div class="rj-admin-earring-piece rj-admin-earring-piece--small-reflection"><div><img src="/ryans-jewels/mega-menu/earring-art.webp" alt="" /></div></div>
 		{:else}
 			<div class="rj-admin-ring-art" aria-hidden="true">
-				<img class="rj-admin-ring-main" src="/ryans-jewels/mega-menu/ring-main.png" alt="" />
-				<img class="rj-admin-ring-reflection" src="/ryans-jewels/mega-menu/ring-main.png" alt="" />
-				<img class="rj-admin-ring-side" src="/ryans-jewels/mega-menu/ring-side.png" alt="" />
-				<img class="rj-admin-ring-side-reflection" src="/ryans-jewels/mega-menu/ring-side.png" alt="" />
+				<img class="rj-admin-ring-main" src="/ryans-jewels/mega-menu/ring-main.webp" alt="" />
+				<img class="rj-admin-ring-reflection" src="/ryans-jewels/mega-menu/ring-main.webp" alt="" />
+				<img class="rj-admin-ring-side" src="/ryans-jewels/mega-menu/ring-side.webp" alt="" />
+				<img class="rj-admin-ring-side-reflection" src="/ryans-jewels/mega-menu/ring-side.webp" alt="" />
 			</div>
 		{/if}
 	{/if}

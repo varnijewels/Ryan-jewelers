@@ -86,7 +86,7 @@ export const footerUsps: FooterUsp[] = [
 ]
 
 export const ryansJewelsFooter = {
-	logo: '/ryans-jewels/logo.png',
+	logo: '/ryans-jewels/logo.webp',
 	brandName: 'Ryan Jewelers',
 	description:
 		'We believe true luxury lies in exceptional craftsmanship, timeless design, and conscious choices',

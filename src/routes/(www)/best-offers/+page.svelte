@@ -7,9 +7,9 @@
 	const products = $derived((data?.offerProducts || []).slice(0, 8))
 
 	const collections = [
-		{ eyebrow: 'A Promise of Forever', title: 'Engagement Rings', text: 'Brilliant designs for the moment that changes everything.', href: '/products?search=engagement%20rings', image: '/ryans-jewels/home/nameplate-card-1.png' },
-		{ eyebrow: 'Everyday Brilliance', title: 'Diamond Essentials', text: 'Refined pieces made to bring light to every day.', href: '/products?search=diamond', image: '/ryans-jewels/home/nameplate-card-2.png' },
-		{ eyebrow: 'Made to Remember', title: 'Gifts With Meaning', text: 'Thoughtful jewelry for milestones, celebrations and just because.', href: '/products?search=gifts', image: '/ryans-jewels/home/nameplate-card-3.png' }
+		{ eyebrow: 'A Promise of Forever', title: 'Engagement Rings', text: 'Brilliant designs for the moment that changes everything.', href: '/products?search=engagement%20rings', image: '/ryans-jewels/home/nameplate-card-1.webp' },
+		{ eyebrow: 'Everyday Brilliance', title: 'Diamond Essentials', text: 'Refined pieces made to bring light to every day.', href: '/products?search=diamond', image: '/ryans-jewels/home/nameplate-card-2.webp' },
+		{ eyebrow: 'Made to Remember', title: 'Gifts With Meaning', text: 'Thoughtful jewelry for milestones, celebrations and just because.', href: '/products?search=gifts', image: '/ryans-jewels/home/nameplate-card-3.webp' }
 	]
 </script>
 
@@ -59,7 +59,7 @@
 			</ul>
 		{:else}
 			<div class="rj-offers-empty">
-				<img src="/ryans-jewels/icons/gift-box-3d-premium.png" alt="" />
+				<img src="/ryans-jewels/icons/gift-box-3d-premium.webp" alt="" />
 				<h2>New offers are being prepared.</h2>
 				<p>Explore our complete collection while our next special edit arrives.</p>
 				<a href="/products">Shop all jewelry</a>

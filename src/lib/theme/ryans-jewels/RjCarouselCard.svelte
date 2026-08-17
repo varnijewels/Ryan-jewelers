@@ -12,7 +12,7 @@
 	import { page } from '$app/state'
 	import { ProductCardRenderer } from '$lib/core/composables/index.js'
 	import { formatPrice } from '$lib/core/utils/index.js'
-	import { discountPercent } from './product-details.logic.js'
+	import { discountPercent, listingImage } from './product-details.logic.js'
 	import { productRating } from './product-filters.js'
 
 	/**
@@ -44,7 +44,7 @@
 		<article class="rj-tile rj-tile--{size}" data-testid="product-card-{product?.id}">
 			<a class="rj-tile-media" {href} aria-label={title || 'View product'}>
 				{#if image}
-					<img class="rj-tile-photo" src={image} alt={title} loading="lazy" decoding="async" />
+					<img class="rj-tile-photo" src={listingImage(image)} alt={title} loading="lazy" decoding="async" />
 				{:else}
 					<span class="rj-tile-photo rj-tile-photo--empty" aria-hidden="true"></span>
 				{/if}

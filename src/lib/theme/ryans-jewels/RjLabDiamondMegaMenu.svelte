@@ -111,10 +111,10 @@
 		</div>
 
 		<div class="rj-mega-jewel" aria-hidden="true">
-			<img class="rj-mega-ring-main" src="/ryans-jewels/mega-menu/ring-main.png" alt="" />
-			<img class="rj-mega-ring-reflection" src="/ryans-jewels/mega-menu/ring-main.png" alt="" />
-			<img class="rj-mega-ring-side" src="/ryans-jewels/mega-menu/ring-side.png" alt="" />
-			<img class="rj-mega-ring-side-reflection" src="/ryans-jewels/mega-menu/ring-side.png" alt="" />
+			<img class="rj-mega-ring-main" src="/ryans-jewels/mega-menu/ring-main.webp" alt="" />
+			<img class="rj-mega-ring-reflection" src="/ryans-jewels/mega-menu/ring-main.webp" alt="" />
+			<img class="rj-mega-ring-side" src="/ryans-jewels/mega-menu/ring-side.webp" alt="" />
+			<img class="rj-mega-ring-side-reflection" src="/ryans-jewels/mega-menu/ring-side.webp" alt="" />
 		</div>
 	</section>
 </div>

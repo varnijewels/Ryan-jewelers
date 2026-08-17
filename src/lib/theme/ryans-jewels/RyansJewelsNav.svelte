@@ -45,7 +45,10 @@
 	)
 	const cartQty = $derived((cartState?.cart?.lineItems || []).reduce((total: number, item: any) => total + Number(item.qty || 0), 0))
 	const searchPlugin = $derived(page?.data?.store?.plugins?.search)
-	const resolvedMenu = $derived(resolveAdminMenu(navModule.megaMenu, navModule.navMenu, nav.home, nav.menu))
+	const serverMegaMenu = $derived((page.data as any)?.navigation?.megaMenu as any[] | undefined)
+	const resolvedMenu = $derived(
+		resolveAdminMenu(navModule.megaMenu.length ? navModule.megaMenu : serverMegaMenu, navModule.navMenu, nav.home, serverMegaMenu === undefined ? nav.menu : [])
+	)
 	const homeLabel = $derived(menuLabel(resolvedMenu.home))
 	const homeHref = '/'
 
@@ -518,8 +521,8 @@
 
 			<a class="rj-offers" href={nav.offers.href} onmouseenter={() => (openMega = null)}>
 				<span class="rj-offers-gift" aria-hidden="true">
-					<img class="rj-offers-gift-base" src={isLoggedIn ? '/ryans-jewels/icons/gift-box-3d-premium.png' : '/ryans-jewels/icons/gift-box-3d.png'} alt="" />
-					<img class="rj-offers-gift-top" src="/ryans-jewels/icons/gift-box-3d.png" alt="" />
+					<img class="rj-offers-gift-base" src={isLoggedIn ? '/ryans-jewels/icons/gift-box-3d-premium.webp' : '/ryans-jewels/icons/gift-box-3d.webp'} alt="" />
+					<img class="rj-offers-gift-top" src="/ryans-jewels/icons/gift-box-3d.webp" alt="" />
 				</span>
 				<span class="rj-offers-label">{nav.offers.label}</span>
 				<svg class="rj-i18" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">

@@ -68,7 +68,7 @@
 
 				<div class="flex shrink-0 flex-col items-center space-y-3 text-center max-sm:pt-3">
 					<div class="mb-1 flex h-11 items-center justify-center">
-						<img src="/ryans-jewels/logo.png" alt="Ryan Jewelers" class="h-10 max-w-[190px] object-contain" />
+						<img src="/ryans-jewels/logo.webp" alt="Ryan Jewelers" class="h-10 max-w-[190px] object-contain" />
 					</div>
 					<div class="space-y-2">
 						<h1 class="text-3xl font-bold tracking-tight text-gray-950 dark:text-white">Create account</h1>

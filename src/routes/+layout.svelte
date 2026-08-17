@@ -84,6 +84,15 @@
 			window.removeEventListener('pageshow', resetScroll)
 		}
 	})
+
+	onMount(() => {
+		if (!themeFontsUrl) return
+		const stylesheet = document.createElement('link')
+		stylesheet.rel = 'stylesheet'
+		stylesheet.href = themeFontsUrl
+		document.head.append(stylesheet)
+		return () => stylesheet.remove()
+	})
 </script>
 
 <svelte:head>
@@ -92,7 +101,7 @@
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
 		<link rel="preload" as="style" href={themeFontsUrl} />
-		<link href={themeFontsUrl} rel="stylesheet" />
+		<noscript><link href={themeFontsUrl} rel="stylesheet" /></noscript>
 	{/if}
 	{#if data?.store?.plugins?.headerScripts?.active}
 		{@html data?.store?.plugins?.headerScripts?.html}

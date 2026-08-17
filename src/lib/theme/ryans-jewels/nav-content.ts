@@ -40,7 +40,7 @@ export interface RyansJewelsNavContent {
 
 export const ryansJewelsNavContent: RyansJewelsNavContent = {
 	brandName: 'Ryan Jewelers',
-	logo: '/ryans-jewels/logo.png',
+	logo: '/ryans-jewels/logo.webp',
 	utility: {
 		dailyDeals: { label: 'Daily Deals', href: '/products?sort=discount' },
 		giftCard: null,
