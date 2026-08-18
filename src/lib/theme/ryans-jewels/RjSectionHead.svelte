@@ -13,8 +13,9 @@
 		title,
 		id = undefined,
 		showTabs = true,
-		active = 'All'
-	}: { eyebrow: string; title: string; id?: string; showTabs?: boolean; active?: string } = $props()
+		active = 'All',
+		onchange
+	}: { eyebrow: string; title: string; id?: string; showTabs?: boolean; active?: string; onchange?: (category: string) => void } = $props()
 </script>
 
 <div class="rj-head">
@@ -24,7 +25,7 @@
 	</div>
 
 	{#if showTabs}
-		<RjCategoryTabs {active} size="md" label={title} />
+		<RjCategoryTabs {active} size="md" label={title} {onchange} />
 	{/if}
 </div>
 

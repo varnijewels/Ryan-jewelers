@@ -8,12 +8,26 @@
 	import RjArrowRule from './RjArrowRule.svelte'
 	import RjCategoryTabs from './RjCategoryTabs.svelte'
 
-	let { active = 'All' }: { active?: string } = $props()
+	let {
+		active = 'All',
+		onchange,
+		onprevious,
+		onnext,
+		previousDisabled = false,
+		nextDisabled = false
+	}: {
+		active?: string
+		onchange?: (category: string) => void
+		onprevious?: () => void
+		onnext?: () => void
+		previousDisabled?: boolean
+		nextDisabled?: boolean
+	} = $props()
 </script>
 
 <div class="rj-filter">
-	<RjArrowRule gap={20} />
-	<RjCategoryTabs {active} size="lg" />
+	<RjArrowRule gap={20} {onprevious} {onnext} {previousDisabled} {nextDisabled} />
+	<RjCategoryTabs {active} size="lg" {onchange} />
 </div>
 
 <style>

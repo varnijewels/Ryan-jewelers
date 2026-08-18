@@ -183,8 +183,8 @@ export function metalSwatchKey(value: string): keyof typeof metalSwatchFills | n
 /** Filter tabs above the product grids — 1:5656 / 63:40188 / 77:107013. */
 export const productFilters = [
 	{ label: 'All', href: '/products' },
-	{ label: 'Ring’s', href: '/products?categories=engagement' },
-	{ label: 'Pendents', href: '/products?search=pendants' },
+	{ label: 'Rings', href: '/products?search=rings' },
+	{ label: 'Pendants', href: '/products?search=pendants' },
 	{ label: 'Earrings', href: '/products?search=earrings' }
 ]
 
@@ -299,8 +299,7 @@ export const bestSellers = {
  * desktop 1:6110 (bg) / 1:6111 (panel) / 1:6127 (head) / 1:6133,1:6161,1:6147 (cards)
  * tablet 63:40549 · mobile 77:107373 (panel) + 77:107388 (head + cards)
  *
- * These three tiles are theme-owned customisation promos, not a product list:
- * they carry no price or customer rating, and their CTA is "Customise now".
+ * These tiles are theme-owned customisation promos, not a product list.
  */
 export interface NamePlateCard {
 	key: string
@@ -308,6 +307,7 @@ export interface NamePlateCard {
 	imageAlt: string
 	name: string
 	category: string
+	rating: number
 	cta: string
 	href: string
 	/** Figma image placement inside the rounded well (percent of the well). */
@@ -323,6 +323,7 @@ export const namePlateCards: NamePlateCard[] = [
 		imageAlt: 'Diamond-set name plate pendant reading Kayla',
 		name: 'Yellow gold frams50013',
 		category: 'wedding rings',
+		rating: 5.5,
 		cta: 'Customise now',
 		href: '/products',
 		crop: { left: -3.61, top: -5.45, width: 109.31 },
@@ -334,6 +335,7 @@ export const namePlateCards: NamePlateCard[] = [
 		imageAlt: 'Diamond-set name plate pendant reading Laura',
 		name: 'Rose gold frams50013',
 		category: 'wedding rings',
+		rating: 5.5,
 		cta: 'Customise now',
 		href: '/products',
 		crop: { left: -3.75, top: -3.62, width: 109.31 },
@@ -345,9 +347,22 @@ export const namePlateCards: NamePlateCard[] = [
 		imageAlt: 'Diamond-set personalised name plate pendant',
 		name: 'Yellow gold frams50013',
 		category: 'wedding rings',
+		rating: 5.5,
 		cta: 'Customise now',
 		href: '/products',
 		crop: { left: -3.56, top: -0.15, width: 109.31 },
+		textWidth: 178
+	},
+	{
+		key: 'martin',
+		image: '/ryans-jewels/home/nameplate-word.webp',
+		imageAlt: 'Diamond-set name plate reading Martin',
+		name: 'Rose gold frams50013',
+		category: 'wedding rings',
+		rating: 5.5,
+		cta: 'Customise now',
+		href: '/products',
+		crop: { left: -3.75, top: 0, width: 109.31 },
 		textWidth: 178
 	}
 ]

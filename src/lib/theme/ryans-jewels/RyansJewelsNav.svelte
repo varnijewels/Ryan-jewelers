@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { ChevronRight, Menu } from '@lucide/svelte'
 	import { goto } from '$app/navigation'
+	import { onMount } from 'svelte'
 	import { page } from '$app/state'
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js'
 	import { AuthButton, showAuthModal } from '$lib/core/components/index.js'
@@ -12,6 +13,7 @@
 	import RjProfileDropdown from './RjProfileDropdown.svelte'
 	import { menuChildren, menuHref, menuLabel, resolveAdminMenu } from './admin-menu.js'
 	import { realCatalogUrl } from './product-filters.js'
+	import { LOGIN_PROMPT_DELAY_MS, shouldShowDelayedLogin } from './auth-gate.logic.js'
 
 	let {
 		navModule,
@@ -38,6 +40,7 @@
 	let searchRequest = 0
 	let openMega = $state<string | null>(null)
 	const cartState = getCartState()
+	const delayedLoginKey = 'rj-delayed-login-shown'
 
 	const isLoggedIn = $derived(!!userState?.user?.role)
 	const displayName = $derived(
@@ -54,6 +57,17 @@
 
 	$effect(() => {
 		search = page.url.searchParams.get('search') ?? ''
+	})
+
+	onMount(() => {
+		const timer = window.setTimeout(() => {
+			const alreadyShown = sessionStorage.getItem(delayedLoginKey) === 'true'
+			if (!shouldShowDelayedLogin(userState?.user, alreadyShown)) return
+			sessionStorage.setItem(delayedLoginKey, 'true')
+			showAuthModal('login')
+		}, LOGIN_PROMPT_DELAY_MS)
+
+		return () => window.clearTimeout(timer)
 	})
 
 	function scheduleSearch(query: string) {
@@ -102,7 +116,7 @@
 			<a class="rj-utility-link" href={nav.utility.dailyDeals.href}>{nav.utility.dailyDeals.label}</a>
 
 			{#if nav.utility.giftCard}
-			<a class="rj-utility-link rj-utility-link--icon" href={nav.utility.giftCard.href}>
+			<a class="rj-utility-link rj-utility-link--icon rj-utility-link--gift" href={nav.utility.giftCard.href}>
 				<svg class="rj-i20" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
 					<path
 						d="M16.6417 8.33333H3.30833V15C3.30833 17.5 4.14167 18.3333 6.64167 18.3333H13.3083C15.8083 18.3333 16.6417 17.5 16.6417 15V8.33333Z"
@@ -229,7 +243,7 @@
 		<!-- Row 1 -->
 		<div class="rj-row-primary" onmouseenter={() => (openMega = null)}>
 			<button class="rj-burger" type="button" aria-label="Open menu" onclick={() => (navModule.openSidebar = true)}>
-				<Menu class="h-5 w-5" />
+				<Menu size={26} strokeWidth={1.5} />
 			</button>
 
 			<a class="rj-brand" href="/" aria-label="{nav.brandName} home">
@@ -591,6 +605,10 @@
 
 	.rj-utility-link--icon {
 		gap: 10px;
+	}
+
+	.rj-utility-link--gift {
+		display: none;
 	}
 
 	.rj-utility-link:hover {
@@ -1518,6 +1536,10 @@
 	/* ------------------------------ mobile 412 ---------------------------- */
 
 	@media (max-width: 639px) {
+		.rj-header {
+			border-bottom: 0;
+		}
+
 		.rj-search-results ul {
 			grid-template-columns: 1fr;
 		}
@@ -1545,6 +1567,10 @@
 
 		.rj-utility-group--end {
 			padding: 0 60px;
+		}
+
+		.rj-utility-link--gift {
+			display: flex;
 		}
 
 		.rj-utility-link,
@@ -1612,6 +1638,50 @@
 			width: 120px;
 			justify-content: space-between;
 			gap: 0;
+		}
+
+		.rj-cart-icon svg,
+		.rj-account-icon svg {
+			width: 100%;
+			height: 100%;
+		}
+	}
+
+	@media (max-width: 363px) {
+		.rj-utility-inner {
+			padding-inline: 12px;
+		}
+
+		.rj-utility-group {
+			padding-inline: 0;
+		}
+
+		.rj-utility-group--end {
+			padding-inline: 20px;
+		}
+
+		.rj-header-inner {
+			padding-inline: 12px;
+		}
+
+		.rj-row-primary {
+			grid-template-columns: minmax(0, 1fr) 100px;
+			column-gap: 8px;
+			justify-content: stretch;
+		}
+
+		.rj-brand {
+			gap: 8px;
+			margin-left: 34px;
+			justify-self: start;
+		}
+
+		.rj-brand-name {
+			font-size: 16px;
+		}
+
+		.rj-actions {
+			width: 100px;
 		}
 	}
 </style>

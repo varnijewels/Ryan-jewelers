@@ -18,6 +18,7 @@
 	import RjCarouselCard from './RjCarouselCard.svelte'
 	import RjSectionHead from './RjSectionHead.svelte'
 	import { bestSellers } from './home-content.js'
+	import { filterProductsByCategory } from './product-filters.js'
 
 	let {
 		products = [],
@@ -35,21 +36,24 @@
 		headingId?: string
 	} = $props()
 
-	const items = $derived(products || [])
+	let activeCategory = $state('All')
+	const items = $derived(filterProductsByCategory(products || [], activeCategory))
 </script>
 
 <section class="rj-bestsellers" aria-labelledby={headingId}>
 	<div class="rj-bestsellers-inner">
 		<div class="rj-bestsellers-head">
-			<RjSectionHead {eyebrow} {title} id={headingId} />
+			<RjSectionHead {eyebrow} {title} id={headingId} active={activeCategory} onchange={(category) => activeCategory = category} />
 		</div>
 
 		{#if items.length}
-			<RjCarousel label={title}>
-				{#each items as product (product?.id || product?.slug)}
-					<RjCarouselCard {product} />
-				{/each}
-			</RjCarousel>
+			{#key activeCategory}
+				<RjCarousel label={title} showArrows>
+					{#each items as product (product?.id || product?.slug)}
+						<RjCarouselCard {product} />
+					{/each}
+				</RjCarousel>
+			{/key}
 		{:else if loading}
 			<div class="rj-bestsellers-skeletons" aria-busy="true">
 				{#each Array(5) as _, i (i)}
@@ -57,7 +61,7 @@
 				{/each}
 			</div>
 		{:else}
-			<p class="rj-bestsellers-empty">{emptyText}</p>
+			<p class="rj-bestsellers-empty">{activeCategory === 'All' ? emptyText : `No ${activeCategory.toLowerCase()} are available yet.`}</p>
 		{/if}
 	</div>
 </section>

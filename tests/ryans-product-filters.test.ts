@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applyClientFilters, facetOptions, productRating, realCatalogUrl, withoutDemoProducts } from '../src/lib/theme/ryans-jewels/product-filters.js'
+import { applyClientFilters, facetOptions, filterProductsByCategory, productRating, realCatalogUrl, withoutDemoProducts } from '../src/lib/theme/ryans-jewels/product-filters.js'
 import { diamondShapes } from '../src/lib/theme/ryans-jewels/home-content.js'
 
 const products = [
@@ -45,5 +45,17 @@ describe('Ryan product filters', () => {
 		]
 		expect(withoutDemoProducts(productsWithDemo)).toEqual([real])
 		expect(realCatalogUrl(new URL('https://shop.test/products?uiShape=Round')).searchParams.get('tags')).toBe('JewelWeSell')
+	})
+
+	it('filters the homepage row by jewellery category without matching earring as ring', () => {
+		const catalogue = [
+			{ title: 'Round Diamond Ring' },
+			{ title: 'Pear Diamond Pendant', description: 'A matching ring is also available.' },
+			{ title: 'Diamond Earrings' }
+		]
+		expect(filterProductsByCategory(catalogue, 'All')).toHaveLength(3)
+		expect(filterProductsByCategory(catalogue, 'Rings').map((product) => product.title)).toEqual(['Round Diamond Ring'])
+		expect(filterProductsByCategory(catalogue, 'Pendants').map((product) => product.title)).toEqual(['Pear Diamond Pendant'])
+		expect(filterProductsByCategory(catalogue, 'Earrings').map((product) => product.title)).toEqual(['Diamond Earrings'])
 	})
 })

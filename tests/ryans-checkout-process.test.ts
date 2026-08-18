@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
 	checkoutFailedPath,
+	hasVerifiedCheckoutOrders,
 	isValidCheckoutCallback
 } from '../src/lib/theme/ryans-jewels/checkout-process.js'
 
@@ -32,5 +33,11 @@ describe('checkout payment callback validation', () => {
 		expect(checkoutFailedPath(callback('cart_id=c1&order_no=o1'))).toBe(
 			'/checkout/failed?cart_id=c1&order_no=o1'
 		)
+	})
+
+	it('shows success only when a verified order was loaded', () => {
+		expect(hasVerifiedCheckoutOrders({ orders: { data: [{ orderNo: 'o1' }] } })).toBe(true)
+		expect(hasVerifiedCheckoutOrders({ orders: { data: [] } })).toBe(false)
+		expect(hasVerifiedCheckoutOrders(undefined)).toBe(false)
 	})
 })

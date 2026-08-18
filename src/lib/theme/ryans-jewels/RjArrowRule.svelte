@@ -10,17 +10,30 @@
 	let {
 		gap = 10,
 		length = 40,
-		mobileLength = 25
-	}: { gap?: number; length?: number; mobileLength?: number } = $props()
+		mobileLength = 25,
+		onprevious,
+		onnext,
+		previousDisabled = false,
+		nextDisabled = false
+	}: {
+		gap?: number
+		length?: number
+		mobileLength?: number
+		onprevious?: () => void
+		onnext?: () => void
+		previousDisabled?: boolean
+		nextDisabled?: boolean
+	} = $props()
 </script>
 
-<span
-	class="rj-arrow-rule"
-	style="--gap:{gap}px; --len:{length}px; --mobile-len:{mobileLength}px"
-	aria-hidden="true"
->
-	<span class="rj-arrow rj-arrow--prev"></span>
-	<span class="rj-arrow rj-arrow--next"></span>
+<span class="rj-arrow-rule" style="--gap:{gap}px; --len:{length}px; --mobile-len:{mobileLength}px">
+	{#if onprevious || onnext}
+		<button class="rj-arrow-button" type="button" disabled={previousDisabled} aria-label="Previous products" onclick={() => onprevious?.()}><span class="rj-arrow rj-arrow--prev" aria-hidden="true"></span></button>
+		<button class="rj-arrow-button" type="button" disabled={nextDisabled} aria-label="Next products" onclick={() => onnext?.()}><span class="rj-arrow rj-arrow--next" aria-hidden="true"></span></button>
+	{:else}
+		<span class="rj-arrow rj-arrow--prev" aria-hidden="true"></span>
+		<span class="rj-arrow rj-arrow--next" aria-hidden="true"></span>
+	{/if}
 </span>
 
 <style>
@@ -38,6 +51,21 @@
 		height: 1.5px;
 		background: #000;
 	}
+
+	.rj-arrow-button {
+		display: flex;
+		width: var(--len);
+		height: 30px;
+		align-items: center;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		cursor: pointer;
+	}
+
+	.rj-arrow-button .rj-arrow { width: 100%; }
+	.rj-arrow-button:disabled { opacity: .25; cursor: default; }
+	.rj-arrow-button:focus-visible { outline: 2px solid var(--rj-gold, #cca646); outline-offset: 3px; }
 
 	.rj-arrow::before {
 		content: '';
@@ -62,7 +90,8 @@
 
 	/* Mobile 412 — 25px rules (77:107009 / 77:107537). */
 	@media (max-width: 639px) {
-		.rj-arrow {
+		.rj-arrow,
+		.rj-arrow-button {
 			width: var(--mobile-len);
 		}
 	}

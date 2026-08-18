@@ -4,7 +4,7 @@
 	 * Source: 1:6133 / 1:6161 / 1:6147 (desktop, well 222×270)
 	 *         · 63:40574 etc (tablet, well 222×222) · 77:107396 etc (mobile, 164×164)
 	 *
-	 * Theme content, not commerce data — no price or customer rating.
+	 * Theme content, not commerce data — the rating is presentation from Figma.
 	 */
 	import type { NamePlateCard } from './home-content.js'
 
@@ -27,6 +27,13 @@
 		<span class="rj-cust-name">{card.name}</span>
 		<span class="rj-cust-meta">
 			<span class="rj-cust-category">{card.category}</span>
+			<span class="rj-cust-rating" aria-label="Rating {card.rating} out of 5">
+				<span class="rj-cust-stars" aria-hidden="true">
+					<img src="/ryans-jewels/home/star.svg" alt="" />
+					<img src="/ryans-jewels/home/star.svg" alt="" />
+				</span>
+				<span>{card.rating}</span>
+			</span>
 		</span>
 		<span class="rj-cust-cta">{card.cta}</span>
 	</span>
@@ -93,11 +100,33 @@
 	.rj-cust-meta {
 		display: flex;
 		align-items: center;
-	}
-
-	.rj-cust-meta {
 		gap: 10px;
 		width: 100%;
+	}
+
+	.rj-cust-rating,
+	.rj-cust-stars {
+		display: flex;
+		align-items: center;
+	}
+
+	.rj-cust-rating {
+		gap: 2px;
+		font-family: 'Khmer MN', serif;
+		font-size: 20px;
+		line-height: 9px;
+		color: #555;
+		white-space: nowrap;
+	}
+
+	.rj-cust-stars {
+		gap: 1px;
+	}
+
+	.rj-cust-stars img {
+		display: block;
+		width: 19px;
+		height: 19px;
 	}
 
 	.rj-cust-cta {

@@ -25,6 +25,19 @@ export function withoutDemoProducts<T extends Record<string, any>>(products: T[]
 	})
 }
 
+export function filterProductsByCategory<T>(products: T[] = [], category = 'All') {
+	const pattern = ({ Rings: /\brings?\b/i, Pendants: /\bpendants?\b/i, Earrings: /\bearrings?\b/i } as Record<string, RegExp>)[category]
+	return pattern ? products.filter((product: any) => pattern.test([
+		product?.title,
+		product?.name,
+		product?.category?.name,
+		product?.categoryName,
+		product?.collection?.name,
+		...(product?.categoryHierarchy || []).map((item: any) => item?.name),
+		...(product?.tags || []).map((item: any) => item?.name ?? item)
+	].filter(Boolean).join(' '))) : products
+}
+
 export function facetOptions(allFilters: Record<string, Record<string, number>> | undefined, keys: string[], fallback?: RegExp) {
 	const options = new Map<string, number>()
 	for (const key of keys) {

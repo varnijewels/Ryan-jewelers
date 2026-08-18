@@ -1,5 +1,9 @@
 const SUPPORTED_GATEWAYS = new Set(['STRIPE', 'CASHFREE', 'RAZORPAY', 'COD'])
 
+export function hasVerifiedCheckoutOrders(data: any) {
+	return Boolean(data?.orders?.data?.length)
+}
+
 export function isValidCheckoutCallback(url: URL) {
 	const gateway = url.searchParams.get('pg')?.trim().toUpperCase()
 	if (!gateway || !SUPPORTED_GATEWAYS.has(gateway)) return false

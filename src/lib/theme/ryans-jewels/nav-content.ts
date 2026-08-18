@@ -43,7 +43,7 @@ export const ryansJewelsNavContent: RyansJewelsNavContent = {
 	logo: '/ryans-jewels/logo.webp',
 	utility: {
 		dailyDeals: { label: 'Daily Deals', href: '/products?sort=discount' },
-		giftCard: null,
+		giftCard: { label: 'Gift Card', href: '/products?search=gift+card' },
 		helpContact: { label: 'Help & Contact', href: '/contact-us' },
 		postalCodeLabel: 'Enter postal code',
 		countryCode: 'IN',

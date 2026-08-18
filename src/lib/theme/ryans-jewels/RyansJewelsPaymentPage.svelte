@@ -43,10 +43,9 @@
 	)
 	const orderDate = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' }).format(new Date())
 	const providers = [
-		{ label: 'Apple Pay', className: 'apple', keywords: ['APPLE'], images: ['apple-pay.png'] },
-		{ label: 'PayPal', className: 'paypal', keywords: ['PAYPAL'], images: ['paypal-mark.png', 'paypal-wordmark.png'] },
-		{ label: 'American Express', className: 'amex', keywords: ['AMEX', 'AMERICAN'], images: ['american-express.png'] },
-		{ label: 'Bank', className: 'bank', keywords: ['BANK', 'RAZORPAY', 'STRIPE'], images: [] }
+		{ label: 'AffirmPay', className: 'affirm', keywords: ['AFFIRMPAY', 'AFFIRM'], images: [] },
+		{ label: 'Stripe', className: 'stripe', keywords: ['STRIPE'], images: [] },
+		{ label: 'PayPal', className: 'paypal', keywords: ['PAYPAL'], images: ['paypal-mark.png', 'paypal-wordmark.png'] }
 	]
 	const paymentMethods = $derived(paymentModule.listOfPaymentMethods || [])
 	const cardPaymentMethod = $derived.by(() => paymentMethods.find((method: any) => /STRIPE|RAZORPAY|CASHFREE|CARD/.test(`${method?.code || ''} ${method?.name || ''}`.toUpperCase())))
@@ -74,7 +73,7 @@
 			return
 		}
 		cardSelectionError = ''
-		if (method.code === cardPaymentMethod?.code) showCardForm = true
+		showCardForm = false
 		await paymentModule.handlePaymentMethodChange(method.code)
 	}
 
@@ -183,7 +182,7 @@
 						{#each providers as provider}
 							{@const method = providerMethod(provider)}
 							<button class:selected={method?.code && paymentModule.SELECTED_PG_CODE === method.code} type="button" onclick={() => selectProvider(provider)} aria-label={`Select ${method?.name || provider.label}`}>
-								{#if provider.className === 'bank'}<img class="bank-icon" src="/ryans-jewels/checkout/payment/bank.svg" alt="" /><span>Bank</span>{:else}{#each provider.images as image}<span class="provider-image {provider.className}"><img src="/ryans-jewels/checkout/payment/{image}" alt="" /></span>{/each}{/if}
+								{#if provider.images.length}{#each provider.images as image}<span class="provider-image {provider.className}"><img src="/ryans-jewels/checkout/payment/{image}" alt="" /></span>{/each}{:else}<span class="provider-wordmark {provider.className}">{provider.label}</span>{/if}
 							</button>
 						{/each}
 					</div>
@@ -346,16 +345,16 @@
 	.rj-payment-details > header p { margin: 0; color: #828282; font: 14px/22px 'Lato', sans-serif; text-transform: capitalize; }
 	.rj-payment-details > header > span { display: flex; gap: 5px; align-items: center; color: #828282; font: 14px/22px 'Lato', sans-serif; text-transform: capitalize; }
 	.rj-payment-details > header > span img { width: 22px; height: 22px; }
-	.rj-provider-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; margin-top: 25px; }
+	.rj-provider-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; margin-top: 25px; }
 	.rj-provider-grid > button { display: flex; box-sizing: border-box; height: 60px; align-items: center; justify-content: center; padding: 7px; border: 1px solid #c2c2c2; border-radius: 5px; background: #fff; cursor: pointer; }
 	.rj-provider-grid > button.selected { border-color: #cca646; box-shadow: 0 0 0 1px #cca646; }
 	.provider-image { position: relative; display: block; overflow: hidden; }
-	.provider-image.apple { width: 66px; height: 30px; } .provider-image.apple img { position: absolute; top: -59.77%; left: 0; width: 100%; height: 219.54%; max-width: none; }
 	.provider-image.paypal:first-child { width: 28px; height: 30px; } .provider-image.paypal:first-child img { width: 107.14%; height: 100%; max-width: none; }
 	.provider-image.paypal:nth-child(2) { width: 62px; height: 18px; } .provider-image.paypal:nth-child(2) img { position: absolute; top: -126.9%; width: 100%; height: 353.1%; max-width: none; }
 	.rj-provider-grid > button:has(.paypal) { gap: 5px; }
-	.provider-image.amex { width: 87px; height: 30px; } .provider-image.amex img { position: absolute; top: -95.83%; width: 100%; height: 291.67%; max-width: none; }
-	.rj-provider-grid .bank-icon { width: 26px; height: 26px; } .rj-provider-grid button > span:not(.provider-image) { margin-left: 10px; font-size: 16px; }
+	.provider-wordmark { font: 700 18px/22px 'Lato', sans-serif; }
+	.provider-wordmark.affirm { color: #4a42ff; }
+	.provider-wordmark.stripe { color: #635bff; }
 	.rj-payment-details > hr { margin: 20px 0 25px; border: 0; border-top: 1px solid #f1f1f1; }
 	.rj-card-form { display: flex; width: 100%; flex-direction: column; gap: 20px; }
 	.rj-card-form-head { display: flex; min-height: 22px; align-items: center; justify-content: space-between; gap: 20px; color: #303030; font: 14px/22px 'Lato', sans-serif; }
@@ -402,7 +401,7 @@
 	.rj-saved-methods .add-card img { width: 28px; height: 28px; }
 	.rj-saved-methods .add-card b { color: #202020; font: 500 18px/22px 'Lato', sans-serif; }
 	.rj-saved-methods .rj-payment-error { margin: 0; }
-	.rj-payment-right { min-width: 0; padding: 50px 29px 0 31px; background: linear-gradient(to bottom, #f9f9f9 0 936px, #fff 936px); }
+	.rj-payment-right { min-width: 0; padding: 50px 29px 0 31px; background: #f9f9f9; }
 	.rj-payment-products { display: flex; flex-direction: column; gap: 11px; padding: 14px 19px; border: 1px solid #c2c2c2; border-radius: 5px; background: #f9f9f9; }
 	.rj-payment-products article { display: grid; min-height: 90px; grid-template-columns: 90px minmax(0, 1fr) 88px; gap: 12px; align-items: center; }
 	.product-image { display: block; width: 90px; height: 90px; overflow: hidden; border-radius: 5px; background: rgb(232 232 232 / 20%); }
@@ -428,22 +427,21 @@
 	.rj-payment-coupon input::placeholder { color: #c2c2c2; } .rj-payment-coupon button { padding: 0; border: 0; background: transparent; color: #00a96b; font: 600 14px/22px 'Lato', sans-serif; cursor: pointer; }
 	.rj-payment-total { margin: 40px 4px 0 0; padding-top: 30px; border-top: 1px dashed #c2c2c2; }
 	.rj-payment-total p + p { margin-top: 12px; } .rj-payment-total .discount { color: #2fb3ff; }
-	.rj-place-order { display: block; width: 100%; max-width: 530px; height: 45px; margin: 35px auto 0; border: 0; border-radius: 4px; background: #cca646; color: #fff; font: 600 14px/22px 'Lato', sans-serif; cursor: pointer; }
+	.rj-place-order { width: 100%; height: 50px; margin-top: 25px; border: 0; border-radius: 4px; background: #cca646; color: #fff; font: 600 14px/22px 'Lato', sans-serif; cursor: pointer; }
 	.rj-place-order:disabled { opacity: .6; cursor: wait; }
-	.rj-payment-assurance { width: 100%; max-width: 583px; margin: 45px auto 0; }
-	.assurance-row { display: grid; height: 40px; grid-template-columns: repeat(3, max-content); align-items: center; justify-content: space-between; padding: 0 12px; }
-	.assurance-row > div { display: flex; gap: 10px; align-items: center; } .assurance-row img { width: 34px; height: 34px; }
-	.assurance-row span { display: flex; flex-direction: column; gap: 1px; } .assurance-row b { color: #000; font: 600 14px/18px 'Lato', sans-serif; } .assurance-row small { color: #666; font: 11px/18px 'Sarala', sans-serif; white-space: nowrap; }
-	.payment-brands { display: flex; box-sizing: border-box; height: 82px; flex-direction: column; gap: 10px; align-items: center; justify-content: center; margin-top: 22px; border-radius: 4px; background: #f9f9f9; }
-	.payment-brands > div { display: flex; height: 27px; gap: 15px; align-items: center; } .payment-brands img { object-fit: contain; }
-	.payment-brands img:nth-child(1) { width: 33px; height: 30px; } .payment-brands img:nth-child(2) { width: 47px; height: 47px; } .payment-brands img:nth-child(3) { width: 38px; height: 38px; } .payment-brands img:nth-child(4) { width: 36px; height: 36px; } .payment-brands img:nth-child(5) { width: 50px; height: 31px; } .payment-brands img:nth-child(6) { width: 38px; height: 38px; }
-	.payment-brands p { margin: 0; color: #303030; font: 12px/24px 'Sarala', sans-serif; } .payment-brands a { color: #a80139; font-family: 'Lato', sans-serif; font-weight: 700; text-decoration: none; }
+	.rj-payment-assurance { margin: 50px -29px 0 -31px; }
+	.assurance-row { display: flex; justify-content: center; gap: 48px; padding: 0 12px; }
+	.assurance-row > div { display: flex; gap: 12px; align-items: center; } .assurance-row img { width: 40px; height: 40px; }
+	.assurance-row span { display: flex; flex-direction: column; gap: 4px; } .assurance-row b { color: #303030; font-size: 13px; } .assurance-row small { color: #707070; font-size: 9px; white-space: nowrap; }
+	.payment-brands { display: flex; height: 91px; flex-direction: column; gap: 10px; align-items: center; justify-content: center; margin-top: 26px; background: #f9f9f9; }
+	.payment-brands > div { display: flex; height: 27px; gap: 15px; align-items: center; } .payment-brands img { max-width: 45px; max-height: 27px; object-fit: contain; }
+	.payment-brands p { margin: 0; font: 12px/24px 'Sarala', sans-serif; } .payment-brands a { color: #a80139; font-weight: 700; text-decoration: none; }
 	@keyframes spin { to { transform: rotate(360deg); } }
 	@media (max-width: 1100px) { .rj-payment-layout { width: calc(100% - 60px); grid-template-columns: minmax(0, 1fr); } .rj-payment-right { padding-top: 30px; } }
 	@media (max-width: 700px) {
 		.rj-payment-layout { width: calc(100% - 30px); margin-top: 0; } .rj-payment-left { padding-top: 25px; } .rj-payment-steps { gap: 5px; padding-left: 0; font-size: 12px; } .rj-payment-steps li[aria-hidden='true'] { display: none; } .rj-payment-steps b { width: 28px; height: 28px; }
 		.rj-shipping-methods, .rj-payment-details { padding: 18px 15px; } .rj-payment-details > header { gap: 15px; } .rj-payment-details > header > span { font-size: 11px; } .rj-provider-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } .rj-card-form-head { flex-wrap: wrap; } .rj-payment-mode { margin-left: auto; }
 		.rj-payment-right { padding: 20px 15px 0; } .rj-payment-products article { grid-template-columns: 72px minmax(0, 1fr); } .product-image { width: 72px; height: 72px; } .product-price { grid-column: 2; flex-direction: row; align-items: center; justify-content: space-between; }
-		.rj-payment-assurance { width: auto; max-width: none; margin-inline: -15px; } .assurance-row { display: flex; height: auto; flex-wrap: wrap; gap: 20px; }
+		.rj-payment-assurance { margin-inline: -15px; } .assurance-row { gap: 12px; overflow-x: auto; } .assurance-row > div { min-width: 150px; }
 	}
 </style>

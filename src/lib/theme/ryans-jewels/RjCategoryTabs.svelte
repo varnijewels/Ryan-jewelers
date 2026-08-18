@@ -14,18 +14,18 @@
 	let {
 		active = 'All',
 		size = 'lg',
-		label = 'Product categories'
-	}: { active?: string; size?: 'lg' | 'md'; label?: string } = $props()
+		label = 'Product categories',
+		onchange
+	}: { active?: string; size?: 'lg' | 'md'; label?: string; onchange?: (category: string) => void } = $props()
 </script>
 
 <nav class="rj-tabs rj-tabs--{size}" aria-label={label}>
 	{#each productFilters as tab}
-		<a
-			class="rj-tab"
-			class:is-active={tab.label === active}
-			href={tab.href}
-			aria-current={tab.label === active ? 'page' : undefined}>{tab.label}</a
-		>
+		{#if onchange}
+			<button class="rj-tab" class:is-active={tab.label === active} type="button" aria-pressed={tab.label === active} onclick={() => onchange?.(tab.label)}>{tab.label}</button>
+		{:else}
+			<a class="rj-tab" class:is-active={tab.label === active} href={tab.href} aria-current={tab.label === active ? 'page' : undefined}>{tab.label}</a>
+		{/if}
 	{/each}
 </nav>
 
@@ -38,6 +38,9 @@
 	}
 
 	.rj-tab {
+		padding: 0;
+		border: 0;
+		background: transparent;
 		font-family: 'Sarala', var(--font-body, sans-serif);
 		font-size: 18px;
 		line-height: normal;
@@ -47,6 +50,7 @@
 		text-decoration: none;
 		white-space: nowrap;
 		border-bottom: 1px solid transparent;
+		cursor: pointer;
 		transition:
 			color 0.18s ease,
 			border-color 0.18s ease;

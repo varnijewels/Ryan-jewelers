@@ -5,6 +5,7 @@
 	import { formatPrice } from '$lib/core/utils/index.js'
 	import { showAuthModal } from '$lib/core/components/index.js'
 	import { getUserState } from '$lib/core/stores/index.js'
+	import { isCustomerSignedIn } from './auth-gate.logic.js'
 
 	let { cartModule, cartState }: { cartModule: any; cartState: any } = $props()
 
@@ -21,7 +22,6 @@
 	const subtotal = $derived(Number(cartState.cart?.subtotal || 0))
 	const discount = $derived(Number(cartState.cart?.discountAmount || 0))
 	const total = $derived(Number(cartState.cart?.total ?? subtotal - discount))
-	const guestCheckoutEnabled = $derived(Boolean(page.data?.store?.plugins?.isGuestCheckout?.active))
 	const deliveryDate = $derived(deliveryAt ? `${new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(deliveryAt)} ${new Intl.DateTimeFormat('en-US', { month: 'short' }).format(deliveryAt)} ${new Date(deliveryAt).getDate()}` : '—')
 	const countdown = $derived.by(() => {
 		const seconds = Math.max(0, Math.floor((cutoff - now) / 1000))
@@ -73,15 +73,12 @@
 	}
 
 	async function handleCheckout() {
-		if (!guestCheckoutEnabled) {
-			await userState.hasLoaded.catch(() => undefined)
-			const user = userState.user as any
-			if (!user?.userId && !user?.id) {
-				const returnTo = '/checkout/address'
-				sessionStorage.setItem('rj-auth-return-to', returnTo)
-				showAuthModal('login', { redirect: returnTo })
-				return
-			}
+		await userState.hasLoaded.catch(() => undefined)
+		if (!isCustomerSignedIn(userState.user)) {
+			const returnTo = '/checkout/address'
+			sessionStorage.setItem('rj-auth-return-to', returnTo)
+			showAuthModal('login', { redirect: returnTo })
+			return
 		}
 		await cartModule.gotoCheckout()
 	}

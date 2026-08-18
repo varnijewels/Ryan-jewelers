@@ -11,6 +11,8 @@
 	import RjFilterBar from './RjFilterBar.svelte'
 	import RjProductCard from './RjProductCard.svelte'
 	import RjRule from './RjRule.svelte'
+	import { filterProductsByCategory } from './product-filters.js'
+	import { tick } from 'svelte'
 
 	let {
 		products = [],
@@ -26,7 +28,28 @@
 		emptyText?: string
 	} = $props()
 
-	const visible = $derived((products || []).slice(0, limit))
+	let activeCategory = $state('All')
+	let track = $state<HTMLDivElement>()
+	let atStart = $state(true)
+	let atEnd = $state(false)
+	const visible = $derived(filterProductsByCategory(products || [], activeCategory))
+
+	function updateScrollState() {
+		if (!track) return
+		atStart = track.scrollLeft <= 1
+		atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 1
+	}
+
+	function scrollProducts(direction: -1 | 1) {
+		track?.scrollBy({ left: direction * Math.max(track.clientWidth * .8, 280), behavior: 'smooth' })
+	}
+
+	async function changeCategory(category: string) {
+		activeCategory = category
+		await tick()
+		track?.scrollTo({ left: 0 })
+		updateScrollState()
+	}
 </script>
 
 <section class="rj-row">
@@ -36,7 +59,7 @@
 		</span>
 	{/if}
 
-	<RjFilterBar />
+	<RjFilterBar active={activeCategory} onchange={changeCategory} onprevious={() => scrollProducts(-1)} onnext={() => scrollProducts(1)} previousDisabled={atStart || !visible.length} nextDisabled={atEnd || !visible.length} />
 
 	{#if loading && !visible.length}
 		<div class="rj-row-track" aria-busy="true">
@@ -45,13 +68,13 @@
 			{/each}
 		</div>
 	{:else if visible.length}
-		<div class="rj-row-track">
+		<div class="rj-row-track" bind:this={track} onscroll={updateScrollState}>
 			{#each visible as product (product?.id || product?.slug)}
 				<RjProductCard {product} />
 			{/each}
 		</div>
 	{:else}
-		<p class="rj-row-empty">{emptyText}</p>
+		<p class="rj-row-empty">{activeCategory === 'All' ? emptyText : `No ${activeCategory.toLowerCase()} are available yet.`}</p>
 	{/if}
 </section>
 
@@ -78,19 +101,25 @@
 	.rj-row-track {
 		display: flex;
 		align-items: center;
-		justify-content: center;
+		justify-content: safe center;
 		gap: min(4.628%, 61px);
 		width: 100%;
+		overflow-x: auto;
+		scroll-snap-type: x mandatory;
+		scrollbar-width: none;
 	}
+
+	.rj-row-track::-webkit-scrollbar { display: none; }
 
 	/*
 	 * Cards share the available row and cap at the source's 272px width.
 	 * Below 1024 the row scrolls with fixed per-breakpoint cards.
 	 */
 	.rj-row-track > :global(*) {
-		flex: 1 1 0;
+		flex: 0 0 272px;
 		max-width: 272px;
 		min-width: 0;
+		scroll-snap-align: start;
 	}
 
 	.rj-row-track :global(.rj-card) {

@@ -351,7 +351,7 @@
 			padding: 0 15px;
 			--rj-track-end: 0px;
 			--rj-rail-end: 0px;
-			--rj-track-gap: 31px;
+			--rj-track-gap: 18px;
 		}
 
 		/* the head stacks: text, then countdown + Shop now on one row */

@@ -24,7 +24,32 @@
 		limit = 5
 	}: { products?: any[]; loading?: boolean; limit?: number } = $props()
 
-	const visible = $derived((products || []).slice(0, limit))
+	const visible = $derived(products || [])
+	let track = $state<HTMLUListElement | null>(null)
+	let scrollLeft = $state(0)
+	let scrollWidth = $state(0)
+	let clientWidth = $state(0)
+	const atStart = $derived(scrollLeft <= 1)
+	const atEnd = $derived(scrollLeft + clientWidth >= scrollWidth - 1)
+
+	function readMetrics() {
+		if (!track) return
+		scrollLeft = track.scrollLeft
+		scrollWidth = track.scrollWidth
+		clientWidth = track.clientWidth
+	}
+
+	$effect(() => {
+		if (!track) return
+		readMetrics()
+		const observer = new ResizeObserver(readMetrics)
+		observer.observe(track)
+		return () => observer.disconnect()
+	})
+
+	function scrollProducts(direction: -1 | 1) {
+		track?.scrollBy({ left: direction * Math.max(clientWidth * .8, 280), behavior: 'smooth' })
+	}
 </script>
 
 <section class="rj-trend" aria-labelledby="rj-trend-heading">
@@ -33,7 +58,7 @@
 	</div>
 
 	<div class="rj-trend-bar">
-		<RjArrowRule gap={20} mobileLength={40} />
+		<RjArrowRule gap={20} mobileLength={40} onprevious={() => scrollProducts(-1)} onnext={() => scrollProducts(1)} previousDisabled={atStart} nextDisabled={atEnd} />
 		<a class="rj-trend-catalog" href={trending.catalogHref}>
 			<span>{trending.catalogLabel}</span>
 			<span class="rj-trend-catalog-line" aria-hidden="true"></span>
@@ -41,7 +66,7 @@
 	</div>
 
 	{#if visible.length}
-		<ul class="rj-trend-track">
+		<ul class="rj-trend-track" bind:this={track} onscroll={readMetrics}>
 			{#each visible as product (product?.id || product?.slug)}
 				<li class="rj-trend-cell">
 					<RjProductCard {product} size="wide" />
@@ -130,16 +155,23 @@
 	.rj-trend-track {
 		display: flex;
 		align-items: flex-start;
-		justify-content: center;
+		justify-content: flex-start;
 		gap: min(4.6353%, 61px);
 		margin: 0 auto;
 		padding: 0 62px;
 		list-style: none;
+		overflow-x: auto;
+		scroll-snap-type: x proximity;
+		scroll-padding-left: 62px;
+		scrollbar-width: none;
 	}
+
+	.rj-trend-track::-webkit-scrollbar { display: none; }
 
 	.rj-trend-cell {
 		flex: 1 1 0;
-		min-width: 0;
+		min-width: calc((100% - 368px) / 5);
+		scroll-snap-align: start;
 	}
 
 	.rj-trend-cell :global(.rj-card) {
@@ -192,6 +224,7 @@
 
 		.rj-trend-track {
 			gap: 30px;
+			scroll-padding-left: 40px;
 		}
 	}
 
@@ -232,20 +265,9 @@
 
 		.rj-trend-track {
 			max-width: 744px;
-			justify-content: flex-start;
 			gap: 20px;
 			padding: 0 25px 0 0;
-			overflow-x: auto;
-			scroll-snap-type: x proximity;
-			scrollbar-width: none;
-		}
-
-		.rj-trend-track::-webkit-scrollbar {
-			display: none;
-		}
-
-		.rj-trend-cell {
-			scroll-snap-align: start;
+			scroll-padding-left: 0;
 		}
 
 		.rj-trend-catalog {
@@ -278,6 +300,7 @@
 		.rj-trend-track {
 			gap: 26px;
 			padding: 0 10px;
+			scroll-padding-left: 10px;
 		}
 
 		.rj-trend-cell :global(.rj-card) {

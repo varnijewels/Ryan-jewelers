@@ -341,6 +341,7 @@
 	@media (max-width: 639px) {
 		.rj-tile--lg {
 			width: 188px;
+			height: 251px;
 		}
 
 		.rj-tile--lg .rj-tile-media {

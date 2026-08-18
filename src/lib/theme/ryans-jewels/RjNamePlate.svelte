@@ -21,6 +21,11 @@
 	import { namePlate } from './home-content.js'
 
 	const { background, panel, eyebrow, title, ctaLabel, ctaHref, cards } = namePlate
+	let track = $state<HTMLUListElement | null>(null)
+
+	function scrollProducts(direction: -1 | 1) {
+		track?.scrollBy({ left: direction * Math.max(track.clientWidth * .8, 280), behavior: 'smooth' })
+	}
 </script>
 
 <section
@@ -49,13 +54,13 @@
 				<a class="rj-plate-button" href={ctaHref}>{ctaLabel}</a>
 			</div>
 
-			<ul class="rj-plate-cards">
+			<ul class="rj-plate-cards" bind:this={track}>
 				{#each cards as card (card.key)}
 					<li class="rj-plate-card"><RjCustomiseCard {card} /></li>
 				{/each}
 			</ul>
 
-			<div class="rj-plate-arrows"><RjArrowRule gap={20} /></div>
+			<div class="rj-plate-arrows"><RjArrowRule gap={20} onprevious={() => scrollProducts(-1)} onnext={() => scrollProducts(1)} /></div>
 		</div>
 	</div>
 </section>
@@ -190,6 +195,7 @@
 		font-size: 22px;
 		font-weight: 400;
 		line-height: 30px;
+		text-align: center;
 		text-transform: capitalize;
 		color: var(--rj-heading, #202020);
 	}
@@ -217,30 +223,37 @@
 		filter: brightness(0.94);
 	}
 
-	/* Cards are right-aligned: 3×222 + 2×30 = 726 inside a 748 column. */
+	/* Figma 341:55580 — 222px cards with 30px gutters. */
 	.rj-plate-cards {
 		display: flex;
-		justify-content: flex-end;
+		justify-content: flex-start;
 		gap: 30px;
 		margin: 49px 0 0;
-		padding: 0;
+		padding: 0 0 0 22px;
+		overflow-x: auto;
+		scrollbar-width: none;
 		list-style: none;
+	}
+
+	.rj-plate-cards::-webkit-scrollbar {
+		display: none;
 	}
 
 	.rj-plate-card {
 		display: block;
 	}
 
+	@media (min-width: 1670px) {
+		.rj-plate-cards {
+			justify-content: center;
+			padding-left: 0;
+		}
+	}
+
 	.rj-plate-arrows {
 		position: absolute;
 		right: 60px;
 		bottom: 31px;
-	}
-
-	@media (min-width: 1441px) {
-		.rj-plate-cards {
-			justify-content: flex-start;
-		}
 	}
 
 	/* ---- 1024–1279: keep the split, tighten the gutters ------------------ */
@@ -315,6 +328,7 @@
 			justify-content: space-between;
 			gap: 14px;
 			margin-top: 29px;
+			padding-left: 0;
 		}
 	}
 

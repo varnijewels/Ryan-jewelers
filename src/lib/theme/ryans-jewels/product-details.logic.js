@@ -28,6 +28,16 @@ export function groupedProductForAttribute(products, current, attribute, value) 
 	return (products || []).find((product) => product[attribute] === value && fixedAttributes.every((key) => product[key] === current[key])) || null
 }
 
+/** @param {any[]} products @param {any} current @param {string} attribute */
+export function groupedValuesForAttribute(products, current, attribute) {
+	if (!current || !attribute) return []
+	const fixedAttributes = Object.keys(current).filter((key) => !['id', 'slug', 'variantId', attribute].includes(key))
+	return [...new Set((products || [])
+		.filter((product) => fixedAttributes.every((key) => product[key] === current[key]))
+		.map((product) => product[attribute])
+		.filter(Boolean))]
+}
+
 /** @param {any[]} products @param {any} current @param {Record<string, string>} selections */
 export function groupedProductForSelections(products, current, selections) {
 	if (!current) return null
@@ -166,6 +176,8 @@ if (typeof process !== 'undefined' && process.argv[1]?.endsWith('product-details
 		{ id: 'rose-7', slug: 'rose-7', Color: 'Rose', Size: '7', variantId: 'c' }
 	]
 	console.assert(groupedProductForAttribute(grouped, grouped[0], 'Color', 'Rose').id === 'rose-6')
+	console.assert(groupedValuesForAttribute(grouped, grouped[0], 'Color').join(',') === 'Yellow,Rose')
+	console.assert(groupedValuesForAttribute(grouped, grouped[0], 'Size').join(',') === '6')
 	console.assert(groupedProductForSelections(grouped, grouped[0], { Color: 'Rose', Size: '7' }).id === 'rose-7')
 	console.assert(customizationOptions([{ id: 'color', title: 'Metal Color' }, { id: 'size', title: 'Ring Size' }, { id: 'quality', title: 'Stone Quality' }, { id: 'metal', title: 'Metal Type' }], []).map((option) => option.id).join(',') === 'quality,metal,size')
 	console.assert(toggleStoredId(['a'], 'b', 2).ids.join(',') === 'a,b')

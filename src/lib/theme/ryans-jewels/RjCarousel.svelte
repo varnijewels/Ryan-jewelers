@@ -18,8 +18,9 @@
 	 * rail is an additional pointer affordance, not a replacement.
 	 */
 	import type { Snippet } from 'svelte'
+	import RjArrowRule from './RjArrowRule.svelte'
 
-	let { children, label = 'Products' }: { children: Snippet; label?: string } = $props()
+	let { children, label = 'Products', showArrows = false }: { children: Snippet; label?: string; showArrows?: boolean } = $props()
 
 	/** role="scrollbar" requires aria-controls, so each track needs its own id. */
 	const trackId = `rj-carousel-${nextCarouselId()}`
@@ -34,6 +35,8 @@
 	const thumbLeft = $derived(
 		overflows ? (scrollLeft / (scrollWidth - clientWidth)) * (100 - thumbWidth) : 0
 	)
+	const atStart = $derived(!overflows || scrollLeft <= 1)
+	const atEnd = $derived(!overflows || scrollLeft + clientWidth >= scrollWidth - 1)
 
 	function readMetrics() {
 		if (!track) return
@@ -85,9 +88,16 @@
 			event.preventDefault()
 		}
 	}
+
+	function scrollProducts(direction: -1 | 1) {
+		track?.scrollBy({ left: direction * Math.max(clientWidth * .8, 280), behavior: 'smooth' })
+	}
 </script>
 
 <div class="rj-carousel">
+	{#if showArrows}
+		<div class="rj-carousel-arrows"><RjArrowRule gap={20} onprevious={() => scrollProducts(-1)} onnext={() => scrollProducts(1)} previousDisabled={atStart} nextDisabled={atEnd} /></div>
+	{/if}
 	<div
 		class="rj-carousel-track"
 		id={trackId}
@@ -126,10 +136,13 @@
 
 <style>
 	.rj-carousel {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		width: 100%;
 	}
+
+	.rj-carousel-arrows { position: absolute; top: -40px; left: 0; }
 
 	/*
 	 * 1:6014 — cards 285 with a 25 gutter, overflowing the 1318 frame.
@@ -188,6 +201,7 @@
 
 	/* Tablet 744 — card gap 20, rail 30 below the track (63:40432). */
 	@media (max-width: 1023px) {
+		.rj-carousel-arrows { top: -30px; }
 		.rj-carousel-track {
 			gap: var(--rj-track-gap, 20px);
 		}
@@ -200,6 +214,7 @@
 
 	/* Mobile 412 — 4px rail, 15 below the track (77:107370). */
 	@media (max-width: 639px) {
+		.rj-carousel-arrows { top: -30px; }
 		.rj-carousel-rail {
 			height: 4px;
 			margin-top: 15px;

@@ -14,13 +14,9 @@
 	import RjProductCard from './RjProductCard.svelte'
 	import { productRating, withoutDemoProducts } from './product-filters.js'
 	import RjWideBanner from './RjWideBanner.svelte'
-	import { customizationOptions, diamondImageForShape, discountPercent, groupedProductForAttribute, groupedProductForSelections, metalColorImage, metalColorTone, productAttributeValue, productDetailParagraphs, productImages, toggleStoredId, variantForOption, variantForSelections } from './product-details.logic.js'
+	import { customizationOptions, diamondImageForShape, discountPercent, groupedProductForAttribute, groupedProductForSelections, groupedValuesForAttribute, metalColorImage, metalColorTone, productAttributeValue, productDetailParagraphs, productImages, toggleStoredId, variantForOption, variantForSelections } from './product-details.logic.js'
 
 	const COMPARE_STORAGE_KEY = 'ryans-jewels-compare-products'
-	const CUSTOM_METALS = ['Yellow Gold', 'Rose Gold', 'White Gold']
-	const CUSTOM_CARATS = ['0.25 ct', '0.50 ct', '0.75 ct', '1.00 ct', '1.25 ct', '1.50 ct', '1.75 ct', '2.00 ct', '2.25 ct', '2.75 ct', '3.25 ct', '3.75 ct', '4.75 ct', '5.75 ct']
-	const CUSTOM_CUTS = ['Round', 'Radiant', 'Asscher', 'Cushion', 'Princess', 'Emerald', 'Marquise', 'Heart', 'Oval', 'Pear']
-	const CUSTOM_STONES = ['Natural Diamond', 'Lab Grown Diamond', 'Moissanite Diamond']
 
 	const productState = useProductState()
 	const data = $derived(page.data)
@@ -35,7 +31,6 @@
 	let relatedLoading = $state(false)
 	let wishlistLoading = $state(false)
 	let compared = $state(false)
-	let showPriceBreakup = $state(false)
 	let postalCode = $state('')
 	let locating = $state(false)
 	let activeTab = $state<'details' | 'reviews'>('details')
@@ -68,6 +63,7 @@
 	const category = $derived(product?.category?.name || [...(product?.categoryHierarchy || [])].reverse().find((item: any) => item.name !== product.title)?.name || '')
 	const ratings = $derived(Array.isArray(product?.ratings) ? product.ratings : [])
 	const rating = $derived(productRating(product))
+	const reviewCount = $derived(Number(product?.reviewCount ?? product?.ratingCount ?? ratings.length) || ratings.length)
 	const inStock = $derived(!product?.manageInventory || Number(selectedVariant?.stock ?? product?.stock ?? 0) > 0)
 	const attributes = $derived(Array.isArray(product?.attributes) ? product.attributes : [])
 	const detailSku = $derived(selectedVariant?.sku || product?.sku || product?.id || '')
@@ -99,19 +95,30 @@
 	const caratWeightOption = $derived(productOptions.find((option: any) => /(carat|diamond).*weight|weight.*(carat|diamond)/i.test(option.title || option.type || '')))
 	const ringSizeOption = $derived(productOptions.find((option: any) => /ring\s*size|^size$/i.test(option.title || option.type || '')))
 	const stoneShapeOption = $derived(productOptions.find((option: any) => /(center\s*)?(stone|diamond).*shape|shape.*(stone|diamond)|diamond\s*cut/i.test(option.title || option.type || '')))
+	const stoneTypeOption = $derived(productOptions.find((option: any) => /(stone|diamond)\s*type|type.*(stone|diamond)/i.test(option.title || option.type || '')))
 	const metalColorAggregationKey = $derived(Object.keys(product?.ag || {}).find((key) => /\bmetal\s*color\b/i.test(key)) || '')
 	const caratWeightAggregationKey = $derived(Object.keys(product?.ag || {}).find((key) => /(carat|diamond).*weight|weight.*(carat|diamond)/i.test(key)) || '')
 	const ringSizeAggregationKey = $derived(Object.keys(product?.ag || {}).find((key) => /ring\s*size/i.test(key)) || '')
 	const stoneShapeAggregationKey = $derived(Object.keys(product?.ag || {}).find((key) => /(center\s*)?(stone|diamond).*shape|shape.*(stone|diamond)/i.test(key)) || '')
+	const stoneTypeAggregationKey = $derived(Object.keys(product?.ag || {}).find((key) => /(stone|diamond)\s*type|type.*(stone|diamond)/i.test(key)) || '')
 	const groupedProducts = $derived(Array.isArray(product?.pg) ? product.pg : [])
 	const currentGroupedProduct = $derived(groupedProducts.find((item: any) => item.id === product.id || item.slug === product.slug))
+	function adminValues(option: any, aggregationKey: string, currentValue: string) {
+		const values = groupedValuesForAttribute(groupedProducts, currentGroupedProduct, aggregationKey)
+		return [...new Set((values.length ? values : [
+			...(option?.values || []).map((item: any) => item.value),
+			...((aggregationKey && product?.ag?.[aggregationKey]) || []),
+			currentValue
+		]).filter(Boolean))] as string[]
+	}
 	const metalColorValues = $derived.by(() => {
-		const values = [...new Set([...CUSTOM_METALS, ...(metalColorOption?.values || []).map((item: any) => item.value), ...((metalColorAggregationKey && product?.ag?.[metalColorAggregationKey]) || []), metalColor].filter(Boolean))] as string[]
+		const values = adminValues(metalColorOption, metalColorAggregationKey, metalColor)
 		return [...['yellow', 'rose', 'white'].flatMap((tone) => values.filter((value) => metalColorTone(value) === tone)), ...values.filter((value) => !['yellow', 'rose', 'white'].includes(metalColorTone(value)))]
 	})
-	const caratWeightValues = $derived([...new Set([...CUSTOM_CARATS, ...(caratWeightOption?.values || []).map((item: any) => item.value), ...((caratWeightAggregationKey && product?.ag?.[caratWeightAggregationKey]) || []), caratWeight].filter(Boolean))].sort((left, right) => parseFloat(String(left)) - parseFloat(String(right))) as string[])
-	const ringSizeValues = $derived([...new Set([...(ringSizeOption?.values || []).map((item: any) => item.value), ...((ringSizeAggregationKey && product?.ag?.[ringSizeAggregationKey]) || []), ringSize].filter(Boolean))].sort((left, right) => parseFloat(String(left)) - parseFloat(String(right))) as string[])
-	const stoneShapeValues = $derived([...new Set([...CUSTOM_CUTS, ...(stoneShapeOption?.values || []).map((item: any) => item.value), ...((stoneShapeAggregationKey && product?.ag?.[stoneShapeAggregationKey]) || []), stoneShape].filter(Boolean))] as string[])
+	const caratWeightValues = $derived(adminValues(caratWeightOption, caratWeightAggregationKey, caratWeight).sort((left, right) => parseFloat(String(left)) - parseFloat(String(right))))
+	const ringSizeValues = $derived(adminValues(ringSizeOption, ringSizeAggregationKey, ringSize).sort((left, right) => parseFloat(String(left)) - parseFloat(String(right))))
+	const stoneShapeValues = $derived(adminValues(stoneShapeOption, stoneShapeAggregationKey, stoneShape))
+	const stoneTypeValues = $derived(adminValues(stoneTypeOption, stoneTypeAggregationKey, stoneType))
 	const customizationInitial = $derived({ metal: metalColor, carat: caratWeight, size: ringSize, cut: stoneShape, stone: stoneType })
 	const wishlistKey = $derived(`${product?.id}-${selectedVariant?.id || variants[0]?.id || ''}`)
 	const wishlisted = $derived(Boolean(productState.wishlistState?.isWishlisted?.[wishlistKey]))
@@ -204,35 +211,37 @@
 		}
 	}
 
-	function customizationTarget(selection: { metal: string; carat: string; size: string; cut: string }) {
+	function customizationTarget(selection: { metal: string; carat: string; size: string; cut: string; stone: string }) {
 		const selectedAttributes = Object.fromEntries([
 			[metalColorAggregationKey, selection.metal],
 			[caratWeightAggregationKey, selection.carat],
 			[ringSizeAggregationKey, selection.size],
-			[stoneShapeAggregationKey, selection.cut]
+			[stoneShapeAggregationKey, selection.cut],
+			[stoneTypeAggregationKey, selection.stone]
 		].filter(([key, value]) => key && value))
 		return groupedProductForSelections(groupedProducts, currentGroupedProduct, selectedAttributes)
 	}
 
-	function customizationVariant(selection: { metal: string; carat: string; size: string; cut: string }) {
+	function customizationVariant(selection: { metal: string; carat: string; size: string; cut: string; stone: string }) {
 		const choices = [
 			[metalColorOption, metalColor, selection.metal],
 			[caratWeightOption, caratWeight, selection.carat],
 			[ringSizeOption, ringSize, selection.size],
-			[stoneShapeOption, stoneShape, selection.cut]
+			[stoneShapeOption, stoneShape, selection.cut],
+			[stoneTypeOption, stoneType, selection.stone]
 		] as [any, string, string][]
 		if (choices.some(([option, current, selected]) => selected && selected.toLowerCase() !== current.toLowerCase() && !option?.id)) return null
 		return variantForSelections(variants, selectedVariant, Object.fromEntries([
 			[metalColorOption?.id, selection.metal],
 			[caratWeightOption?.id, selection.carat],
 			[ringSizeOption?.id, selection.size],
-			[stoneShapeOption?.id, selection.cut]
+			[stoneShapeOption?.id, selection.cut],
+			[stoneTypeOption?.id, selection.stone]
 		].filter(([key, value]) => key && value)))
 	}
 
 	async function applyCustomization(selection: { metal: string; carat: string; size: string; cut: string; stone: string }) {
 		const request = ++customizationRequest
-		if (selection.stone !== stoneType) return toast.error('This stone type is not available for this product')
 		const target = customizationTarget(selection)
 		try {
 			if (target?.slug) return await showGroupedProduct(target, request)
@@ -333,7 +342,7 @@
 <div class="rj-pdp">
 	<nav class="rj-breadcrumb" aria-label="Breadcrumb">
 		<a href="/">Home</a><span>/</span>
-		{#each product?.categoryHierarchy || [] as item}
+		{#each (product?.categoryHierarchy || []).filter((item: any) => item.name !== product.title && item.slug !== product.slug) as item}
 			<a href="/{item.slug}">{item.name}</a><span>/</span>
 		{/each}
 		<span class="current">{product.title}</span>
@@ -363,11 +372,6 @@
 		<div class="rj-details">
 			<div class="rj-title-row">
 				<h1>{product.title}</h1>
-				<div class="rj-breakup-wrap">
-					<small>Price Inclusive Of All Taxes</small>
-					<button class="rj-breakup" type="button" onclick={() => showPriceBreakup = !showPriceBreakup} aria-expanded={showPriceBreakup}><img src="/ryans-jewels/product/price-breakup.svg" alt="" /><span>Price Breakup</span></button>
-					{#if showPriceBreakup}<div class="rj-breakup-panel"><span>Selling Price <b>{formatPrice(price, currency)}</b></span>{#if mrp > price}<span>Original Price <b>{formatPrice(mrp, currency)}</b></span><span>You Save <b>{formatPrice(mrp - price, currency)}</b></span>{/if}</div>{/if}
-				</div>
 			</div>
 
 			<div class="rj-price-row">
@@ -377,17 +381,17 @@
 			</div>
 
 			<div class="rj-product-meta">
-				{#if category}<span>{category}</span><i></i>{/if}
-				{#if ratings.length}
-					<span class="rj-stars"><img src="/ryans-jewels/product/star.svg" alt="" /><img src="/ryans-jewels/product/star.svg" alt="" />{rating}</span><i></i>
-					<span>{rating} out of 5 ratings</span>
-					<span class="rj-review-count">{ratings.length} reviews</span><i></i>
-				{/if}
-				<span class:available={inStock} class="rj-stock">{#if inStock}<img src="/ryans-jewels/product/stock-tick.svg" alt="" />{/if}{inStock ? 'Stock Available' : 'Out Of Stock'}</span>
+				<div class="rj-meta-summary">
+					{#if category}<span class="rj-category">{category}</span>{/if}
+					<span class="rj-stars"><img src="/ryans-jewels/product/star.svg" alt="" /><img src="/ryans-jewels/product/star.svg" alt="" />{rating.toFixed(1)}</span>
+				</div>
+				<i aria-hidden="true"></i>
+				<span class="rj-rating-copy">{rating.toFixed(1)} out of 5 ratings <span class="rj-review-count">{reviewCount} {reviewCount === 1 ? 'review' : 'reviews'}</span></span><i aria-hidden="true"></i>
+				<span class:available={inStock} class="rj-stock">{#if inStock}<span class="rj-stock-icon"><img src="/ryans-jewels/product/stock-tick.svg" alt="" /></span>{/if}{inStock ? 'Stock Available' : 'Out Of Stock'}</span>
 			</div>
 
 			<div class="rj-description">
-				<p class="rj-label">Description :</p>
+				<p class="rj-label">Description</p>
 				<div class="rj-description-copy">{@html product.description || ''}</div>
 			</div>
 
@@ -427,7 +431,7 @@
 
 			{#if ringSizeValues.length}<a class="rj-size-guide" href="#rj-specifications"><span>Not sure about your ring size?</span><b><img src="/ryans-jewels/product/size-guide.svg" alt="" />Size Guide</b></a>{/if}
 			{#if metalColorValues.length || caratWeightValues.length || ringSizeValues.length || stoneShapeValues.length || stoneType}
-				<RjProductCustomizer initial={customizationInitial} {metalType} metalOptions={metalColorValues} caratOptions={caratWeightValues} sizeOptions={ringSizeValues} cutOptions={stoneShapeValues} stoneOptions={[...new Set([...CUSTOM_STONES, stoneType].filter(Boolean))]} onchange={applyCustomization} onringview={showRingView} />
+				<RjProductCustomizer initial={customizationInitial} {metalType} metalOptions={metalColorValues} caratOptions={caratWeightValues} sizeOptions={ringSizeValues} cutOptions={stoneShapeValues} stoneOptions={stoneTypeValues.length > 1 ? stoneTypeValues : []} onchange={applyCustomization} onringview={showRingView} />
 			{/if}
 
 			<hr />
@@ -601,28 +605,25 @@
 	.rj-thumbnails button.active { border-color: #cca646; }
 	.rj-thumbnails img { width: 100%; height: 100%; object-fit: cover; }
 	.rj-details { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
-	.rj-title-row { display: grid; grid-template-columns: minmax(0, 1fr) 147px; gap: 15px; align-items: center; }
+	.rj-title-row { display: block; }
 	.rj-title-row h1 { margin: 0; font-family: 'Sarala', sans-serif; font-size: 30px; font-weight: 400; line-height: 44px; letter-spacing: 0; color: #202020; text-transform: capitalize; }
-	.rj-breakup-wrap { position: relative; display: flex; width: 147px; flex-direction: column; gap: 6px; align-items: center; }
-	.rj-breakup-wrap > small { width: 100%; color: #888; font: 12px 'Lato', sans-serif; text-align: center; text-transform: capitalize; }
-	.rj-breakup { display: flex; width: 147px; align-items: center; justify-content: center; gap: 5px; height: 36px; padding: 8px 12px; border: 0; border-radius: 3px; background: #cafaff; color: #005e78; font: 16px 'Lato', sans-serif; white-space: nowrap; cursor: pointer; }
-	.rj-breakup img { width: 18px; height: 18px; }
-	.rj-breakup-panel { position: absolute; z-index: 20; top: calc(100% + 8px); right: 0; display: flex; width: 240px; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid #ececec; border-radius: 4px; background: #fff; box-shadow: 0 8px 24px rgb(0 0 0 / 10%); font: 12px 'Lato', sans-serif; }
-	.rj-breakup-panel span { display: flex; justify-content: space-between; gap: 15px; }
-	.rj-breakup-panel b { color: #202020; white-space: nowrap; }
 	.rj-price-row { display: flex; gap: 15px; align-items: baseline; flex-wrap: wrap; }
 	.rj-price-row strong { font-size: 29px; line-height: normal; color: #202020; }
 	.rj-price-row s { font-size: 18px; color: #ff7578; } .rj-price-row > span { font-size: 18px; color: #ff9233; }
-	.rj-product-meta { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font-size: 14px; color: #707070; }
-	.rj-product-meta i { width: 1px; height: 16px; background: #d9d9d9; }
+	.rj-product-meta { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; color: #707070; font: 400 14px/22px 'Lato', sans-serif; }
+	.rj-product-meta > i { width: 1px; height: 31px; flex: 0 0 1px; background: #c5c5c5; }
+	.rj-meta-summary { display: flex; gap: 10px; align-items: center; }
+	.rj-category { color: #404040; font: 400 18px/normal 'Sarala', sans-serif; text-transform: capitalize; white-space: nowrap; }
 	.rj-product-meta .available { color: #008f65; }
 	.rj-review-count { color: #a80139; }
-	.rj-stock { display: flex; gap: 7px; align-items: center; }
-	.rj-stock img { width: 21px; height: 21px; }
+	.rj-rating-copy { white-space: nowrap; }
+	.rj-stock { display: flex; gap: 10px; align-items: center; white-space: nowrap; }
+	.rj-stock-icon { display: grid; width: 27px; height: 27px; flex: 0 0 27px; place-items: center; border-radius: 50%; background: rgb(109 208 171 / 50%); }
+	.rj-stock-icon img { width: 21px; height: 21px; }
 	.rj-stars { display: flex; gap: 2px; align-items: center; color: #555; }
-	.rj-stars img { width: 18px; height: 18px; }
+	.rj-stars img { width: 20px; height: 20px; }
 	.rj-description { font-family: 'Lato', sans-serif; }
-	.rj-label { margin: 0 0 7px; font-size: 13px; font-weight: 600; color: #404040; }
+	.rj-label { margin: 0 0 6px; color: #303030; font-size: 13px; font-weight: 500; line-height: 20px; }
 	.rj-description-copy { display: -webkit-box; overflow: hidden; color: #707070; font-size: 14px; line-height: 22px; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 	.rj-description-copy :global(p) { margin: 0; }
 	.rj-details hr { width: 100%; margin: 1px 0; border: 0; border-top: 1px solid #eee; }
@@ -791,7 +792,7 @@
 	.rj-write-review img { width: 24px; height: 24px; }
 	.rj-related { position: relative; width: min(calc(100% - 48px), 1760px); padding-block: 42px 50px; }
 	.rj-related-head { display: grid; grid-template-columns: 40px max-content minmax(40px, 1fr); gap: 8px; align-items: start; margin-bottom: 20px; }
-	.rj-related-head > i { height: 1.5px; margin-top: 11px; background: #a80139; }
+	.rj-related-head > i { height: 1.5px; margin-top: 11px; background: var(--rj-gold, #cca646); }
 	.rj-related-head > div { display: flex; flex-direction: column; align-items: flex-start; }
 	.rj-related-head h2 { margin: 0; color: #202020; font: 600 18px/22px 'Sarala', sans-serif; letter-spacing: 0; }
 	.rj-related-head p { margin: 0; color: #707070; font: 8px/12px 'Lato', sans-serif; }
@@ -845,8 +846,11 @@
 		.rj-image-actions { top: 10px; left: 10px; gap: 6px; } .rj-image-actions button, .rj-image-actions a { width: 44px; height: 44px; } .rj-image-actions img { max-width: 22px; max-height: 22px; }
 		.rj-similar { right: 10px; bottom: 10px; width: auto; height: 42px; padding-inline: 14px; border-radius: 25px; }
 		.rj-thumbnails { display: flex; gap: 10px; overflow-x: auto; margin-top: 12px; } .rj-thumbnails button { width: 92px; flex: 0 0 92px; }
-		.rj-title-row { grid-template-columns: 1fr auto; gap: 8px; } .rj-title-row h1 { font-size: 22px; line-height: 31px; } .rj-breakup-wrap { width: 40px; } .rj-breakup-wrap > small { display: none; } .rj-breakup { width: 40px; padding: 0; } .rj-breakup span { display: none; }
+		.rj-title-row h1 { font-size: 22px; line-height: 31px; }
 		.rj-price-row strong { font-size: 24px; }
+		.rj-product-meta { gap: 10px 14px; }
+		.rj-product-meta > i { display: none; }
+		.rj-meta-summary { flex-wrap: wrap; }
 		.rj-custom-section, .rj-size-guide, .rj-purchase, .rj-delivery { width: 100%; margin-left: 0; }
 		.rj-options { grid-template-columns: 1fr; height: auto; } .rj-option { height: 96px; }
 		.rj-buy-row { grid-template-columns: 112px 1fr; } .rj-share { display: none; }

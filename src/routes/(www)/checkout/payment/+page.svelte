@@ -14,6 +14,7 @@
 	import RyansJewelsPaymentPage from '$lib/theme/ryans-jewels/RyansJewelsPaymentPage.svelte'
 	import { getUserState } from '$lib/core/stores/index.js'
 	import { showAuthModal } from '$lib/core/components/index.js'
+	import { isCustomerSignedIn } from '$lib/theme/ryans-jewels/auth-gate.logic.js'
 	import { onMount } from 'svelte'
 
 	// Check if phone is required based on login type
@@ -24,12 +25,11 @@
 	const cartState = paymentModule.cartState
 	const userState = getUserState()
 	const isRyansJewels = $derived(page.data?.theme?.name === 'ryans-jewels')
-	const guestCheckoutEnabled = $derived(Boolean(page.data?.store?.plugins?.isGuestCheckout?.active))
 
 	onMount(async () => {
-		if (!isRyansJewels || guestCheckoutEnabled) return
+		if (!isRyansJewels) return
 		await userState.hasLoaded.catch(() => undefined)
-		if (userState.user?.userId || userState.user?.id) return
+		if (isCustomerSignedIn(userState.user)) return
 		const returnTo = '/checkout/payment'
 		sessionStorage.setItem('rj-auth-return-to', returnTo)
 		await goto('/checkout/cart')
