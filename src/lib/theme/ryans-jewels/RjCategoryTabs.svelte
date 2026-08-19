@@ -62,7 +62,7 @@
 		border-bottom-color: var(--rj-gold, #cca646);
 	}
 
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-tabs--lg {
 			gap: 18px;
 		}

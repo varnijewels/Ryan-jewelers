@@ -137,6 +137,13 @@
 		color: var(--rj-gold, #cca646);
 	}
 
+	/* Both tablet source frames start with Oval; Round remains in mobile/desktop. */
+	@media (min-width: 640px) and (max-width: 1100px) {
+		.rj-cut-row--one .rj-shape:first-child {
+			display: none;
+		}
+	}
+
 	@media (max-width: 1279px) {
 		.rj-cut-inner {
 			padding: 0 40px;
@@ -148,10 +155,14 @@
 	}
 
 	/* Tablet 744 — still one row, gap 25, smaller icons, 14px labels. */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-cut-inner {
-			gap: 30px;
+			gap: 25px;
 			padding: 0 44px;
+		}
+
+		.rj-cut-inner :global(.rj-rule-heading) {
+			width: calc(100% + 4px);
 		}
 
 		.rj-cut-rows {
@@ -181,6 +192,17 @@
 
 		.rj-shape-label {
 			font-size: 14px;
+		}
+	}
+
+	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
+		.rj-cut-inner {
+			gap: 40px;
+			padding: 0 24px;
+		}
+
+		.rj-cut-rows {
+			gap: 30px;
 		}
 	}
 

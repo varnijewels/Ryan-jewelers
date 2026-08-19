@@ -143,7 +143,13 @@
 	}
 
 	/* Tablet 744 — square well (63:40575). */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
+		.rj-cust-well {
+			aspect-ratio: 1;
+		}
+	}
+
+	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
 		.rj-cust-well {
 			aspect-ratio: 1;
 		}

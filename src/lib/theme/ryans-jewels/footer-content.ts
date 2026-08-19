@@ -88,8 +88,7 @@ export const footerUsps: FooterUsp[] = [
 export const ryansJewelsFooter = {
 	logo: '/ryans-jewels/logo.webp',
 	brandName: 'Ryan Jewelers',
-	description:
-		'We believe true luxury lies in exceptional craftsmanship, timeless design, and conscious choices',
+	description: 'We believe true luxury lies in exceptional craftsmanship, timeless design, and conscious choices',
 	usps: footerUsps,
 	columns: [
 		{
@@ -150,11 +149,11 @@ export const instagramStrip = {
 	/** TODO: replace with the store's real Instagram profile. */
 	href: 'https://www.instagram.com/',
 	tiles: [
-		{ src: '/ryans-jewels/instagram/tile-1.jpg', alt: 'Model wearing gold heart earrings, necklace and bracelet' },
-		{ src: '/ryans-jewels/instagram/tile-2.jpg', alt: 'Rose gold diamond rings styled on a hand' },
-		{ src: '/ryans-jewels/instagram/tile-3.jpg', alt: 'Model wearing a diamond necklace, earrings and rings' },
-		{ src: '/ryans-jewels/instagram/tile-4.jpg', alt: 'Diamond engagement ring styled on a hand' },
-		{ src: '/ryans-jewels/instagram/tile-5.jpg', alt: 'Layered gold necklaces with a circular pendant' },
-		{ src: '/ryans-jewels/instagram/tile-6.jpg', alt: 'Model wearing gold statement earrings' }
+		{ src: '/ryans-jewels/instagram/figma-1.png', alt: 'Model wearing diamond jewellery' },
+		{ src: '/ryans-jewels/instagram/figma-2.png', alt: 'Model wearing statement rings' },
+		{ src: '/ryans-jewels/instagram/figma-3.png', alt: 'Model wearing a diamond necklace' },
+		{ src: '/ryans-jewels/instagram/figma-4.png', alt: 'Model wearing diamond earrings' },
+		{ src: '/ryans-jewels/instagram/figma-5.png', alt: 'Model wearing an emerald necklace' },
+		{ src: '/ryans-jewels/instagram/figma-6.png', alt: 'Model wearing emerald jewellery' }
 	]
 }

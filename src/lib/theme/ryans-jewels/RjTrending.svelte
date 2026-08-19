@@ -229,9 +229,11 @@
 	}
 
 	/* ---- tablet 744 (63:40641) — cards keep 272, gap 20, row scrolls ---- */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-trend {
+			height: 609px;
 			padding: 40px 0;
+			overflow: hidden;
 		}
 
 		.rj-trend-head {
@@ -272,6 +274,49 @@
 
 		.rj-trend-catalog {
 			font-size: 16px;
+		}
+	}
+
+	/* 114:59358 — four 222px cards across the 1024px landscape frame. */
+	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
+		.rj-trend {
+			height: 488px;
+			margin-top: 50px;
+			padding: 0;
+			overflow: hidden;
+		}
+
+		.rj-trend-head {
+			margin-bottom: 40px;
+			padding: 0 24px;
+		}
+
+		.rj-trend-bar {
+			margin-bottom: 30px;
+			padding: 0 25px;
+		}
+
+		.rj-trend-track {
+			gap: 29px;
+			padding: 0 24px;
+			scroll-padding-left: 24px;
+		}
+
+		.rj-trend-cell {
+			flex: 0 0 222px;
+			min-width: 222px;
+		}
+
+		.rj-trend-cell :global(.rj-card) {
+			width: 222px;
+		}
+
+		.rj-trend-cell :global(.rj-card-name) {
+			display: block;
+			width: 100%;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
 		}
 	}
 

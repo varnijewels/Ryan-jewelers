@@ -107,7 +107,7 @@
 	}
 
 	/* Tablet 744 — 45×45 boxes, 22px values, 10px labels (63:40811). */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-count {
 			--box: 45px;
 			gap: 6px;

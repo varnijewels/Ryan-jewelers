@@ -347,9 +347,35 @@
 	.rj-card--listing .rj-card-price { font-size: 24px; }
 
 	/* Tablet 744 — 226 wide, media 208, price 19 (63:40199 / 63:40221). */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-card--default {
 			width: 226px;
+		}
+
+		.rj-card--default .rj-card-info {
+			width: 203px;
+			min-height: 131px;
+		}
+
+		.rj-card--default .rj-card-swatch {
+			width: 28px;
+			height: 28px;
+		}
+
+		.rj-card--default .rj-card-name {
+			display: block;
+			width: 100%;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		.rj-card--wide .rj-card-name {
+			display: block;
+			width: 100%;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
 		}
 
 		.rj-card--default .rj-card-price {

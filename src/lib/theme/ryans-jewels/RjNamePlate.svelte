@@ -276,7 +276,12 @@
 	}
 
 	/* ---- tablet 744 (63:40549) ------------------------------------------ */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
+		.rj-plate {
+			height: 790px;
+			overflow: hidden;
+		}
+
 		.rj-plate-inner {
 			flex-direction: column;
 			max-width: 744px;
@@ -322,6 +327,68 @@
 
 		.rj-plate-collection {
 			padding: 40px 25px 20px;
+		}
+
+		.rj-plate-cards {
+			justify-content: space-between;
+			gap: 14px;
+			margin-top: 29px;
+			padding-left: 0;
+		}
+	}
+
+	/* 114:59112 — stacked 330px panel and 460px product collection. */
+	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
+		.rj-plate {
+			margin-top: 50px;
+		}
+
+		.rj-plate-inner {
+			flex-direction: column;
+			min-height: 790px;
+		}
+
+		.rj-plate-arrows {
+			display: none;
+		}
+
+		.rj-plate-panel {
+			flex: none;
+			max-width: none;
+			height: 330px;
+			margin: 0 25px;
+			border-radius: 0;
+		}
+
+		.rj-plate-panel-body {
+			padding: 20px 102px;
+		}
+
+		.rj-plate-title {
+			width: 218px;
+			margin-top: 15px;
+			font-size: 17px;
+			line-height: 21px;
+		}
+
+		.rj-plate-art {
+			width: 540px;
+			aspect-ratio: 540 / 162;
+			margin-top: -5px;
+		}
+
+		.rj-plate-art-img {
+			top: -113.13%;
+		}
+
+		.rj-plate-panel-cta {
+			margin-top: -29px;
+			font-size: 22px;
+		}
+
+		.rj-plate-collection {
+			flex: 1 1 auto;
+			padding: 40px 40px 20px;
 		}
 
 		.rj-plate-cards {

@@ -450,7 +450,7 @@
 		}
 	}
 
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-admin-mega {
 			display: none;
 		}

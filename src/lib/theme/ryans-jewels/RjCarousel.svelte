@@ -20,7 +20,7 @@
 	import type { Snippet } from 'svelte'
 	import RjArrowRule from './RjArrowRule.svelte'
 
-	let { children, label = 'Products', showArrows = false }: { children: Snippet; label?: string; showArrows?: boolean } = $props()
+	let { children, label = 'Products', showArrows = false, initialOffset = 0 }: { children: Snippet; label?: string; showArrows?: boolean; initialOffset?: number } = $props()
 
 	/** role="scrollbar" requires aria-controls, so each track needs its own id. */
 	const trackId = `rj-carousel-${nextCarouselId()}`
@@ -47,11 +47,20 @@
 
 	$effect(() => {
 		if (!track) return
+		const landscape = window.matchMedia('(min-width: 768px) and (max-width: 1100px) and (orientation: landscape)')
+		const setInitialOffset = () => {
+			if (track) track.scrollLeft = landscape.matches ? initialOffset : 0
+		}
+		setInitialOffset()
 		readMetrics()
 		const ro = new ResizeObserver(readMetrics)
 		ro.observe(track)
 		for (const child of Array.from(track.children)) ro.observe(child)
-		return () => ro.disconnect()
+		landscape.addEventListener('change', setInitialOffset)
+		return () => {
+			ro.disconnect()
+			landscape.removeEventListener('change', setInitialOffset)
+		}
 	})
 
 	/** Map a pointer position on the rail to a scroll offset and jump there. */
@@ -98,12 +107,13 @@
 	{#if showArrows}
 		<div class="rj-carousel-arrows"><RjArrowRule gap={20} onprevious={() => scrollProducts(-1)} onnext={() => scrollProducts(1)} previousDisabled={atStart} nextDisabled={atEnd} /></div>
 	{/if}
+	<!-- svelte-ignore a11y_no_noninteractive_tabindex (Scrollable region needs keyboard focus.) -->
 	<div
 		class="rj-carousel-track"
 		id={trackId}
 		bind:this={track}
 		onscroll={readMetrics}
-		role="group"
+		role="region"
 		aria-label={label}
 		tabindex="0"
 	>
@@ -200,7 +210,7 @@
 	}
 
 	/* Tablet 744 — card gap 20, rail 30 below the track (63:40432). */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-carousel-arrows { top: -30px; }
 		.rj-carousel-track {
 			gap: var(--rj-track-gap, 20px);
@@ -209,6 +219,17 @@
 		.rj-carousel-rail {
 			height: 2px;
 			margin-top: 30px;
+		}
+	}
+
+	/* Landscape frames place the rail over the bottom edge of the fixed-height track. */
+	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
+		.rj-carousel-rail {
+			position: absolute;
+			right: var(--rj-rail-end, 0px);
+			bottom: 0;
+			left: var(--rj-rail-start, 0px);
+			margin: 0;
 		}
 	}
 

@@ -92,10 +92,17 @@
 		max-width: none;
 	}
 
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-chat {
 			right: 25px;
-			bottom: 30px;
+			bottom: 16px;
+		}
+	}
+
+	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
+		.rj-chat {
+			right: 25px;
+			bottom: 25px;
 		}
 	}
 

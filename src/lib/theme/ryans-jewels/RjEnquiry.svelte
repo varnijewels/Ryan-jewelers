@@ -453,10 +453,12 @@
 	}
 
 	/* ---- tablet 744 (63:40742) ------------------------------------------ */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-enq {
+			height: 605px;
 			min-height: 0;
 			padding: 0;
+			overflow: hidden;
 		}
 
 		.rj-enq-plate {
@@ -524,6 +526,106 @@
 		}
 
 		/* 63:40772 — wells and submit share one row on tablet. */
+		.rj-enq-actions {
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
+			gap: 20px;
+			margin-top: 2px;
+		}
+
+		.rj-enq-uploads {
+			align-self: auto;
+		}
+
+		.rj-enq-well {
+			width: 48px;
+			height: 48px;
+			padding: 10px;
+		}
+
+		.rj-enq-add {
+			width: 26px;
+			height: 26px;
+		}
+
+		.rj-enq-submit {
+			padding: 8px 24px;
+			border-radius: 6px;
+			font-size: 20px;
+			font-weight: 400;
+			letter-spacing: 0.1px;
+		}
+	}
+
+	/* 114:59464 — compact single-column tablet form at the wider canvas. */
+	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
+		.rj-enq {
+			height: 605px;
+			min-height: 0;
+			margin-top: 50px;
+			padding: 0;
+			overflow: hidden;
+		}
+
+		.rj-enq-plate {
+			inset: 0;
+			width: 100%;
+			height: 100%;
+			max-width: 100%;
+			object-fit: cover;
+			transform: none;
+		}
+
+		.rj-enq-inner {
+			padding: 60px 25px;
+		}
+
+		.rj-enq-head {
+			margin-bottom: 25px;
+		}
+
+		.rj-enq-mark {
+			display: none;
+		}
+
+		.rj-enq-cluster {
+			display: block;
+		}
+
+		.rj-enq-title {
+			font-size: 25px;
+		}
+
+		.rj-enq-sub,
+		.rj-enq-label,
+		.rj-enq-input {
+			font-size: 14px;
+		}
+
+		.rj-enq-form,
+		.rj-enq-row {
+			gap: 20px;
+		}
+
+		.rj-enq-row {
+			flex-direction: column;
+		}
+
+		.rj-enq-field {
+			gap: 8px;
+		}
+
+		.rj-enq-input {
+			height: 55px;
+			padding: 18px 21px;
+		}
+
+		.rj-enq-textarea {
+			height: 72px;
+			padding-bottom: 25px;
+		}
+
 		.rj-enq-actions {
 			flex-direction: row;
 			align-items: center;

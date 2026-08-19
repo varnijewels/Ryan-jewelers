@@ -241,9 +241,9 @@
 	}
 
 	/* ---- tablet 744 (63:40625) — full-bleed, 202 tall ------------------- */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-banner {
-			padding: 40px 0;
+			padding: 40px 0 0;
 		}
 
 		.rj-banner-card {
@@ -302,6 +302,69 @@
 		.rj-banner-cutout {
 			width: 273px;
 			height: 202px;
+		}
+	}
+
+	/* 114:59297 — 974×247 inset landscape banner. */
+	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
+		.rj-banner {
+			padding: 50px 25px 0;
+		}
+
+		.rj-banner-card {
+			height: 247px;
+			justify-content: flex-start;
+		}
+
+		.rj-banner-row {
+			justify-content: space-between;
+			gap: 24px;
+		}
+
+		.rj-banner-text {
+			gap: 20px;
+			padding: 5px 0;
+		}
+
+		.rj-banner-copy {
+			gap: 12px;
+		}
+
+		.rj-banner-lines {
+			gap: 9px;
+		}
+
+		.rj-banner-eyebrow {
+			font-size: 14px;
+			line-height: normal;
+		}
+
+		.rj-banner-heading {
+			max-width: 420px;
+			font-size: 24px;
+			line-height: normal;
+		}
+
+		.rj-banner-sub {
+			font-size: 14px;
+		}
+
+		.rj-banner-cta {
+			gap: 7px;
+			padding: 8px 14px;
+			font-size: 14px;
+			font-weight: 400;
+			line-height: normal;
+		}
+
+		.rj-banner-cta img {
+			width: 20px;
+			height: 20px;
+		}
+
+		.rj-banner-cutout {
+			width: 335px;
+			height: 247px;
 		}
 	}
 

@@ -23,7 +23,6 @@
 	import RjTrending from './RjTrending.svelte'
 	import RjEnquiry from './RjEnquiry.svelte'
 	import RjFaq from './RjFaq.svelte'
-	import RjInstagram from './RjInstagram.svelte'
 	import { onMount } from 'svelte'
 	import { reveal } from '$lib/core/actions/reveal.js'
 
@@ -117,11 +116,11 @@
 	<!-- 16a — Instagram strip (1:6323 / 63:40958 / 77:107699).
 	     16b — the footer itself is global; see RyansJewelsFooter, wired from
 	     src/lib/components/common/footer.svelte. -->
-	<RjInstagram />
 </div>
 
 <style>
 	.rj-home {
+		--rj-tablet-gutter: 25px;
 		width: 100%;
 		background: #fff;
 	}
@@ -160,9 +159,13 @@
 	}
 
 	/* Tablet: hero ends 620, counter 655, trust 696, heading 762. */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
+		.rj-hero-wrap {
+			margin-top: 5px;
+		}
+
 		.rj-band-inner {
-			padding: 0 40px;
+			padding: 0 var(--rj-tablet-gutter);
 		}
 
 		.rj-band--trust {
@@ -171,7 +174,136 @@
 
 		.rj-band--cut {
 			padding-top: 40px;
-			padding-bottom: 30px;
+			padding-bottom: 32px;
+		}
+	}
+
+	/* Keep every tablet-portrait section fluid instead of centring a fixed 744px canvas. */
+	@media (min-width: 640px) and (max-width: 1100px) and (orientation: portrait) {
+		.rj-home :global(.rj-passion-inner),
+		.rj-home :global(.rj-bestsellers-inner),
+		.rj-home :global(.rj-plate-inner),
+		.rj-home :global(.rj-look-inner),
+		.rj-home :global(.rj-trend-head),
+		.rj-home :global(.rj-trend-bar),
+		.rj-home :global(.rj-trend-track),
+		.rj-home :global(.rj-enq-inner),
+		.rj-home :global(.rj-faq-inner),
+		.rj-home :global(.rj-ig-inner) {
+			max-width: none;
+		}
+
+		.rj-home :global(.rj-passion-inner) {
+			left: 0;
+			padding-right: var(--rj-tablet-gutter);
+			padding-left: var(--rj-tablet-gutter);
+		}
+
+		.rj-home :global(.rj-passion-text),
+		.rj-home :global(.rj-passion-stats) {
+			max-width: none;
+		}
+
+		.rj-home :global(.rj-passion-media) {
+			margin-left: 0;
+		}
+
+		.rj-home :global(.rj-bestsellers-inner) {
+			padding-left: var(--rj-tablet-gutter);
+			--rj-track-start: 0px;
+			--rj-track-end: var(--rj-tablet-gutter);
+			--rj-rail-end: var(--rj-tablet-gutter);
+		}
+
+		.rj-home :global(.rj-bestsellers-head) {
+			padding-right: var(--rj-tablet-gutter);
+		}
+
+		.rj-home :global(.rj-cut-inner),
+		.rj-home :global(.rj-look-inner),
+		.rj-home :global(.rj-trend-head),
+		.rj-home :global(.rj-trend-bar),
+		.rj-home :global(.rj-trend-track),
+		.rj-home :global(.rj-enq-inner),
+		.rj-home :global(.rj-faq-inner) {
+			padding-right: var(--rj-tablet-gutter);
+			padding-left: var(--rj-tablet-gutter);
+		}
+
+		.rj-home :global(.rj-row-track) {
+			padding-left: 0;
+		}
+
+		.rj-home :global(.rj-plate-collection) {
+			padding-right: var(--rj-tablet-gutter);
+			padding-left: var(--rj-tablet-gutter);
+		}
+
+		.rj-home :global(.rj-trend-track) {
+			scroll-padding-left: var(--rj-tablet-gutter);
+		}
+
+		.rj-home :global(.rj-faq-list) {
+			margin-left: 0;
+		}
+
+		.rj-home :global(.rj-ig) {
+			padding-right: var(--rj-tablet-gutter);
+			padding-left: var(--rj-tablet-gutter);
+		}
+
+		.rj-home :global(.rj-passion-stats) {
+			width: 100%;
+			padding-right: 0;
+			padding-left: 0;
+		}
+	}
+
+	/* Tablet landscape 114:58617 keeps a 24px content gutter. */
+	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
+		.rj-band-inner {
+			padding: 0 var(--rj-tablet-gutter);
+		}
+
+		.rj-band--trust .rj-band-inner {
+			padding: 0 var(--rj-tablet-gutter);
+		}
+
+		.rj-band--trust {
+			padding-top: 25px;
+		}
+
+		.rj-band--cut {
+			padding-top: 50px;
+			padding-bottom: 50px;
+		}
+
+		.rj-band--products {
+			padding-bottom: 50px;
+		}
+
+		.rj-home :global(.rj-passion-inner),
+		.rj-home :global(.rj-cut-inner),
+		.rj-home :global(.rj-plate-collection),
+		.rj-home :global(.rj-look-inner),
+		.rj-home :global(.rj-trend-head),
+		.rj-home :global(.rj-trend-bar),
+		.rj-home :global(.rj-trend-track),
+		.rj-home :global(.rj-enq-inner),
+		.rj-home :global(.rj-faq-inner) {
+			padding-right: var(--rj-tablet-gutter);
+			padding-left: var(--rj-tablet-gutter);
+		}
+
+		.rj-home :global(.rj-ig) {
+			padding-right: var(--rj-tablet-gutter);
+			padding-left: var(--rj-tablet-gutter);
+		}
+
+		.rj-home :global(.rj-passion-stats) {
+			width: 100%;
+			padding-right: 0;
+			padding-left: 0;
 		}
 	}
 

@@ -54,7 +54,7 @@
 	}
 
 	/* Tablet 744 — 51.15×65.09 (63:40554). */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-cluster:not(.is-sized) {
 			width: 51.15px;
 			height: 65.09px;

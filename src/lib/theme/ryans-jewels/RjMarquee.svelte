@@ -154,7 +154,11 @@
 	}
 
 	/* Tablet 744 — shapes 26/38 text, 16px 35px pad; taglines 24/39, 16px 28px. */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
+		.rj-mq--taglines {
+			margin-top: 40px;
+		}
+
 		.rj-mq--shapes .rj-mq-group {
 			padding-top: 16px;
 			padding-bottom: 16px;
@@ -182,7 +186,31 @@
 		}
 
 		.rj-mq-star--sparkle {
-			height: 46px;
+			height: 49px;
+		}
+	}
+
+	/* 114:58957 — landscape tablet keeps the desktop artwork at a 72px strip. */
+	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
+		.rj-mq--taglines {
+			margin-top: 50px;
+		}
+
+		.rj-mq--shapes .rj-mq-group {
+			padding-top: 16px;
+			padding-bottom: 16px;
+		}
+
+		.rj-mq--shapes .rj-mq-group:first-child {
+			padding-left: 35px;
+		}
+
+		.rj-mq--shapes .rj-mq-text {
+			font-size: 21px;
+		}
+
+		.rj-mq--shapes .rj-mq-star {
+			height: 40px;
 		}
 	}
 

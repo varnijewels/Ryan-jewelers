@@ -48,7 +48,7 @@
 
 		{#if items.length}
 			{#key activeCategory}
-				<RjCarousel label={title} showArrows>
+				<RjCarousel label={title} showArrows initialOffset={300.5}>
 					{#each items as product (product?.id || product?.slug)}
 						<RjCarouselCard {product} />
 					{/each}
@@ -148,7 +148,7 @@
 	}
 
 	/* Tablet 744 — 25 gutters, head 30 above the track, cards inset 10 (63:40324). */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-bestsellers {
 			padding: 40px 0;
 		}
@@ -173,6 +173,31 @@
 		.rj-bestsellers-skeleton {
 			width: 261px;
 			height: 311px;
+		}
+	}
+
+	/* 114:59005 — 25px start gutter, 285×395 cards and no outer section padding. */
+	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
+		.rj-bestsellers {
+			margin-top: 50px;
+			padding: 0;
+			overflow: hidden;
+		}
+
+		.rj-bestsellers-inner {
+			padding-left: 25px;
+			--rj-track-end: 25px;
+			--rj-rail-end: 25px;
+		}
+
+		.rj-bestsellers-head {
+			width: 1318px;
+			padding-right: 0;
+			margin-bottom: 50px;
+		}
+
+		.rj-bestsellers :global(.rj-carousel-track) {
+			scroll-snap-type: none;
 		}
 	}
 

@@ -608,7 +608,7 @@
 	}
 
 	.rj-utility-link--gift {
-		display: none;
+		display: flex;
 	}
 
 	.rj-utility-link:hover {
@@ -1397,7 +1397,7 @@
 
 	/* ------------------------------ tablet 744 ---------------------------- */
 
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-utility-inner {
 			min-height: 56px;
 			padding: 17px 40px;
@@ -1425,6 +1425,7 @@
 
 		.rj-header {
 			min-height: 125px;
+			border-bottom: 0;
 		}
 
 		.rj-header-inner {
@@ -1530,6 +1531,36 @@
 
 		.rj-row-menu {
 			display: none;
+		}
+	}
+
+	/* Tablet landscape 114:58524 — desktop structure with 1024px geometry. */
+	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
+		.rj-utility-inner {
+			padding-left: 61px;
+			padding-right: 61px;
+		}
+
+		.rj-header-inner {
+			padding-left: 25px;
+			padding-right: 25px;
+		}
+
+		.rj-brand-mark {
+			width: 32px;
+			height: 30px;
+		}
+
+		.rj-brand-name {
+			font-size: 22px;
+		}
+
+		.rj-menu {
+			gap: 12px;
+		}
+
+		.rj-menu-list {
+			gap: 20px;
 		}
 	}
 

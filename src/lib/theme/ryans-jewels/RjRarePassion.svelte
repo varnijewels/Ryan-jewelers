@@ -75,10 +75,10 @@
 
 <style>
 	/* ---- section shell -------------------------------------------------- */
-	/* 1:5871 — full-bleed #fafafa band, 686 tall at 1440. */
+	/* 1:5871 — full-bleed white band, 686 tall at 1440. */
 	.rj-passion {
 		width: 100%;
-		background: #fafafa;
+		background: #fff;
 	}
 
 	/*
@@ -306,12 +306,12 @@
 	}
 
 	/* ---- tablet 744 (63:40291) ------------------------------------------ */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-passion-inner {
 			flex-direction: column;
 			align-items: center;
 			gap: 25px;
-			padding: 40px 15px;
+			padding: 26.5px 15px 0;
 			max-width: 744px;
 		}
 
@@ -343,13 +343,13 @@
 			line-height: 25px;
 		}
 
-		/* Card is inset 11.97 from the left so the hexagon lands on the gutter. */
+		/* Keep the card and badge inside the shared tablet gutter. */
 		.rj-passion-media {
 			flex: none;
 			max-width: none;
 			align-self: stretch;
 			margin-left: 11.97px;
-			padding-bottom: 15px;
+			padding-bottom: 0;
 		}
 
 		.rj-passion-card {
@@ -361,7 +361,7 @@
 		}
 
 		.rj-passion-badge {
-			left: -11.97px;
+			left: 0;
 			width: 103.447px;
 			height: 102px;
 		}
@@ -375,6 +375,106 @@
 
 		.rj-passion-stat {
 			gap: 16px;
+		}
+
+		.rj-passion-stat-icon {
+			width: var(--tw);
+			height: var(--th);
+		}
+
+		.rj-passion-stat-value {
+			font-size: 30px;
+			line-height: 17px;
+		}
+	}
+
+	@media (min-width: 640px) and (max-width: 1100px) and (orientation: portrait) {
+		.rj-passion-inner {
+			position: relative;
+			left: -4px;
+			padding-right: 16px;
+		}
+
+		.rj-passion-stats {
+			margin-top: 5px;
+		}
+	}
+
+	@media (min-width: 940px) and (max-width: 1100px) and (orientation: portrait) {
+		.rj-passion-stats {
+			justify-content: center;
+			gap: 150px;
+		}
+	}
+
+	/* 114:58972 — 1024 landscape is the same stacked composition, wider and 794px tall. */
+	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
+		.rj-passion {
+			height: 794px;
+			margin-top: 50px;
+		}
+
+		.rj-passion-inner {
+			flex-direction: column;
+			align-items: center;
+			gap: 50px;
+			padding: 0 26px;
+		}
+
+		.rj-passion-col {
+			display: contents;
+		}
+
+		.rj-passion-text {
+			width: 100%;
+			gap: 10px;
+		}
+
+		.rj-passion-copy {
+			gap: 16px;
+		}
+
+		.rj-passion-lead,
+		.rj-passion-body {
+			line-height: 25px;
+		}
+
+		.rj-passion-media {
+			flex: none;
+			max-width: none;
+			align-self: stretch;
+			padding-bottom: 0;
+		}
+
+		.rj-passion-card {
+			aspect-ratio: 972 / 415;
+		}
+
+		.rj-passion-badge {
+			left: 7px;
+			width: 82.259px;
+			height: 86px;
+		}
+
+		.rj-passion-badge-value {
+			font-size: 24px;
+			line-height: 27px;
+		}
+
+		.rj-passion-badge-label {
+			font-size: 20px;
+			line-height: 28px;
+		}
+
+		.rj-passion-stats {
+			width: calc(100% + 52px);
+			justify-content: space-between;
+			gap: 0;
+			padding: 0 80px;
+		}
+
+		.rj-passion-stat {
+			gap: 12px;
 		}
 
 		.rj-passion-stat-icon {
@@ -414,7 +514,7 @@
 		.rj-passion-media {
 			margin-left: 6.413px;
 			margin-bottom: 5px;
-			padding-bottom: 7.92px;
+			padding-bottom: 0;
 		}
 
 		.rj-passion-card {

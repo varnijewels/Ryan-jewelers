@@ -35,6 +35,9 @@
 	import LimelightNav from '$lib/theme/limelight/LimelightNav.svelte'
 	import BorisAndTwinsNav from '$lib/theme/boris-and-twins/BorisAndTwinsNav.svelte'
 	import RyansJewelsNav from '$lib/theme/ryans-jewels/RyansJewelsNav.svelte'
+	import RjTabletLabMenu from '$lib/theme/ryans-jewels/RjTabletLabMenu.svelte'
+	import { menuChildren, menuHref, menuLabel, tabletMenuView, type AdminMenuItem } from '$lib/theme/ryans-jewels/admin-menu.js'
+	import { ryansJewelsNavContent as ryanNav } from '$lib/theme/ryans-jewels/nav-content.js'
 
 	const wishlistState = getWishlistState()
 	const wishlistPlugin = $derived(page?.data?.store?.plugins?.isWishlist)
@@ -48,6 +51,14 @@
 		if (!navModule.openSidebar || !ownsSidebarHistoryEntry) return
 		ownsSidebarHistoryEntry = false
 		navModule.openSidebar = false
+	}
+
+	function navigateFromSidebar(href: string) {
+		const replaceSidebarEntry = ownsSidebarHistoryEntry && history.state?.[sidebarHistoryKey] === true
+		ownsSidebarHistoryEntry = false
+		navModule.openSidebar = false
+		if (replaceSidebarEntry) window.location.replace(href)
+		else window.location.assign(href)
 	}
 
 	onMount(() => {
@@ -64,7 +75,11 @@
 		} else if (!navModule.openSidebar && ownsSidebarHistoryEntry) {
 			const isCurrentSidebarEntry = history.state?.[sidebarHistoryKey] === true
 			ownsSidebarHistoryEntry = false
-			if (isCurrentSidebarEntry) history.back()
+			if (isCurrentSidebarEntry) {
+				setTimeout(() => {
+					if (!ownsSidebarHistoryEntry && history.state?.[sidebarHistoryKey] === true) history.back()
+				})
+			}
 		}
 	})
 
@@ -87,6 +102,58 @@
 
 	const activeThemeName = $derived(page.data?.theme?.name ?? 'default')
 	const storeData = $derived(page?.data?.store ?? {})
+	let ryanSidebarView = $state<'root' | 'lab' | 'all-diamond' | 'earrings'>('root')
+	const ryanServerMegaMenu = $derived((page.data as any)?.navigation?.megaMenu as AdminMenuItem[] | undefined)
+	const ryanStoreHeaderMenu = $derived(
+		((page.data as any)?.store?.menu?.find((menu: any) => menu.menuId === 'header')?.items || []) as AdminMenuItem[]
+	)
+	function uniqueRyanItems(items: AdminMenuItem[]) {
+		return items.filter(
+			(item, index) => items.findIndex((candidate) => (candidate.id && candidate.id === item.id) || menuLabel(candidate) === menuLabel(item)) === index
+		)
+	}
+	const ryanMegaCategories = $derived(
+		uniqueRyanItems([...(ryanServerMegaMenu || []), ...(navModule.megaMenu || [])] as AdminMenuItem[])
+	)
+	const ryanHeaderItems = $derived(
+		uniqueRyanItems([...(ryanStoreHeaderMenu || []), ...(navModule.navMenu || [])] as AdminMenuItem[])
+	)
+	const ryanAllMenuItems = $derived(uniqueRyanItems([...ryanMegaCategories, ...ryanHeaderItems]))
+	function findRyanLabCategory(items: AdminMenuItem[]): AdminMenuItem | null {
+		for (const item of items) {
+			if (/lab grown diamond/i.test(menuLabel(item) || '')) return item
+			const nested = findRyanLabCategory(menuChildren(item))
+			if (nested) return nested
+		}
+		return null
+	}
+	const ryanLabCategory = $derived(
+		findRyanLabCategory(ryanMegaCategories)
+	)
+	const ryanAllDiamondCategory = $derived(
+		ryanMegaCategories.find((item) => /^all\s+diamond\s+jewel(?:lery|ry)$/i.test(menuLabel(item)?.trim() || '')) || null
+	)
+	const ryanEarringsCategory = $derived(
+		ryanAllMenuItems.find((item) => /^earrings?$/i.test(menuLabel(item)?.trim() || '')) || null
+	)
+	const ryanHomeItem = $derived(ryanAllMenuItems.find((item) => /^home$/i.test(menuLabel(item) || '')) || null)
+	const ryanOfferItem = $derived(ryanAllMenuItems.find((item) => /best offers?|offers?/i.test(menuLabel(item) || '')) || null)
+	const ryanSidebarItems = $derived([
+		{
+			label: ryanHomeItem ? menuLabel(ryanHomeItem) || 'Home' : 'Home',
+			href: ryanHomeItem ? menuHref(ryanHomeItem) : '/',
+			arrow: false
+		},
+		...uniqueRyanItems([...ryanMegaCategories, ...ryanHeaderItems].filter((item) => item !== ryanHomeItem && item !== ryanOfferItem)).map((item) => ({
+			label: menuLabel(item) || '',
+			href: menuHref(item),
+			arrow: ryanMegaCategories.includes(item) || menuChildren(item).length > 0
+		}))
+	].filter((item) => item.label))
+
+	$effect(() => {
+		if (!navModule.openSidebar) ryanSidebarView = 'root'
+	})
 </script>
 
 <svelte:window bind:scrollY={navModule.scrollY} />
@@ -258,10 +325,105 @@
 			<span class="sr-only">Close sidebar</span>
 		</div>
 		<div
-			in:fly={{ x: -320, duration: 300, easing: cubicOut }}
-			out:fly={{ x: -320, duration: 300, easing: cubicOut }}
-			class="relative z-[60] flex h-full w-full max-w-[300px] flex-col overflow-hidden border-r border-gray-100 bg-white text-foreground shadow-2xl"
+			in:fly={{ x: activeThemeName === 'ryans-jewels' ? -560 : -320, duration: 300, easing: cubicOut }}
+			out:fly={{ x: activeThemeName === 'ryans-jewels' ? -560 : -320, duration: 300, easing: cubicOut }}
+			class={activeThemeName === 'ryans-jewels'
+				? `rj-tablet-menu${ryanSidebarView !== 'root' ? ' rj-tablet-menu--lab' : ''}`
+				: 'relative z-[60] flex h-full w-full max-w-[300px] flex-col overflow-hidden border-r border-gray-100 bg-white text-foreground shadow-2xl'}
 		>
+			{#if activeThemeName === 'ryans-jewels'}
+				{#if ryanSidebarView === 'lab'}
+					{#if ryanLabCategory}
+						<RjTabletLabMenu
+							category={ryanLabCategory}
+							open={navModule.openSidebar}
+							onBack={() => (ryanSidebarView = 'root')}
+							onClose={() => (navModule.openSidebar = false)}
+						/>
+					{:else}
+						<div class="rj-tablet-menu-loading" role="status">Loading navigation…</div>
+					{/if}
+				{:else if ryanSidebarView === 'all-diamond'}
+					{#if ryanAllDiamondCategory}
+						<RjTabletLabMenu
+							category={ryanAllDiamondCategory}
+							fallbackItems={ryanMegaCategories}
+							variant="all-diamond"
+							open={navModule.openSidebar}
+							onBack={() => (ryanSidebarView = 'root')}
+							onClose={() => (navModule.openSidebar = false)}
+						/>
+					{:else}
+						<div class="rj-tablet-menu-loading" role="status">Loading navigation…</div>
+					{/if}
+				{:else if ryanSidebarView === 'earrings'}
+					{#if ryanEarringsCategory}
+						<RjTabletLabMenu
+							category={ryanEarringsCategory}
+							variant="earrings"
+							open={navModule.openSidebar}
+							onBack={() => (ryanSidebarView = 'root')}
+							onClose={() => (navModule.openSidebar = false)}
+						/>
+					{:else}
+						<div class="rj-tablet-menu-loading" role="status">Loading navigation…</div>
+					{/if}
+				{:else}
+				<div class="rj-tablet-menu-header">
+					<a class="rj-tablet-menu-brand" href="/" onclick={() => (navModule.openSidebar = false)} aria-label="Ryan Jewelers home">
+						<span class="rj-tablet-menu-logo"><img src="/ryans-jewels/navigation/tablet-menu-logo.png" alt="" /></span>
+						<span>{storeData?.name || ryanNav.brandName}</span>
+					</a>
+					<button class="rj-tablet-menu-close" type="button" aria-label="Close menu" onclick={() => (navModule.openSidebar = false)}>
+						<img src="/ryans-jewels/navigation/tablet-menu-close.svg" alt="" />
+					</button>
+				</div>
+				<span class="rj-tablet-menu-divider" aria-hidden="true"></span>
+
+				<nav class="rj-tablet-menu-nav" aria-label="Main navigation">
+					<ul>
+						{#each ryanSidebarItems as item}
+							<li>
+								{#if tabletMenuView(item.label)}
+									<button
+										class="rj-tablet-menu-item"
+										type="button"
+										onclick={() => {
+											if (window.matchMedia('(min-width: 640px)').matches) {
+												ryanSidebarView = tabletMenuView(item.label) || 'root'
+											} else {
+												navigateFromSidebar(item.href)
+											}
+										}}
+									>
+										<span>{item.label}</span>
+										<img src="/ryans-jewels/navigation/tablet-menu-arrow.svg" alt="" aria-hidden="true" />
+									</button>
+								{:else}
+									<a class="rj-tablet-menu-item" href={item.href} onclick={() => (navModule.openSidebar = false)}>
+										<span>{item.label}</span>
+										{#if item.arrow}<img src="/ryans-jewels/navigation/tablet-menu-arrow.svg" alt="" aria-hidden="true" />{/if}
+									</a>
+								{/if}
+							</li>
+						{/each}
+					</ul>
+
+					{#if ryanOfferItem}
+						<a class="rj-tablet-menu-offer" href={menuHref(ryanOfferItem)} onclick={() => (navModule.openSidebar = false)}>
+							<span class="rj-tablet-menu-offer-label">
+								<span class="rj-tablet-menu-gift" aria-hidden="true">
+									<img class="rj-tablet-menu-gift-base" src="/ryans-jewels/navigation/tablet-menu-gift.png" alt="" />
+									<img class="rj-tablet-menu-gift-fold" src="/ryans-jewels/navigation/tablet-menu-gift.png" alt="" />
+								</span>
+								<span>{menuLabel(ryanOfferItem)}</span>
+							</span>
+							<img class="rj-tablet-menu-offer-arrow" src="/ryans-jewels/navigation/tablet-menu-arrow.svg" alt="" aria-hidden="true" />
+						</a>
+					{/if}
+				</nav>
+				{/if}
+			{:else}
 			<!-- Header -->
 			<div class="flex items-center justify-between border-b border-gray-100 px-5 py-4">
 				<a href="/" class="flex items-center gap-2" onclick={() => (navModule.openSidebar = false)}>
@@ -557,6 +719,7 @@
 					</div>
 				</div>
 			{/if}
+			{/if}
 		</div>
 	</aside>
 {/if}
@@ -564,6 +727,210 @@
 <AuthModal bind:show={navModule.showAuthModal} />
 
 <style>
+	.rj-tablet-menu {
+		position: relative;
+		z-index: 60;
+		flex: none;
+		width: min(560px, 100vw);
+		height: 100%;
+		overflow: hidden;
+		border-radius: 0 10px 10px 0;
+		background: #fff;
+		box-shadow: -23px 20px 34px 11px rgba(22, 24, 38, 0.5);
+		color: #404040;
+		font-family: 'Sarala', sans-serif;
+	}
+
+	.rj-tablet-menu--lab {
+		align-self: flex-start;
+		height: auto;
+		max-height: 100%;
+		box-shadow: -23px 20px 34px 11px rgba(22, 24, 40, 0.3);
+	}
+
+	.rj-tablet-menu-loading {
+		display: grid;
+		height: 100%;
+		place-items: center;
+		color: #606060;
+		font-size: 16px;
+	}
+
+	.rj-tablet-menu-header {
+		position: absolute;
+		top: 24px;
+		left: 30px;
+		right: 30px;
+		display: flex;
+		height: 46px;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.rj-tablet-menu-brand {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		color: #cca646;
+		font-family: 'Inria Serif', serif;
+		font-size: 22px;
+		font-weight: 400;
+		line-height: normal;
+		text-decoration: none;
+		white-space: nowrap;
+	}
+
+	.rj-tablet-menu-logo {
+		position: relative;
+		display: block;
+		width: 32px;
+		height: 30px;
+		flex: none;
+		overflow: hidden;
+	}
+
+	.rj-tablet-menu-logo img {
+		position: absolute;
+		top: -39%;
+		left: -59.69%;
+		width: 206.72%;
+		height: 221.3%;
+		max-width: none;
+	}
+
+	.rj-tablet-menu-close {
+		display: flex;
+		width: 26px;
+		height: 26px;
+		align-items: center;
+		justify-content: center;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		cursor: pointer;
+	}
+
+	.rj-tablet-menu-close img {
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
+	.rj-tablet-menu-divider {
+		position: absolute;
+		top: 95px;
+		left: 20px;
+		right: 20px;
+		height: 1px;
+		background: #c2c2c2;
+	}
+
+	.rj-tablet-menu-nav {
+		position: absolute;
+		top: 126px;
+		left: 30px;
+		right: 30px;
+		height: 494px;
+	}
+
+	.rj-tablet-menu-nav ul {
+		display: flex;
+		flex-direction: column;
+		gap: 22px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.rj-tablet-menu-nav li,
+	.rj-tablet-menu-item {
+		height: 34px;
+	}
+
+	.rj-tablet-menu-item,
+	.rj-tablet-menu-offer {
+		display: flex;
+		width: 100%;
+		align-items: center;
+		justify-content: space-between;
+		color: #404040;
+		font-size: 21px;
+		font-weight: 400;
+		line-height: normal;
+		text-decoration: none;
+	}
+
+	button.rj-tablet-menu-item {
+		padding: 0;
+		border: 0;
+		background: transparent;
+		font-family: inherit;
+		text-align: left;
+		cursor: pointer;
+	}
+
+	.rj-tablet-menu-item > img,
+	.rj-tablet-menu-offer-arrow {
+		display: block;
+		width: 24px;
+		height: 24px;
+		flex: none;
+	}
+
+	.rj-tablet-menu-offer {
+		height: 31px;
+		margin-top: 22px;
+		line-height: 31px;
+	}
+
+	.rj-tablet-menu-offer-label {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		white-space: nowrap;
+	}
+
+	.rj-tablet-menu-gift {
+		position: relative;
+		display: block;
+		width: 36px;
+		height: 31px;
+		flex: none;
+	}
+
+	.rj-tablet-menu-gift img {
+		position: absolute;
+		object-fit: cover;
+	}
+
+	.rj-tablet-menu-gift-base {
+		top: 0;
+		left: 0;
+		width: 27px;
+		height: 31px;
+	}
+
+	.rj-tablet-menu-gift-fold {
+		top: 12px;
+		left: 19px;
+		width: 17px;
+		height: 19px;
+		transform: rotate(180deg) scaleY(-1);
+	}
+
+	.rj-tablet-menu a:hover,
+	.rj-tablet-menu a:focus-visible,
+	.rj-tablet-menu-item:hover,
+	.rj-tablet-menu-item:focus-visible {
+		color: #cca646;
+	}
+
+	.rj-tablet-menu button:focus-visible,
+	.rj-tablet-menu a:focus-visible {
+		outline: 2px solid #cca646;
+		outline-offset: 3px;
+	}
+
 	.minimum-width-rem {
 		min-width: 360px;
 	}

@@ -12,8 +12,16 @@ export type AdminMenuItem = {
 }
 
 export const menuLabel = (item: AdminMenuItem) => item.name || item.label
-export const menuHref = (item: AdminMenuItem) => item.link || item.href || (item.slug ? `/${item.slug}` : '/products')
+export const menuHref = (item: AdminMenuItem) => item.link || item.href || (item.slug ? (item.slug === 'home' ? '/' : `/categories/${encodeURIComponent(item.slug)}`) : '/products')
 export const menuChildren = (item: AdminMenuItem) => item.children || item.items || []
+export const tabletMenuView = (label = '') =>
+	/lab grown diamond/i.test(label)
+		? 'lab'
+		: /^all\s+diamond\s+jewel(?:lery|ry)$/i.test(label.trim())
+			? 'all-diamond'
+			: /^earrings?$/i.test(label.trim())
+				? 'earrings'
+				: null
 export const isCollectionGroup = (item: AdminMenuItem) => /^brows(?:e|er)? by collection$/i.test(menuLabel(item)?.trim() || '')
 export const menuGroups = (item: AdminMenuItem) => {
 	const groups = [...menuChildren(item)]

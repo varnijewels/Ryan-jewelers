@@ -2,7 +2,6 @@
 	import { page } from '$app/state'
 	import { formatPrice } from '$lib/core/utils/index.js'
 	import { CartModule } from '$lib/core/composables/index.js'
-	import RjInstagram from './RjInstagram.svelte'
 	import { cardCvvError, cardExpiryError, cardNameError, cardNumberError, formatCardExpiry, formatCardNumber, validatePaymentCard } from './payment-card.logic.js'
 
 	let { paymentModule, cartState }: { paymentModule: any; cartState: any } = $props()
@@ -305,7 +304,6 @@
 			</div>
 	</div>
 
-	<RjInstagram />
 </section>
 
 <style>

@@ -282,7 +282,7 @@
 	}
 
 	/* ---- tablet 744 (63:40782) — copy row on top, accordion beneath ----- */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-faq {
 			padding: 40px 0;
 			background: #fff;
@@ -294,13 +294,15 @@
 
 		.rj-faq-inner {
 			flex-direction: column;
-			gap: 9px;
+			gap: 8.595px;
 			max-width: 744px;
 			padding: 0 25px;
 		}
 
 		.rj-faq-intro {
 			width: 100%;
+			height: 370.405px;
+			flex: none;
 			gap: 18px;
 			padding-left: 136px;
 		}
@@ -314,12 +316,14 @@
 
 		.rj-faq-lines {
 			gap: 12px;
+			width: 566px;
 		}
 
 		.rj-faq-heading {
 			width: auto;
 			font-size: 42px;
 			line-height: normal;
+			white-space: nowrap;
 		}
 
 		.rj-faq-lede {
@@ -336,9 +340,69 @@
 		}
 
 		.rj-faq-list {
+			flex: none;
 			width: auto;
 			align-self: stretch;
-			margin: 0 -25px 0 49px;
+			margin: 0 0 0 24px;
+		}
+	}
+
+	/* 114:59504 — intro above three full-width accordion rows. */
+	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
+		.rj-faq {
+			height: 671px;
+			margin-top: 50px;
+			padding: 40px 0 0;
+			background: #fff;
+		}
+
+		.rj-faq-side--right {
+			display: none;
+		}
+
+		.rj-faq-side--left {
+			left: 25px;
+			top: 40px;
+			width: 171px;
+			height: 370.4px;
+		}
+
+		.rj-faq-inner {
+			flex-direction: column;
+			gap: 9px;
+			padding: 0 25px;
+		}
+
+		.rj-faq-intro {
+			width: 100%;
+			gap: 18px;
+			padding-left: 171px;
+		}
+
+		.rj-faq-lines {
+			gap: 12px;
+		}
+
+		.rj-faq-heading {
+			width: auto;
+			font-size: 42px;
+			line-height: normal;
+		}
+
+		.rj-faq-lede,
+		.rj-faq-cat {
+			font-size: 16px;
+			line-height: normal;
+		}
+
+		.rj-faq-cats {
+			gap: 16px;
+		}
+
+		.rj-faq-list {
+			width: auto;
+			align-self: stretch;
+			margin: 0;
 		}
 	}
 
@@ -367,6 +431,11 @@
 
 		.rj-faq-heading {
 			font-size: 20px;
+			white-space: normal;
+		}
+
+		.rj-faq-lines {
+			width: 100%;
 		}
 
 		.rj-faq-lede {

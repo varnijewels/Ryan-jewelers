@@ -10,7 +10,6 @@
 	import { Button } from '$lib/components/ui/button/index.js'
 	import * as Dialog from '$lib/components/ui/dialog/index.js'
 	import { formatPrice } from '$lib/core/utils/index.js'
-	import RjInstagram from './RjInstagram.svelte'
 	import RjProductCard from './RjProductCard.svelte'
 	import { checkoutGate } from './checkout-overview.logic.js'
 	import { findAddressReplacement, groupSavedAddresses, savedAddressId, splitCustomerName } from './shipping-address.logic.js'
@@ -740,7 +739,6 @@
 				</div>
 			</section>
 
-			<div class="rj-checkout-instagram"><RjInstagram /></div>
 		{:else}
 			<div class="rj-checkout-empty"><p>Your cart is empty</p><a href={continueShoppingHref}>Continue Shopping</a></div>
 		{/if}
@@ -995,7 +993,6 @@
 	.rj-view-more > i { height: 1px; background: #c2c2c2; }
 	.rj-view-more a { display: flex; box-sizing: border-box; height: 50px; gap: 8px; align-items: center; justify-content: center; padding: 12px; border: 1px solid #c2c2c2; border-radius: 5px; color: #303030; font: 22px/26px 'Lato', sans-serif; text-decoration: none; }
 	.rj-view-more img { width: 23px; height: 23px; }
-	.rj-checkout-instagram { margin-top: 25px; }
 	@media (min-width: 1600px) {
 		.rj-recommend-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 		.rj-recommend-card:nth-child(5) { display: block; }

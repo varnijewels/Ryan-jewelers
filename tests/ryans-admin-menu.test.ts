@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isCollectionGroup, menuChildren, menuGroups, resolveAdminMenu } from '../src/lib/theme/ryans-jewels/admin-menu.js'
+import { isCollectionGroup, menuChildren, menuGroups, menuHref, resolveAdminMenu, tabletMenuView } from '../src/lib/theme/ryans-jewels/admin-menu.js'
 
 describe('Ryan admin menu', () => {
 	it('prefers admin categories and uses header links only as fallback', () => {
@@ -18,6 +18,21 @@ describe('Ryan admin menu', () => {
 
 	it('recognizes the admin and Figma collection heading variants', () => {
 		expect(['Brows By Collection', 'Browse By Collection', 'Browser By Collection'].every((name) => isCollectionGroup({ name }))).toBe(true)
+	})
+
+	it('routes admin category slugs through the category page', () => {
+		expect(menuHref({ name: 'Rings', slug: 'rings' })).toBe('/categories/rings')
+		expect(menuHref({ name: 'Home', slug: 'home' })).toBe('/')
+		expect(menuHref({ name: 'Rings', slug: 'rings', link: '/custom' })).toBe('/custom')
+	})
+
+	it('selects the matching tablet submenu', () => {
+		expect(['Lab Grown Diamond', 'All Diamond Jewellery', 'Earrings', 'Rings'].map(tabletMenuView)).toEqual([
+			'lab',
+			'all-diamond',
+			'earrings',
+			null
+		])
 	})
 
 	it('keeps Browse By Collection last in every mega menu', () => {

@@ -234,7 +234,7 @@
 		.rj-rings-mega { left: 40px; right: 40px; }
 	}
 
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-rings-mega { display: none; }
 	}
 </style>

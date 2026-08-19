@@ -127,10 +127,10 @@
 	}
 
 	/* Tablet 744 — counter moves above, centred (63:40050); badges gap 37. */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-trust {
 			flex-direction: column;
-			gap: 14px;
+			gap: 15px;
 		}
 
 		.rj-trust-counter-top {

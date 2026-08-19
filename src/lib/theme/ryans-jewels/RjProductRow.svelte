@@ -162,9 +162,13 @@
 	}
 
 	/* Tablet/mobile: the source rows overflow their frame, so they scroll. */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-row {
-			gap: 25px;
+			gap: 30px;
+		}
+
+		.rj-row :global(.rj-filter) {
+			height: 29px;
 		}
 
 		.rj-row-track > :global(*),
@@ -198,6 +202,55 @@
 		.rj-row-skeleton {
 			width: 226px;
 			height: 349px;
+		}
+	}
+
+	/* 114:58765 — four 235px cards sit in a 1006px centred track. */
+	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
+		.rj-row-divider {
+			margin-bottom: 11px;
+		}
+
+		.rj-row :global(.rj-filter) {
+			height: 29px;
+		}
+
+		.rj-row-track {
+			justify-content: flex-start;
+			gap: 22px;
+			width: calc(100% + 30px);
+		}
+
+		.rj-row-track > :global(*),
+		.rj-row-skeleton {
+			flex: 0 0 235px;
+			max-width: 235px;
+		}
+
+		.rj-row-track :global(.rj-card) {
+			width: 235px;
+		}
+
+		.rj-row-track :global(.rj-card-media) {
+			height: 250px;
+			aspect-ratio: auto;
+		}
+
+		.rj-row-track :global(.rj-card-info) {
+			width: 203px;
+			min-height: 136px;
+		}
+
+		.rj-row-track :global(.rj-card-swatch) {
+			width: 28px;
+			height: 28px;
+		}
+
+		.rj-row-track :global(.rj-card-name) {
+			display: block;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
 		}
 	}
 

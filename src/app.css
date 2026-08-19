@@ -382,7 +382,7 @@
 }
 
 [data-theme='ryans-jewels'] .rj-page-enter {
-	animation: rj-page-enter 0.5s var(--rj-ease) both;
+	animation: rj-page-enter 0.5s var(--rj-ease);
 }
 
 @keyframes rj-page-enter {

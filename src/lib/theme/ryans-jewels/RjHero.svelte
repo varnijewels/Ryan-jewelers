@@ -88,9 +88,16 @@
 	}
 
 	/* tablet 63:40034 — 744 x 434 */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-hero-img {
 			aspect-ratio: 744 / 434;
+		}
+	}
+
+	/* tablet landscape 114:58590 — 1024 x 588 */
+	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
+		.rj-hero-img {
+			aspect-ratio: 1024 / 588;
 		}
 	}
 

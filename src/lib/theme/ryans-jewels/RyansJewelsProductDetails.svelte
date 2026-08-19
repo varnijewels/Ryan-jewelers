@@ -10,7 +10,6 @@
 	import LoginModal from '$lib/components/auth/login-modal.svelte'
 	import RjCarousel from './RjCarousel.svelte'
 	import RjProductCustomizer from './RjCustomizeModal.svelte'
-	import RjInstagram from './RjInstagram.svelte'
 	import RjProductCard from './RjProductCard.svelte'
 	import { productRating, withoutDemoProducts } from './product-filters.js'
 	import RjWideBanner from './RjWideBanner.svelte'
@@ -578,7 +577,6 @@
 	{/if}
 </div>
 
-<RjInstagram />
 <LoginModal bind:show={productState.showLoginModal} />
 
 <style>

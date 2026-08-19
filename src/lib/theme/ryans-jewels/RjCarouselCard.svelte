@@ -246,7 +246,7 @@
 	}
 
 	/* Tablet 744 — 261 wide, media 201, name 11, info gaps 5 (63:40337). */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-tile {
 			width: 261px;
 		}
@@ -314,7 +314,7 @@
 		padding: 0 10px 9px;
 	}
 
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		/* the tablet lookbook card keeps the full 315 desktop box (63:40840) */
 		.rj-tile--lg {
 			width: 315px;

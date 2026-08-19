@@ -39,7 +39,7 @@
 	}
 
 	/* tablet 744 — rules 180, gap 30, title 22 (63:40054) */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-rule-heading {
 			gap: var(--rj-rule-heading-tablet-gap, 30px);
 		}

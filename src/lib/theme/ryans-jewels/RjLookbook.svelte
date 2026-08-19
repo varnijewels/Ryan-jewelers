@@ -44,7 +44,7 @@
 			</div>
 		</div>
 
-		<RjCarousel label={lookbook.title}>
+		<div class="rj-look-body">
 			<figure class="rj-look-figure">
 				<img
 					class="rj-look-photo"
@@ -56,22 +56,24 @@
 				<span class="rj-look-rule" aria-hidden="true"></span>
 			</figure>
 
-			{#if visible.length}
-				<ul class="rj-look-grid">
-					{#each visible as product (product?.id || product?.slug)}
-						<li class="rj-look-cell"><RjCarouselCard {product} size="lg" /></li>
-					{/each}
-				</ul>
-			{:else if loading}
-				<div class="rj-look-grid" aria-busy="true">
-					{#each Array(limit) as _, i (i)}
-						<div class="rj-look-skeleton" aria-hidden="true"></div>
-					{/each}
-				</div>
-			{:else}
-				<p class="rj-look-empty">{lookbook.emptyText}</p>
-			{/if}
-		</RjCarousel>
+			<RjCarousel label={lookbook.title}>
+				{#if visible.length}
+					<ul class="rj-look-grid">
+						{#each visible as product (product?.id || product?.slug)}
+							<li class="rj-look-cell"><RjCarouselCard {product} size="lg" /></li>
+						{/each}
+					</ul>
+				{:else if loading}
+					<div class="rj-look-grid" aria-busy="true">
+						{#each Array(limit) as _, i (i)}
+							<div class="rj-look-skeleton" aria-hidden="true"></div>
+						{/each}
+					</div>
+				{:else}
+					<p class="rj-look-empty">{lookbook.emptyText}</p>
+				{/if}
+			</RjCarousel>
+		</div>
 	</div>
 </section>
 
@@ -156,6 +158,19 @@
 
 	.rj-look-shop:hover img {
 		transform: translateX(3px);
+	}
+
+	.rj-look-body {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--rj-track-gap, 20px);
+		width: 100%;
+	}
+
+	.rj-look-body :global(.rj-carousel) {
+		flex: 1 1 auto;
+		min-width: 0;
+		width: auto;
 	}
 
 	/* ---- lookbook image ------------------------------------------------- */
@@ -290,9 +305,11 @@
 	}
 
 	/* ---- tablet 744 (63:40805) ------------------------------------------ */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-look {
-			padding: 40px 0;
+			height: 984px;
+			padding: 40px 0 0;
+			overflow: hidden;
 		}
 
 		.rj-look-inner {
@@ -338,6 +355,46 @@
 
 		.rj-look-shop {
 			margin-top: 18px;
+		}
+
+		.rj-look :global(.rj-carousel-rail) {
+			margin-top: 15px;
+		}
+	}
+
+	/* 114:59193 — fixed 945px lookbook followed by the separate banner. */
+	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
+		.rj-look {
+			height: 945px;
+			margin-top: 50px;
+			padding: 0;
+			overflow: hidden;
+		}
+
+		.rj-look-inner {
+			padding: 0 25px;
+			--rj-track-end: 25px;
+			--rj-rail-end: 25px;
+			--rj-track-gap: 20px;
+		}
+
+		.rj-look-head {
+			margin: 0 0 40px;
+			gap: 16px;
+		}
+
+		.rj-look-figure {
+			flex: 0 0 315px;
+			width: 315px;
+		}
+
+		.rj-look-grid {
+			grid-template-columns: repeat(3, 315px);
+			flex: 0 0 auto;
+		}
+
+		.rj-look-cell :global(.rj-tile) {
+			width: 315px;
 		}
 	}
 

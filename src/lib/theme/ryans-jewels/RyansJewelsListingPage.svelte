@@ -4,7 +4,6 @@
 	import { formatPrice } from '$lib/core/utils/index.js'
 	import { getDesktopFilterState } from '$lib/core/composables/index.js'
 	import ListingGrid from '$lib/components/product-catalogue/listing-grid.svelte'
-	import RjInstagram from './RjInstagram.svelte'
 	import { facetOptions } from './product-filters.js'
 
 	const sortOptions = [
@@ -69,6 +68,11 @@
 		openSections[section] = !openSections[section]
 	}
 
+	function handleFilterToggle() {
+		if (window.matchMedia('(max-width: 1100px)').matches) filterOpen = true
+		else filterHidden = !filterHidden
+	}
+
 	function shapeIcon(name: string) {
 		const icon = name.toLowerCase().replace(/[^a-z]/g, '')
 		return shapeIcons.has(icon) ? icon : ''
@@ -94,6 +98,8 @@
 	}
 </script>
 
+<svelte:window onkeydown={(event) => event.key === 'Escape' && (filterOpen = false)} />
+
 <section class="rj-category-hero" aria-labelledby="rj-listing-title">
 	<img class="rj-category-pattern" src="/ryans-jewels/listing/category-bg.png" alt="" aria-hidden="true" />
 	<div class="rj-plp-width rj-category-inner">
@@ -115,7 +121,8 @@
 				class:filter-hidden={filterHidden}
 				class:filter-open={filterOpen}
 				type="button"
-				onclick={() => { filterOpen = true; filterHidden = !filterHidden }}
+				aria-expanded={filterOpen}
+				onclick={handleFilterToggle}
 			>
 				<svg viewBox="0 0 24 24" aria-hidden="true">
 					<path class="rj-filter-lines" d="M4 7h16M4 17h16" />
@@ -141,7 +148,12 @@
 	{#if filterOpen}<button class="rj-filter-backdrop" aria-label="Close filters" onclick={() => filterOpen = false}></button>{/if}
 	<aside class="rj-sidebar" class:open={filterOpen} aria-label="Product filters">
 		<div class="rj-sidebar-content">
-		<button class="rj-filter-close" type="button" aria-label="Close filters" onclick={() => filterOpen = false}>×</button>
+		<div class="rj-filter-head">
+			<strong>Filter By</strong>
+			<button class="rj-filter-close" type="button" aria-label="Close filters" onclick={() => filterOpen = false}>
+				<svg viewBox="0 0 26 26" aria-hidden="true"><path d="M5 5l16 16M21 5 5 21" /></svg>
+			</button>
+		</div>
 		<label class="rj-filter-search">
 			<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg>
 			<input bind:value={filterState.searchQuery} onkeydown={(event) => event.key === 'Enter' && filterState.handleApply()} placeholder="Search" />
@@ -218,7 +230,6 @@
 	</main>
 </div>
 
-<RjInstagram />
 
 <style>
 	:global(body:has(.rj-category-hero)) { overflow-x: hidden; }
@@ -253,6 +264,7 @@
 	.rj-sidebar { position: relative; width: 307px; overflow: hidden; opacity: 1; transform: translateX(0); visibility: visible; transition: width .45s cubic-bezier(.22, 1, .36, 1), opacity .22s ease, transform .45s cubic-bezier(.22, 1, .36, 1), visibility 0s; }
 	.rj-products-layout.filter-hidden .rj-sidebar { width: 0; opacity: 0; transform: translateX(-22px); visibility: hidden; pointer-events: none; transition: width .45s cubic-bezier(.22, 1, .36, 1), opacity .18s ease, transform .45s cubic-bezier(.22, 1, .36, 1), visibility 0s .45s; }
 	.rj-sidebar-content { display: flex; flex-direction: column; gap: 23px; width: 307px; font-family: 'Sarala', var(--font-body, sans-serif); color: #404040; background: #fff; }
+	.rj-filter-head { display: none; }
 	.rj-filter-close { display: none; }
 	.rj-filter-search { display: flex; align-items: center; gap: 10px; height: 42px; padding: 8px 10px; border: 1px solid #e1d6be; border-radius: 5px; }
 	.rj-filter-search svg { width: 18px; height: 18px; fill: none; stroke: #707070; stroke-width: 1.5; }
@@ -295,17 +307,32 @@
 
 	@media (min-width: 1600px) { .rj-products-layout { column-gap: 40px; } .rj-products-layout.filter-hidden { column-gap: 0; } }
 	@media (max-width: 1100px) {
+		:global(body:has(.rj-sidebar.open)) { overflow: hidden; }
+		.rj-products-layout:has(.rj-sidebar.open) { transform: none !important; }
 		.rj-products-layout, .rj-products-layout.filter-hidden { grid-template-columns: minmax(0, 1fr); }
-		.rj-sidebar, .rj-products-layout.filter-hidden .rj-sidebar { position: fixed; z-index: 1002; top: 0; bottom: 0; left: 0; width: min(360px, 90vw); padding: 28px 26px 50px; overflow-y: auto; opacity: 1; visibility: visible; pointer-events: auto; transform: translateX(-101%); transition: transform .4s cubic-bezier(.22, 1, .36, 1); box-shadow: 8px 0 28px rgba(0,0,0,.12); }
-		.rj-sidebar-content { width: 100%; }
-		.rj-sidebar.open { transform: translateX(0); }
+		.rj-sidebar, .rj-products-layout.filter-hidden .rj-sidebar { position: fixed; z-index: 1002; top: 0; bottom: 0; left: 0; box-sizing: border-box; width: min(510px, 100vw); padding: 25px 20px 48px; overflow-y: auto; overscroll-behavior: contain; opacity: 1; visibility: visible; pointer-events: auto; transform: translateX(-101%); transition: transform .4s cubic-bezier(.22, 1, .36, 1); border-radius: 0 10px 10px 0; background: #fff; box-shadow: -23px 20px 34px 11px rgba(85,86,98,.5); scrollbar-width: none; }
+		.rj-sidebar::-webkit-scrollbar { display: none; }
+		.rj-sidebar-content { gap: 24px; width: 100%; }
+		.rj-products-layout .rj-sidebar.open { transform: translateX(0); }
+		.rj-filter-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: flex-start; justify-content: space-between; box-sizing: border-box; width: 100%; height: 52px; margin-bottom: 1px; padding: 0 10px 25px; border-bottom: 1px solid #c2c2c2; background: #fff; }
+		.rj-filter-head strong { font: 600 22px/26px 'Lato', var(--font-body, sans-serif); color: #404040; }
 		.rj-filter-toggle.filter-hidden .rj-filter-lines { opacity: 1; }
 		.rj-filter-toggle.filter-hidden .rj-filter-knob { transform: none; }
 		.rj-filter-toggle.filter-open .rj-filter-lines { opacity: .72; }
 		.rj-filter-toggle.filter-open .rj-filter-knob--top { transform: translateX(-8px); }
 		.rj-filter-toggle.filter-open .rj-filter-knob--bottom { transform: translateX(8px); }
-		.rj-filter-close { position: absolute; top: 4px; right: 12px; display: block; border: 0; background: transparent; font-size: 28px; }
-		.rj-filter-backdrop { position: fixed; z-index: 1001; inset: 0; display: block; border: 0; background: rgba(0,0,0,.28); }
+		.rj-filter-close { display: block; width: 26px; height: 26px; padding: 0; border: 0; background: transparent; color: #404040; cursor: pointer; }
+		.rj-filter-close svg { display: block; width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+		.rj-filter-search input, .rj-filter-options label, .rj-category-filter, .rj-shapes span, .rj-filter-options.compact label { font-size: 17px; }
+		.rj-price-controls { width: 100%; }
+		.rj-price-controls > button { width: 74px; }
+		.rj-range-wrap { width: 367px; }
+		.rj-range-wrap input { width: 357px; }
+		.rj-shapes { gap: 20px; }
+		.rj-shapes label { min-height: 28px; padding-left: 10px; }
+		.rj-featured a { width: 100%; }
+		.rj-featured b { font-size: 17px; }
+		.rj-filter-backdrop { position: fixed; z-index: 1001; inset: 0; display: block; padding: 0; border: 0; background: rgba(0,0,0,.72); }
 		.rj-hide-label { display: none; } .rj-mobile-label { display: inline; }
 	}
 	@media (max-width: 767px) {

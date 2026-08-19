@@ -119,8 +119,9 @@
 	}
 
 	/* Tablet 744 — five 124×153 tiles, 16 gutter, heading 33/28 (63:40959). */
-	@media (max-width: 1023px) {
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
 		.rj-ig {
+			height: 319px;
 			padding: 30px;
 		}
 
@@ -149,6 +150,38 @@
 		/* the tablet frame drops the sixth tile */
 		.rj-ig-cell:last-child {
 			display: none;
+		}
+	}
+
+	/* Tablet landscape 114:59529 — six 124×153 tiles in a 319px band. */
+	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
+		.rj-ig {
+			min-height: 319px;
+			margin-top: 50px;
+			padding: 30px;
+		}
+
+		.rj-ig-inner {
+			gap: 35px;
+		}
+
+		.rj-ig-eyebrow {
+			font-size: 20px;
+			line-height: normal;
+		}
+
+		.rj-ig-heading {
+			font-size: 28px;
+		}
+
+		.rj-ig-grid {
+			gap: 16px;
+			width: 824px;
+			max-width: 100%;
+		}
+
+		.rj-ig-tile {
+			aspect-ratio: 124 / 153;
 		}
 	}
 
@@ -195,6 +228,18 @@
 
 		.rj-ig-tile {
 			height: 100%;
+		}
+	}
+
+	@media (max-width: 363px) {
+		.rj-ig-cell {
+			flex: 1 1 0;
+			height: auto;
+		}
+
+		.rj-ig-tile {
+			height: auto;
+			aspect-ratio: 203 / 251;
 		}
 	}
 </style>

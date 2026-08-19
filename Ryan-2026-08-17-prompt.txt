@@ -1,0 +1,176 @@
+RYAN JEWELS — DEVELOPMENT HANDOFF PROMPT
+Date: 2026-08-17
+Timezone: Asia/Kolkata
+
+Use this prompt to continue today's Ryan Jewels checkout and performance work.
+
+PROJECT
+-------
+Workspace:
+/Users/bhaktidesign7/Documents/projects/Ryan Jewels
+
+Live website:
+https://ryan.varnijewels.com/
+
+IMPORTANT STATUS
+----------------
+- Today's work is saved locally in the workspace.
+- Production build completed successfully.
+- Changes have NOT been committed, pushed, or deployed.
+- Local preview and HTTP/2 test servers were stopped at the user's request.
+- Preserve all unrelated existing working-tree changes.
+
+USER REQUIREMENTS FROM TODAY
+----------------------------
+1. Checkout step 3, “Payment Method,” must not be green before payment succeeds.
+2. Verify that Apple Pay, PayPal, American Express, Bank, saved cards, and Add New Card work correctly.
+3. Match the “Process to Payment,” assurance badges, payment-brand logos, and Terms & Policies desktop section to the supplied reference.
+4. Improve the mobile PageSpeed result, especially Largest Contentful Paint, from the reported 21.5 seconds toward 2.5–3 seconds.
+
+CHECKOUT UI WORK SAVED
+----------------------
+- Checkout steps 1 and 2 remain green as completed steps.
+- Step 3 now uses aria-current="step" and no longer receives the green completed style before payment succeeds.
+- The Process to Payment button width, height, and spacing were adjusted.
+- The desktop assurance row was centered and resized to match the supplied reference more closely.
+- Payment-brand logo sizes, spacing, background, and Terms & Policies typography were adjusted.
+- Mobile assurance layout remains responsive.
+
+CHECKOUT VERIFICATION STILL REQUIRED
+------------------------------------
+- Run a final desktop visual comparison against the supplied screenshot.
+- Run the full payment flow and validate every enabled provider.
+- Provider availability can depend on store/backend/payment-gateway configuration.
+- Do not claim all payment providers work until successful end-to-end transactions or sandbox flows are verified.
+
+PERFORMANCE WORK COMPLETED
+--------------------------
+1. Replaced the large homepage hero with dedicated WebP files:
+   - hero-desktop.webp, about 42 KB
+   - hero-mobile.webp, about 18 KB
+2. Added a responsive hero picture with explicit high fetch priority and image preloads.
+3. Prevented the desktop hero video from being requested on mobile.
+4. Added a shared listingImage() helper using the existing image CDN at width 800 and format auto.
+5. Reused that helper in homepage product cards and carousel cards.
+6. Removed aggressive product-page data/module preloading from homepage product cards.
+7. Converted large static homepage, mega-menu, logo, FAQ, nameplate, gift-box, and authentication images to WebP.
+8. Changed Google Fonts CSS so it no longer blocks the first render; a noscript fallback remains.
+9. Added kit.inlineStyleThreshold = 5000 so small CSS chunks are inlined.
+10. Avoided constructing HomepageModule for the Ryan theme, removing duplicate client requests.
+11. Deferred below-the-fold Ryan product loading until the client mounts.
+12. Skipped the unused Ryan homepage CMS page request because the Ryan homepage uses theme-owned static content.
+13. Kept non-Ryan themes on their existing homepage load path.
+
+PERFORMANCE RESULTS
+-------------------
+User's PageSpeed screenshot:
+- Performance: 62
+- First Contentful Paint: 4.1 seconds
+- Largest Contentful Paint: 21.5 seconds
+- Total Blocking Time: 110 ms
+- Cumulative Layout Shift: 0.001
+
+Original captured live Lighthouse baseline:
+- Performance: 61
+- First Contentful Paint: about 4.6 seconds
+- Largest Contentful Paint: about 13.0 seconds
+- Requests: 244
+- Transfer size: about 31.4 MB
+
+Latest local production build through an HTTP/2 proxy with mobile simulation:
+- Performance: 75
+- First Contentful Paint: 2.4 seconds
+- Simulated Largest Contentful Paint: 5.9 seconds
+- Observed Largest Contentful Paint: 1.303 seconds
+- Total Blocking Time: 40 ms
+- Cumulative Layout Shift: 0.005
+- Local server response time: 923 ms
+- Requests: 202
+- Transfer size: about 1.12 MB
+
+IMPORTANT PERFORMANCE NOTE
+--------------------------
+- The large image and hero bottlenecks are fixed.
+- Local observed LCP is already below the requested target, but simulated Lighthouse LCP is still above 3 seconds because of server response and render-path simulation.
+- The exact live 2.5–3 second PageSpeed target is NOT yet certified.
+- Deploy the changes, clear/warm the CDN cache, and rerun mobile PageSpeed Insights before claiming the final target.
+
+PRIMARY PERFORMANCE FILES CHANGED
+---------------------------------
+src/lib/theme/ryans-jewels/RjHero.svelte
+src/lib/theme/ryans-jewels/RjProductCard.svelte
+src/lib/theme/ryans-jewels/RjCarouselCard.svelte
+src/lib/theme/ryans-jewels/home-content.ts
+src/lib/theme/ryans-jewels/product-details.logic.js
+src/lib/theme/ryans-jewels/nav-content.ts
+src/lib/theme/ryans-jewels/footer-content.ts
+src/lib/theme/ryans-jewels/RyansJewelsNav.svelte
+src/lib/theme/ryans-jewels/RyansJewelsAuthShell.svelte
+src/lib/theme/ryans-jewels/RyansJewelsAuthPopupShell.svelte
+src/lib/theme/ryans-jewels/RjAdminMegaMenu.svelte
+src/lib/theme/ryans-jewels/RjRingsMegaMenu.svelte
+src/lib/theme/ryans-jewels/RjLabDiamondMegaMenu.svelte
+src/lib/components/auth/login-modal.svelte
+src/lib/components/auth/signup-modal.svelte
+src/routes/(www)/+page.svelte
+src/routes/(www)/+page.ts
+src/routes/(www)/best-offers/+page.svelte
+src/routes/+layout.svelte
+svelte.config.ts
+
+CHECKOUT FILE CHANGED
+---------------------
+src/lib/theme/ryans-jewels/RyansJewelsPaymentPage.svelte
+
+NEW OPTIMIZED ASSETS
+--------------------
+static/ryans-jewels/home/hero-desktop.webp
+static/ryans-jewels/home/hero-mobile.webp
+static/ryans-jewels/home/passion-card.webp
+static/ryans-jewels/home/nameplate-panel.webp
+static/ryans-jewels/home/nameplate-card-1.webp
+static/ryans-jewels/home/nameplate-card-2.webp
+static/ryans-jewels/home/nameplate-card-3.webp
+static/ryans-jewels/home/nameplate-word.webp
+static/ryans-jewels/home/faq-side.webp
+static/ryans-jewels/mega-menu/earring-art.webp
+static/ryans-jewels/mega-menu/ring-main.webp
+static/ryans-jewels/mega-menu/ring-side.webp
+static/ryans-jewels/icons/gift-box-3d.webp
+static/ryans-jewels/icons/gift-box-3d-premium.webp
+static/ryans-jewels/logo.webp
+
+VERIFICATION COMPLETED
+----------------------
+- npm run build passed after the performance changes.
+- git diff --check passed before the final one-line homepage request removal.
+- Mobile visual screenshot confirmed the new hero crop and responsive header/trust layout.
+- The shared listingImage() helper includes two runnable console.assert self-checks.
+- Repository-wide npm run check still reports many pre-existing warnings/errors unrelated to today's changes.
+
+WORKING-TREE SAFETY
+-------------------
+These changes existed before or were unrelated to the performance work and must not be discarded:
+- .github/suffolk.jpg is deleted in the working tree.
+- TASKS.md is modified.
+- RyansJewelsPaymentPage.svelte contains the checkout work described above.
+- Existing untracked prompts, reports, output, tmp, and dashboard.html belong to the user/workspace.
+- vite.config.ts currently has only two accidental line-ending differences; restore only those line-ending changes before a future commit.
+
+NEXT ACTIONS
+------------
+1. Reopen the project and run the final checkout desktop/mobile visual comparison.
+2. Verify all configured payment options end to end.
+3. Re-run git diff --check and the production build.
+4. Remove only the accidental vite.config.ts line-ending diff without touching real configuration.
+5. Commit and push only after explicit user approval.
+6. Deploy, warm the CDN, and rerun live mobile PageSpeed Insights.
+7. If live LCP is still above 3 seconds, profile production TTFB/origin caching before changing more frontend code.
+
+DO NOT CLAIM YET
+----------------
+- Do not claim every payment provider works until end-to-end verification passes.
+- Do not claim live LCP is 2.5–3 seconds until the deployed site is retested.
+- Do not overwrite or discard unrelated working-tree changes.
+
+END OF HANDOFF PROMPT
