@@ -12,14 +12,14 @@ export default defineConfig({
 	workers: process.env.CI ? 1 : undefined,
 	reporter: 'html',
 	use: {
-		baseURL: 'http://localhost:3000',
+		baseURL: 'http://127.0.0.1:3000',
 		trace: 'on-first-retry',
 		screenshot: 'only-on-failure'
 	},
 	projects: [
 		{
 			name: 'chromium',
-			use: { ...devices['Desktop Chrome'] }
+			use: { ...devices['Desktop Chrome'], ...(process.env.PLAYWRIGHT_CHANNEL ? { channel: process.env.PLAYWRIGHT_CHANNEL } : {}) }
 		}
 	]
 	// Disable webServer to avoid permission issues

@@ -18,10 +18,35 @@
 	import RjCustomiseCard from './RjCustomiseCard.svelte'
 	import RjArrowRule from './RjArrowRule.svelte'
 	import RjDiamondCluster from './RjDiamondCluster.svelte'
-	import { namePlate } from './home-content.js'
+	import { namePlate, type NamePlateCard } from './home-content.js'
+	import { applyClientFilters, productRating } from './product-filters.js'
+	import { canonicalProductPath } from './seo.js'
 
 	const { background, panel, eyebrow, title, ctaLabel, ctaHref, cards } = namePlate
+	let { products = [] }: { products?: any[] } = $props()
 	let track = $state<HTMLUListElement | null>(null)
+	const ratingSort = new URL('https://ryans.local/products?uiSort=rating%3Adesc')
+	const liveCards = $derived(
+		applyClientFilters(products, ratingSort)
+			.filter((product) => product?.slug && (product?.thumbnail || product?.img || product?.image || product?.image_url))
+			.slice(0, 4)
+			.map((product, index) => {
+				const name = product?.title || product?.name || 'Jewellery'
+				return {
+					key: `live-${product?.id || product?.slug || index}`,
+					image: product?.thumbnail || product?.img || product?.image || product?.image_url,
+					imageAlt: name,
+					name,
+					category: product?.category?.name || product?.categoryName || product?.collection?.name || '',
+					rating: productRating(product),
+					cta: 'Customise now',
+					href: canonicalProductPath(product),
+					crop: { left: 0, top: 0, width: 100 },
+					textWidth: 178,
+					imageFit: 'contain'
+				} satisfies NamePlateCard
+			})
+	)
 
 	function scrollProducts(direction: -1 | 1) {
 		track?.scrollBy({ left: direction * Math.max(track.clientWidth * .8, 280), behavior: 'smooth' })
@@ -54,11 +79,19 @@
 				<a class="rj-plate-button" href={ctaHref}>{ctaLabel}</a>
 			</div>
 
-			<ul class="rj-plate-cards" bind:this={track}>
+			<ul class="rj-plate-cards rj-plate-cards--static" bind:this={track}>
 				{#each cards as card (card.key)}
 					<li class="rj-plate-card"><RjCustomiseCard {card} /></li>
 				{/each}
 			</ul>
+
+			{#if liveCards.length}
+				<ul class="rj-plate-cards rj-plate-cards--live">
+					{#each liveCards as card (card.key)}
+						<li class="rj-plate-card"><RjCustomiseCard {card} /></li>
+					{/each}
+				</ul>
+			{/if}
 
 			<div class="rj-plate-arrows"><RjArrowRule gap={20} onprevious={() => scrollProducts(-1)} onnext={() => scrollProducts(1)} /></div>
 		</div>
@@ -239,6 +272,10 @@
 		display: none;
 	}
 
+	.rj-plate-cards--live {
+		display: none;
+	}
+
 	.rj-plate-card {
 		display: block;
 	}
@@ -401,6 +438,10 @@
 
 	/* ---- mobile 412 (77:107373 + 77:107388) ----------------------------- */
 	@media (max-width: 639px) {
+		.rj-plate {
+			height: auto;
+		}
+
 		.rj-plate-panel {
 			height: 213px;
 		}
@@ -444,6 +485,10 @@
 			gap: 12px;
 		}
 
+		.rj-plate-head-text {
+			width: auto;
+		}
+
 		.rj-plate-eyebrow {
 			font-size: 14px;
 			line-height: normal;
@@ -453,6 +498,8 @@
 		.rj-plate-lede {
 			font-size: 12px;
 			line-height: normal;
+			text-align: left;
+			white-space: nowrap;
 		}
 
 		.rj-plate-button {
@@ -472,11 +519,20 @@
 			padding: 0 15px;
 			overflow-x: auto;
 			scroll-snap-type: x proximity;
+			scroll-padding-left: 15px;
 			scrollbar-width: none;
 		}
 
 		.rj-plate-cards::-webkit-scrollbar {
 			display: none;
+		}
+
+		.rj-plate-cards--static {
+			display: none;
+		}
+
+		.rj-plate-cards--live {
+			display: flex;
 		}
 
 		.rj-plate-card {

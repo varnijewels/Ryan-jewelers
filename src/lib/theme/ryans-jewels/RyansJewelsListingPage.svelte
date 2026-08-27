@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/state'
-	import { goto, invalidate } from '$app/navigation'
+	import { goto } from '$app/navigation'
+	import { tick } from 'svelte'
 	import { formatPrice } from '$lib/core/utils/index.js'
 	import { getDesktopFilterState } from '$lib/core/composables/index.js'
 	import ListingGrid from '$lib/components/product-catalogue/listing-grid.svelte'
+	import RjInstagram from './RjInstagram.svelte'
 	import { facetOptions } from './product-filters.js'
 
 	const sortOptions = [
@@ -25,18 +27,20 @@
 	let selectedSort = $state(page.url.searchParams.get('uiSort') ?? page.url.searchParams.get('sort') ?? 'position')
 	let filterOpen = $state(false)
 	let filterHidden = $state(false)
+	let listView = $state(false)
 	let showAllCategories = $state(false)
 	let showAllQualities = $state(false)
 	let showAllFeatured = $state(false)
+	let filterButton: HTMLButtonElement
+	let filterCloseButton: HTMLButtonElement
+	let filterPanel: HTMLElement
 	let openSections = $state<Record<string, boolean>>({
 		status: true, categories: true, price: true, material: true,
 		shape: true, quality: true, weight: true, featured: true
 	})
 
-	const searchQuery = $derived(page.url.searchParams.get('search')?.trim() || '')
-	const selectedShape = $derived(page.url.searchParams.get('uiShape')?.split(',')[0]?.trim() || '')
 	const categoryName = $derived(
-		searchQuery ? `Search Results for “${searchQuery}”` : selectedShape ? `${selectedShape} Diamond Jewelry` : data.products?.categoryHierarchy?.at(-1)?.name || data.products?.category?.name || 'Products'
+		data.products?.categoryHierarchy?.at(-1)?.name || data.products?.category?.name || 'Wedding Rings'
 	)
 	const categories = $derived(filterState.categories || [])
 	const visibleCategories = $derived(showAllCategories ? categories : categories.slice(0, 6))
@@ -48,7 +52,7 @@
 	const weights = $derived(facetOptions(filterState.allFilters, ['attributes.Total_Carat_Weight_Range', 'attributes.Center_Stone_Ctw', 'options.Carat_Weight']))
 	const featuredProducts = $derived(data.products?.data || [])
 	const featured = $derived(showAllFeatured ? featuredProducts : featuredProducts.slice(0, 3))
-	const shapeIcons = new Set(['round', 'oval', 'radiant', 'pear', 'cushion', 'princess', 'asscher', 'emerald', 'marquise', 'heart'])
+	const shapeIcons = new Set(['oval', 'radiant', 'pear', 'cushion', 'princess', 'asscher', 'emerald', 'marquise', 'heart'])
 	filterState.searchQuery = page.url.searchParams.get('search') ?? ''
 
 	$effect(() => {
@@ -68,9 +72,52 @@
 		openSections[section] = !openSections[section]
 	}
 
-	function handleFilterToggle() {
-		if (window.matchMedia('(max-width: 1100px)').matches) filterOpen = true
-		else filterHidden = !filterHidden
+	async function handleFilterToggle() {
+		if (!window.matchMedia('(max-width: 1100px)').matches) {
+			filterHidden = !filterHidden
+			return
+		}
+
+		filterOpen = true
+		await tick()
+		filterCloseButton?.focus()
+	}
+
+	async function closeFilters() {
+		filterOpen = false
+		await tick()
+		filterButton?.focus()
+	}
+
+	async function applyMobileFilters() {
+		await filterState.handleApply()
+		await closeFilters()
+	}
+
+	async function clearMobileFilters() {
+		filterState.searchQuery = ''
+		await filterState.clearFilters()
+		await filterState.handleApply()
+		await closeFilters()
+	}
+
+	function handleFilterPanelKeydown(event: KeyboardEvent) {
+		if (event.key !== 'Tab') return
+		const controls = filterPanel?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled])')
+		if (!controls?.length) return
+		const first = controls[0]
+		const last = controls[controls.length - 1]
+		if (event.shiftKey && document.activeElement === first) {
+			event.preventDefault()
+			last.focus()
+		} else if (!event.shiftKey && document.activeElement === last) {
+			event.preventDefault()
+			first.focus()
+		}
+	}
+
+	function handleWindowKeydown(event: KeyboardEvent) {
+		if (event.key === 'Escape' && filterOpen) closeFilters()
 	}
 
 	function shapeIcon(name: string) {
@@ -98,14 +145,14 @@
 	}
 </script>
 
-<svelte:window onkeydown={(event) => event.key === 'Escape' && (filterOpen = false)} />
+<svelte:window onkeydown={handleWindowKeydown} />
 
 <section class="rj-category-hero" aria-labelledby="rj-listing-title">
 	<img class="rj-category-pattern" src="/ryans-jewels/listing/category-bg.png" alt="" aria-hidden="true" />
 	<div class="rj-plp-width rj-category-inner">
 		<div class="rj-category-copy">
 			<h1 id="rj-listing-title">{categoryName}</h1>
-			<p>{searchQuery ? `Home / Search Results / ${searchQuery}` : selectedShape ? `Home / Diamond Shapes / ${selectedShape}` : `Home / Categories / Ring’s / ${categoryName}`} - {data.products?.count ?? 0} Design</p>
+			<p>Home / Categories / Ring’s / {categoryName} - {data.products?.count || 265} Design</p>
 		</div>
 		<div class="rj-category-model" aria-hidden="true">
 			<img src="/ryans-jewels/listing/category-model.png" alt="" />
@@ -117,11 +164,13 @@
 	<div class="rj-plp-width rj-toolbar-row">
 		<div class="rj-toolbar-left">
 			<button
+				bind:this={filterButton}
 				class="rj-toolbar-button rj-filter-toggle"
 				class:filter-hidden={filterHidden}
 				class:filter-open={filterOpen}
 				type="button"
 				aria-expanded={filterOpen}
+				aria-controls="rj-mobile-filters"
 				onclick={handleFilterToggle}
 			>
 				<svg viewBox="0 0 24 24" aria-hidden="true">
@@ -137,23 +186,41 @@
 				{#each sortOptions as option}<option value={option[0]}>{option[1]}</option>{/each}
 			</select></label>
 			<span class="rj-toolbar-divider"></span>
-			<button class="rj-toolbar-button rj-refresh" type="button" onclick={() => invalidate('app:products')}>
+			<button class="rj-toolbar-button rj-refresh" type="button" onclick={() => location.reload()}>
 				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5M4 18v-5h5M6.1 9A7 7 0 0 1 18.5 6.5L20 11M4 13l1.5 4.5A7 7 0 0 0 18 15" /></svg>Refresh
+			</button>
+		</div>
+		<div class="rj-view-controls"><span>View as</span>
+			<button class="rj-view-grid" class:active={!listView} type="button" aria-label="Grid view" onclick={() => listView = false}>
+				<svg viewBox="0 0 28 30" aria-hidden="true"><rect x="1" y="1" width="10" height="12" rx="2"/><rect x="17" y="1" width="10" height="12" rx="2"/><rect x="1" y="17" width="10" height="12" rx="2"/><rect x="17" y="17" width="10" height="12" rx="2"/></svg>
+			</button>
+			<button class="rj-view-list" class:active={listView} type="button" aria-label="List view" onclick={() => listView = true}>
+				<svg viewBox="0 0 28 30" aria-hidden="true"><rect x="1" y="1" width="26" height="11" rx="2"/><rect x="1" y="18" width="26" height="11" rx="2"/></svg>
 			</button>
 		</div>
 	</div>
 </section>
 
-<div class="rj-plp-width rj-products-layout" class:filter-hidden={filterHidden}>
-	{#if filterOpen}<button class="rj-filter-backdrop" aria-label="Close filters" onclick={() => filterOpen = false}></button>{/if}
-	<aside class="rj-sidebar" class:open={filterOpen} aria-label="Product filters">
-		<div class="rj-sidebar-content">
+<div class="rj-plp-width rj-products-layout" class:filter-hidden={filterHidden} class:list-view={listView}>
+	{#if filterOpen}<button class="rj-filter-backdrop" aria-label="Close filters" onclick={closeFilters}></button>{/if}
+	<aside
+		bind:this={filterPanel}
+		id="rj-mobile-filters"
+		class="rj-sidebar"
+		class:open={filterOpen}
+		aria-label="Product filters"
+		aria-labelledby={filterOpen ? 'rj-filter-title' : undefined}
+		aria-modal={filterOpen ? 'true' : undefined}
+		role={filterOpen ? 'dialog' : undefined}
+		onkeydown={handleFilterPanelKeydown}
+	>
 		<div class="rj-filter-head">
-			<strong>Filter By</strong>
-			<button class="rj-filter-close" type="button" aria-label="Close filters" onclick={() => filterOpen = false}>
-				<svg viewBox="0 0 26 26" aria-hidden="true"><path d="M5 5l16 16M21 5 5 21" /></svg>
+			<strong id="rj-filter-title">Filters</strong>
+			<button bind:this={filterCloseButton} class="rj-filter-close" type="button" aria-label="Close filters" onclick={closeFilters}>
+				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19" /></svg>
 			</button>
 		</div>
+		<div class="rj-sidebar-content">
 		<label class="rj-filter-search">
 			<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg>
 			<input bind:value={filterState.searchQuery} onkeydown={(event) => event.key === 'Enter' && filterState.handleApply()} placeholder="Search" />
@@ -209,7 +276,7 @@
 		</div>{/if}
 
 		{#if weights.length}<div class="rj-filter-section">
-			<h2><button class="rj-section-toggle" type="button" onclick={() => toggleSection('weight')} aria-expanded={openSections.weight}>Total Craft Wight <span class:closed={!openSections.weight}>⌃</span></button></h2>
+			<h2><button class="rj-section-toggle" type="button" onclick={() => toggleSection('weight')} aria-expanded={openSections.weight}>Total Carat Weight <span class:closed={!openSections.weight}>⌃</span></button></h2>
 			{#if openSections.weight}<div class="rj-filter-options compact">
 				{#each weights as item}<label><input type="checkbox" checked={checked('uiWeight', item.name)} onchange={(e) => toggleFilter('uiWeight', item.name, e)} /><span>{item.name}</span><small>{item.count}</small></label>{/each}
 			</div>{/if}
@@ -221,15 +288,20 @@
 				<a href="/products/{product.slug}"><span class="rj-featured-image">{#if product.thumbnail || product.image_url}<img src={product.thumbnail || product.image_url} alt="" />{/if}</span><span><b>{product.title || product.name}</b><i>★★★★</i><small>{formatPrice(product.price, data.store?.currency?.code)}</small></span></a>
 			{/each}
 			{#if featuredProducts.length > 3}<button class="rj-see-more" type="button" onclick={() => showAllFeatured = !showAllFeatured}>{showAllFeatured ? 'Show Less ↑' : 'See More ↓'}</button>{/if}{/if}
+			</div>
 		</div>
+		<div class="rj-filter-actions">
+			<button class="rj-filter-clear" type="button" disabled={!filterState.anyFilterApplied && !filterState.searchQuery} onclick={clearMobileFilters}>Clear All</button>
+			<button class="rj-filter-apply" type="button" onclick={applyMobileFilters}>View {data.products?.count ? `${data.products.count} Results` : 'Results'}</button>
 		</div>
 	</aside>
 
 	<main class="rj-product-results">
-		<ListingGrid ryanLayout="grid" />
+		<ListingGrid ryanLayout={listView ? 'list' : 'grid'} />
 	</main>
 </div>
 
+<RjInstagram />
 
 <style>
 	:global(body:has(.rj-category-hero)) { overflow-x: hidden; }
@@ -244,7 +316,7 @@
 	.rj-category-model img { position: absolute; top: -52.47%; left: 0; width: 100%; height: 152.58%; max-width: none; }
 	.rj-plp-toolbar { margin-top: 23px; border-bottom: 1px solid #d9d9d9; font-family: 'Sarala', var(--font-body, sans-serif); }
 	.rj-toolbar-row { display: flex; align-items: center; justify-content: space-between; height: 33px; padding-bottom: 23px; box-sizing: content-box; }
-	.rj-toolbar-left, .rj-toolbar-button, .rj-sort { display: flex; align-items: center; }
+	.rj-toolbar-left, .rj-toolbar-button, .rj-sort, .rj-view-controls { display: flex; align-items: center; }
 	.rj-toolbar-left { gap: 15px; }
 	.rj-toolbar-button { gap: 8px; padding: 0; border: 0; background: transparent; font: inherit; font-size: 18px; line-height: 26px; color: #505050; cursor: pointer; }
 	.rj-toolbar-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.35; }
@@ -258,13 +330,22 @@
 	.rj-sort select { width: 149px; border: 0; outline: 0; background: transparent; font: inherit; color: #606060; cursor: pointer; }
 	.rj-refresh { gap: 15px; }
 	.rj-refresh svg { width: 24px; height: 24px; }
+	.rj-view-controls { gap: 12px; font-size: 18px; color: #505050; }
+	.rj-view-controls > span { margin-right: 8px; }
+	.rj-view-controls button { width: 28px; height: 31px; padding: 0; border: 0; color: #505050; background: transparent; cursor: pointer; }
+	.rj-view-controls button:first-of-type { color: #cca646; }
+	.rj-view-controls button.active { color: #cca646; }
+	.rj-view-controls button:not(.active) { color: #505050; }
+	.rj-view-controls svg { width: 100%; height: 100%; }
+	.rj-view-grid svg { fill: currentColor; }
+	.rj-view-list svg { fill: none; stroke: currentColor; stroke-width: 1.5; }
 	.rj-mobile-label { display: none; }
 	.rj-products-layout { display: grid; grid-template-columns: 307px minmax(0, 1fr); column-gap: 29px; margin-top: 26px; margin-bottom: 170px; align-items: start; transition: grid-template-columns .45s cubic-bezier(.22, 1, .36, 1), column-gap .45s cubic-bezier(.22, 1, .36, 1); }
 	.rj-products-layout.filter-hidden { grid-template-columns: 0 minmax(0, 1fr); column-gap: 0; }
 	.rj-sidebar { position: relative; width: 307px; overflow: hidden; opacity: 1; transform: translateX(0); visibility: visible; transition: width .45s cubic-bezier(.22, 1, .36, 1), opacity .22s ease, transform .45s cubic-bezier(.22, 1, .36, 1), visibility 0s; }
 	.rj-products-layout.filter-hidden .rj-sidebar { width: 0; opacity: 0; transform: translateX(-22px); visibility: hidden; pointer-events: none; transition: width .45s cubic-bezier(.22, 1, .36, 1), opacity .18s ease, transform .45s cubic-bezier(.22, 1, .36, 1), visibility 0s .45s; }
 	.rj-sidebar-content { display: flex; flex-direction: column; gap: 23px; width: 307px; font-family: 'Sarala', var(--font-body, sans-serif); color: #404040; background: #fff; }
-	.rj-filter-head { display: none; }
+	.rj-filter-head, .rj-filter-actions { display: none; }
 	.rj-filter-close { display: none; }
 	.rj-filter-search { display: flex; align-items: center; gap: 10px; height: 42px; padding: 8px 10px; border: 1px solid #e1d6be; border-radius: 5px; }
 	.rj-filter-search svg { width: 18px; height: 18px; fill: none; stroke: #707070; stroke-width: 1.5; }
@@ -308,31 +389,35 @@
 	@media (min-width: 1600px) { .rj-products-layout { column-gap: 40px; } .rj-products-layout.filter-hidden { column-gap: 0; } }
 	@media (max-width: 1100px) {
 		:global(body:has(.rj-sidebar.open)) { overflow: hidden; }
-		.rj-products-layout:has(.rj-sidebar.open) { transform: none !important; }
 		.rj-products-layout, .rj-products-layout.filter-hidden { grid-template-columns: minmax(0, 1fr); }
-		.rj-sidebar, .rj-products-layout.filter-hidden .rj-sidebar { position: fixed; z-index: 1002; top: 0; bottom: 0; left: 0; box-sizing: border-box; width: min(510px, 100vw); padding: 25px 20px 48px; overflow-y: auto; overscroll-behavior: contain; opacity: 1; visibility: visible; pointer-events: auto; transform: translateX(-101%); transition: transform .4s cubic-bezier(.22, 1, .36, 1); border-radius: 0 10px 10px 0; background: #fff; box-shadow: -23px 20px 34px 11px rgba(85,86,98,.5); scrollbar-width: none; }
-		.rj-sidebar::-webkit-scrollbar { display: none; }
-		.rj-sidebar-content { gap: 24px; width: 100%; }
-		.rj-products-layout .rj-sidebar.open { transform: translateX(0); }
-		.rj-filter-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: flex-start; justify-content: space-between; box-sizing: border-box; width: 100%; height: 52px; margin-bottom: 1px; padding: 0 10px 25px; border-bottom: 1px solid #c2c2c2; background: #fff; }
-		.rj-filter-head strong { font: 600 22px/26px 'Lato', var(--font-body, sans-serif); color: #404040; }
+		.rj-sidebar, .rj-products-layout.filter-hidden .rj-sidebar { position: fixed; z-index: 1002; top: 0; bottom: 0; left: 0; display: flex; box-sizing: border-box; width: min(440px, 100vw); height: 100dvh; flex-direction: column; overflow: hidden; opacity: 1; visibility: visible; pointer-events: auto; transform: translateX(-101%); transition: transform .4s cubic-bezier(.22, 1, .36, 1); border-radius: 0 10px 10px 0; background: #fff; box-shadow: 8px 0 28px rgba(0,0,0,.18); }
+		.rj-products-layout .rj-sidebar.open, .rj-products-layout.filter-hidden .rj-sidebar.open { transform: translateX(0); }
+		.rj-filter-head { display: flex; min-height: 68px; align-items: center; justify-content: space-between; padding: max(12px, env(safe-area-inset-top)) 16px 12px 22px; border-bottom: 1px solid #e8e1d2; background: #fff; flex: 0 0 auto; }
+		.rj-filter-head strong { font: 600 22px/28px 'Sarala', var(--font-body, sans-serif); color: #303030; }
+		.rj-filter-close { display: grid; width: 44px; height: 44px; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #303030; cursor: pointer; }
+		.rj-filter-close:hover, .rj-filter-close:focus-visible { background: #f5f1e8; outline: none; }
+		.rj-filter-close svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+		.rj-sidebar-content { width: 100%; min-height: 0; flex: 1; gap: 24px; box-sizing: border-box; padding: 22px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+		.rj-filter-search { min-height: 48px; box-sizing: border-box; }
+		.rj-section-toggle { min-height: 44px; }
+		.rj-filter-options label, .rj-category-filter { min-height: 44px; }
+		.rj-filter-options input, .rj-faux-check { width: 20px; height: 20px; flex-basis: 20px; }
+		.rj-price-controls { width: 100%; gap: 14px; }
+		.rj-range-wrap { min-width: 0; flex: 1; }
+		.rj-range-wrap input { width: 100%; }
+		.rj-featured { display: none; }
+		.rj-filter-actions { display: grid; grid-template-columns: minmax(110px, .75fr) minmax(180px, 1.25fr); gap: 12px; padding: 12px 18px max(12px, env(safe-area-inset-bottom)); border-top: 1px solid #e8e1d2; background: #fff; box-shadow: 0 -8px 24px rgba(0,0,0,.06); flex: 0 0 auto; }
+		.rj-filter-actions button { min-height: 48px; border: 1px solid #cca646; border-radius: 5px; font: 600 15px/20px 'Sarala', var(--font-body, sans-serif); cursor: pointer; }
+		.rj-filter-clear { background: #fff; color: #705b27; }
+		.rj-filter-clear:disabled { border-color: #ddd; color: #aaa; cursor: default; }
+		.rj-filter-apply { background: #cca646; color: #fff; }
+		.rj-filter-apply:hover, .rj-filter-apply:focus-visible { background: #b18d35; }
 		.rj-filter-toggle.filter-hidden .rj-filter-lines { opacity: 1; }
 		.rj-filter-toggle.filter-hidden .rj-filter-knob { transform: none; }
 		.rj-filter-toggle.filter-open .rj-filter-lines { opacity: .72; }
 		.rj-filter-toggle.filter-open .rj-filter-knob--top { transform: translateX(-8px); }
 		.rj-filter-toggle.filter-open .rj-filter-knob--bottom { transform: translateX(8px); }
-		.rj-filter-close { display: block; width: 26px; height: 26px; padding: 0; border: 0; background: transparent; color: #404040; cursor: pointer; }
-		.rj-filter-close svg { display: block; width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.5; }
-		.rj-filter-search input, .rj-filter-options label, .rj-category-filter, .rj-shapes span, .rj-filter-options.compact label { font-size: 17px; }
-		.rj-price-controls { width: 100%; }
-		.rj-price-controls > button { width: 74px; }
-		.rj-range-wrap { width: 367px; }
-		.rj-range-wrap input { width: 357px; }
-		.rj-shapes { gap: 20px; }
-		.rj-shapes label { min-height: 28px; padding-left: 10px; }
-		.rj-featured a { width: 100%; }
-		.rj-featured b { font-size: 17px; }
-		.rj-filter-backdrop { position: fixed; z-index: 1001; inset: 0; display: block; padding: 0; border: 0; background: rgba(0,0,0,.72); }
+		.rj-filter-backdrop { position: fixed; z-index: 1001; inset: 0; display: block; padding: 0; border: 0; background: rgba(0,0,0,.44); }
 		.rj-hide-label { display: none; } .rj-mobile-label { display: inline; }
 	}
 	@media (max-width: 767px) {
@@ -342,15 +427,19 @@
 		.rj-category-copy p { max-width: 230px; font-size: 12px; }
 		.rj-category-model { width: 185px; flex-basis: 185px; height: 180px; margin-right: -35px; }
 		.rj-category-model img { top: -30%; height: 140%; }
-		.rj-toolbar-row { height: 30px; padding-bottom: 15px; }
+		.rj-toolbar-row { height: 44px; padding-bottom: 8px; }
 		.rj-plp-toolbar { margin-top: 15px; }
 		.rj-toolbar-left { gap: 9px; }
-		.rj-toolbar-divider, .rj-refresh { display: none; }
+		.rj-toolbar-divider, .rj-refresh, .rj-view-controls > span { display: none; }
 		.rj-toolbar-button, .rj-sort { font-size: 14px; gap: 6px; }
+		.rj-filter-toggle { min-height: 44px; }
 		.rj-sort select { width: 95px; font-size: 13px; }
+		.rj-view-controls { gap: 7px; }
+		.rj-view-controls button { width: 36px; height: 36px; padding: 7px; }
 		.rj-products-layout { margin-top: 20px; margin-bottom: 80px; }
 	}
 	@media (max-width: 430px) {
+		.rj-sidebar, .rj-products-layout.filter-hidden .rj-sidebar { border-radius: 0; }
 		.rj-category-model { width: 145px; flex-basis: 145px; }
 		.rj-category-copy p { max-width: 190px; }
 	}

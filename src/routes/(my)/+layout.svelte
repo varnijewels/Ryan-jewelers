@@ -76,7 +76,7 @@
 {#if accountAllowed && isRyansJewels}
 	<div class="rj-account-shell">
 		<RyansJewelsAccountSidebar />
-		<main class="rj-account-content">{@render children()}</main>
+		<main class="rj-account-content">{#key page.url.pathname}{@render children()}{/key}</main>
 	</div>
 {:else if accountAllowed}
 <div class="page-width relative flex min-h-screen flex-col overflow-hidden p-0 md:flex-row md:p-0">
@@ -138,7 +138,7 @@
 			<Breadcrumb items={breadcrumbItems} />
 			</div>
 		</div>
-		{@render children()}
+		{#key page.url.pathname}{@render children()}{/key}
 	</main>
 </div>
 {/if}

@@ -12,6 +12,8 @@
 	const { heading, shapes } = ryansJewelsHome.perfectCut
 	const rowOne = shapes.slice(0, 5)
 	const rowTwo = shapes.slice(5)
+	const mobileRowOne = shapes.slice(1, 6)
+	const mobileRowTwo = shapes.slice(6)
 </script>
 
 {#snippet shapeLink(shape: (typeof shapes)[number])}
@@ -44,7 +46,7 @@
 	<div class="rj-cut-inner">
 		<RjRuleHeading text={heading} id="rj-cut-heading" />
 
-		<div class="rj-cut-rows">
+		<div class="rj-cut-rows rj-cut-rows--default">
 			<div class="rj-cut-row rj-cut-row--one">
 				{#each rowOne as shape (shape.key)}
 					{@render shapeLink(shape)}
@@ -52,6 +54,19 @@
 			</div>
 			<div class="rj-cut-row rj-cut-row--two">
 				{#each rowTwo as shape (shape.key)}
+					{@render shapeLink(shape)}
+				{/each}
+			</div>
+		</div>
+
+		<div class="rj-cut-rows rj-cut-rows--mobile">
+			<div class="rj-cut-row rj-cut-row--one">
+				{#each mobileRowOne as shape (shape.key)}
+					{@render shapeLink(shape)}
+				{/each}
+			</div>
+			<div class="rj-cut-row rj-cut-row--two">
+				{#each mobileRowTwo as shape (shape.key)}
 					{@render shapeLink(shape)}
 				{/each}
 			</div>
@@ -84,6 +99,10 @@
 
 	.rj-cut-row {
 		display: contents;
+	}
+
+	.rj-cut-rows--mobile {
+		display: none;
 	}
 
 	.rj-shape {
@@ -137,7 +156,7 @@
 		color: var(--rj-gold, #cca646);
 	}
 
-	/* Both tablet source frames start with Oval; Round remains in mobile/desktop. */
+	/* Tablet source frames start with Oval; desktop keeps the complete cut list. */
 	@media (min-width: 640px) and (max-width: 1100px) {
 		.rj-cut-row--one .rj-shape:first-child {
 			display: none;
@@ -208,6 +227,14 @@
 
 	/* Mobile 412 — two rows, each justify-between (77:106877 / 77:106952). */
 	@media (max-width: 639px) {
+		.rj-cut-rows--default {
+			display: none;
+		}
+
+		.rj-cut-rows--mobile {
+			display: flex;
+		}
+
 		.rj-cut-inner {
 			gap: 25px;
 			padding: 0 15px;
@@ -227,15 +254,19 @@
 		}
 
 		.rj-cut-row--one {
+			height: 79px;
 			padding: 0 15px;
 		}
 
 		.rj-cut-row--two {
-			padding: 0 15px;
+			height: 75px;
+			padding: 0 45px;
 		}
 
 		.rj-shape {
-			gap: var(--mgap);
+			height: 100%;
+			justify-content: space-between;
+			gap: 0;
 		}
 
 		.rj-shape-box {

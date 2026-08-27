@@ -1,19 +1,15 @@
 <script lang="ts">
 	import { ChevronRight, Menu } from '@lucide/svelte'
-	import { goto } from '$app/navigation'
-	import { onMount } from 'svelte'
 	import { page } from '$app/state'
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js'
-	import { AuthButton, showAuthModal } from '$lib/core/components/index.js'
-	import { searchService } from '$lib/core/services/index.js'
+	import ProfileDropdown from '$lib/components/nav/profile-dropdown.svelte'
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu'
+	import { AuthButton } from '$lib/core/components/index.js'
+	import { MsSearchRenderer } from '$lib/core/composables/index.js'
 	import { priceRoundUp } from '@misiki/kitcommerce-core/utils'
 	import { getCartState } from '$lib/core/stores/index.js'
 	import { ryansJewelsNavContent as nav } from './nav-content.js'
 	import RjAdminMegaMenu from './RjAdminMegaMenu.svelte'
-	import RjProfileDropdown from './RjProfileDropdown.svelte'
 	import { menuChildren, menuHref, menuLabel, resolveAdminMenu } from './admin-menu.js'
-	import { realCatalogUrl } from './product-filters.js'
-	import { LOGIN_PROMPT_DELAY_MS, shouldShowDelayedLogin } from './auth-gate.logic.js'
 
 	let {
 		navModule,
@@ -31,82 +27,18 @@
 		pathname?: string
 	} = $props()
 
-	let search = $state(page.url.searchParams.get('search') ?? '')
-	let searchResults = $state<any[]>([])
-	let searchResultCount = $state(0)
-	let searchOpen = $state(false)
-	let searchLoading = $state(false)
-	let searchTimer: ReturnType<typeof setTimeout> | undefined
-	let searchRequest = 0
+	let search = $state('')
 	let openMega = $state<string | null>(null)
 	const cartState = getCartState()
-	const delayedLoginKey = 'rj-delayed-login-shown'
 
 	const isLoggedIn = $derived(!!userState?.user?.role)
-	const displayName = $derived(
-		`${userState?.user?.firstName || ''} ${userState?.user?.lastName || ''}`.trim() || userState?.user?.name || 'My Account'
-	)
-	const cartQty = $derived((cartState?.cart?.lineItems || []).reduce((total: number, item: any) => total + Number(item.qty || 0), 0))
-	const searchPlugin = $derived(page?.data?.store?.plugins?.search)
+	const displayName = $derived(userState?.user?.firstName || userState?.user?.name || 'My Account')
 	const serverMegaMenu = $derived((page.data as any)?.navigation?.megaMenu as any[] | undefined)
 	const resolvedMenu = $derived(
 		resolveAdminMenu(navModule.megaMenu.length ? navModule.megaMenu : serverMegaMenu, navModule.navMenu, nav.home, serverMegaMenu === undefined ? nav.menu : [])
 	)
 	const homeLabel = $derived(menuLabel(resolvedMenu.home))
 	const homeHref = '/'
-
-	$effect(() => {
-		search = page.url.searchParams.get('search') ?? ''
-	})
-
-	onMount(() => {
-		const timer = window.setTimeout(() => {
-			const alreadyShown = sessionStorage.getItem(delayedLoginKey) === 'true'
-			if (!shouldShowDelayedLogin(userState?.user, alreadyShown)) return
-			sessionStorage.setItem(delayedLoginKey, 'true')
-			showAuthModal('login')
-		}, LOGIN_PROMPT_DELAY_MS)
-
-		return () => window.clearTimeout(timer)
-	})
-
-	function scheduleSearch(query: string) {
-		clearTimeout(searchTimer)
-		const request = ++searchRequest
-		searchOpen = !!query.trim()
-		searchResults = []
-		searchResultCount = 0
-		if (!searchOpen) {
-			searchLoading = false
-			return
-		}
-		searchLoading = true
-		searchTimer = setTimeout(async () => {
-			const result = await searchService.searchWithUrl(realCatalogUrl(new URL(`/products?search=${encodeURIComponent(query.trim())}`, window.location.origin)))
-			if (request !== searchRequest) return
-			searchResults = (result?.data || []).filter((product: any) => product?.slug).slice(0, 6)
-			searchResultCount = result?.count || searchResults.length
-			searchLoading = false
-		}, 250)
-	}
-
-	function closeSearch() {
-		clearTimeout(searchTimer)
-		searchRequest++
-		searchOpen = false
-		searchLoading = false
-	}
-
-	function submitSearch() {
-		const query = search.trim()
-		if (!query) return
-		closeSearch()
-		goto(`/products?search=${encodeURIComponent(query)}`)
-	}
-
-	function searchCategory(result: any) {
-		return result?.categories?.[0]?.category?.name || result?.categories?.[0]?.name || result?.category?.name || 'Jewellery'
-	}
 </script>
 
 <!-- Utility bar — Figma 1:5409 -->
@@ -115,8 +47,7 @@
 		<div class="rj-utility-group">
 			<a class="rj-utility-link" href={nav.utility.dailyDeals.href}>{nav.utility.dailyDeals.label}</a>
 
-			{#if nav.utility.giftCard}
-			<a class="rj-utility-link rj-utility-link--icon rj-utility-link--gift" href={nav.utility.giftCard.href}>
+			<a class="rj-utility-link rj-utility-link--icon" href={nav.utility.giftCard.href}>
 				<svg class="rj-i20" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
 					<path
 						d="M16.6417 8.33333H3.30833V15C3.30833 17.5 4.14167 18.3333 6.64167 18.3333H13.3083C15.8083 18.3333 16.6417 17.5 16.6417 15V8.33333Z"
@@ -161,7 +92,6 @@
 				</svg>
 				<span>{nav.utility.giftCard.label}</span>
 			</a>
-			{/if}
 
 			<a class="rj-utility-link rj-utility-link--icon" href={nav.utility.helpContact.href}>
 				<svg class="rj-i20" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -228,7 +158,6 @@
 </div>
 
 <!-- Main header — Figma 63:83424 (logged out) / 63:83358 (logged in) -->
-<!-- svelte-ignore a11y_no_static_element_interactions -->
 <header
 	class="rj-header"
 	onmouseleave={() => (openMega = null)}
@@ -243,7 +172,7 @@
 		<!-- Row 1 -->
 		<div class="rj-row-primary" onmouseenter={() => (openMega = null)}>
 			<button class="rj-burger" type="button" aria-label="Open menu" onclick={() => (navModule.openSidebar = true)}>
-				<Menu size={26} strokeWidth={1.5} />
+				<Menu class="h-5 w-5" />
 			</button>
 
 			<a class="rj-brand" href="/" aria-label="{nav.brandName} home">
@@ -253,13 +182,9 @@
 				<span class="rj-brand-name">{nav.brandName}</span>
 			</a>
 
-			<form
-				class="rj-search"
-				onsubmit={(event) => {
-					event.preventDefault()
-					submitSearch()
-				}}
-			>
+			<MsSearchRenderer bind:search>
+				{#snippet content({ searchResults, showSearchResults, loading, searchPlugin, closeSearch, handleKeyDown, handleResultClick, showSearch })}
+					<div class="rj-search">
 						<input
 							class="rj-search-input"
 							type="search"
@@ -268,15 +193,10 @@
 							aria-label={searchPlugin?.placeholder || nav.searchPlaceholder}
 							autocomplete="off"
 							enterkeyhint="search"
-							onfocus={() => search.trim() && (searchOpen = true)}
-							oninput={(event) => scheduleSearch((event.currentTarget as HTMLInputElement).value)}
-							onkeydown={(event) => event.key === 'Escape' && closeSearch()}
-							aria-controls="rj-search-results"
-							aria-expanded={searchOpen}
-							aria-autocomplete="list"
-							role="combobox"
+							onfocus={showSearch}
+							onkeydown={handleKeyDown}
 						/>
-						<button class="rj-search-icon" type="submit" aria-label="Search products">
+						<span class="rj-search-icon" aria-hidden="true">
 							<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
 								<path
 									fill-rule="evenodd"
@@ -285,15 +205,11 @@
 									fill="#B0BABF"
 								/>
 							</svg>
-						</button>
+						</span>
 
-						{#if searchOpen && search.trim()}
-							<div class="rj-search-results" id="rj-search-results" aria-live="polite">
-								<div class="rj-search-results-head">
-									<strong>Similar Results</strong>
-									{#if !searchLoading}<span>{searchResultCount} products</span>{/if}
-								</div>
-								{#if searchLoading}
+						{#if showSearchResults && search}
+							<div class="rj-search-results">
+								{#if loading}
 									{#each Array(4) as _}
 										<div class="rj-search-skeleton"></div>
 									{/each}
@@ -301,32 +217,29 @@
 									<ul>
 										{#each searchResults as result}
 											<li>
-												<a href="/products/{result.slug}" onclick={closeSearch}>
+												<button type="button" onclick={() => handleResultClick(result)}>
 													<span class="rj-search-thumb">
-														{#if result.thumbnail || result.image_url}<img src={result.thumbnail || result.image_url} alt="" />{/if}
+														{#if result.thumbnail}<img src={result.thumbnail} alt="" />{/if}
 													</span>
 													<span class="rj-search-meta">
-														<span class="rj-search-category">{searchCategory(result)}</span>
 														<span class="rj-search-title">{result.name || result.title}</span>
 														{#if result.price}
 															<span class="rj-search-price">{priceRoundUp(result?.price, page?.data?.store?.currency?.code)}</span>
 														{/if}
 													</span>
-													<ChevronRight size={17} aria-hidden="true" />
-												</a>
+												</button>
 											</li>
 										{/each}
 									</ul>
 								{:else}
 									<p class="rj-search-empty">No products found for “{search}”.</p>
 								{/if}
-								<button type="button" class="rj-search-view-all" onclick={submitSearch}>
-									<span>View all results for “{search}”</span><ChevronRight size={18} aria-hidden="true" />
-								</button>
 							</div>
 							<button type="button" class="rj-search-backdrop" tabindex="-1" aria-label="Close search" onclick={closeSearch}></button>
 						{/if}
-			</form>
+					</div>
+				{/snippet}
+			</MsSearchRenderer>
 
 			<div class="rj-actions">
 				<a class="rj-order" href={nav.orderReturn.href}>
@@ -349,8 +262,8 @@
 					</span>
 				</a>
 
-				<a class="rj-cart" class:rj-cart--empty={!cartQty} href="/checkout/cart" aria-label="Open cart">
-					{#if cartQty > 0}
+				<a class="rj-cart" class:rj-cart--empty={!cartState.cart?.qty} href="/checkout/cart" aria-label="Open cart">
+					{#if (cartState.cart?.qty || 0) > 0}
 									<span class="rj-cart-icon rj-cart-icon--count">
 										<svg width="27" height="27" viewBox="0 0 27 27" fill="none" aria-hidden="true">
 											<path
@@ -366,7 +279,7 @@
 												fill="currentColor"
 											/>
 										</svg>
-							<span class="rj-cart-count">{cartQty}</span>
+							<span class="rj-cart-count">{cartState.cart.qty}</span>
 									</span>
 								{:else}
 									<span class="rj-cart-icon">
@@ -395,7 +308,7 @@
 				</a>
 
 				{#if isLoggedIn}
-					<RjProfileDropdown onSignOut={navModule.handleSignOut}>
+					<ProfileDropdown onSignOut={navModule.handleSignOut}>
 						{#snippet trigger()}
 							<span class="rj-account">
 								<span class="rj-account-icon" aria-hidden="true">
@@ -433,32 +346,28 @@
 								</span>
 							</span>
 						{/snippet}
-					</RjProfileDropdown>
+					</ProfileDropdown>
 				{:else}
 					<DropdownMenu.Root>
-						<span class="rj-account">
-							<button
-								class="rj-account-icon rj-account-icon--guest"
-								type="button"
-								aria-label="Sign in or register"
-								onclick={() => showAuthModal('login')}
-							>
+						<DropdownMenu.Trigger aria-label="Open account menu" class="rj-guest-trigger">
+							<span class="rj-account">
+							<span class="rj-account-icon" aria-hidden="true">
 								<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
 									<path
 										d="M12 12.25C11.2583 12.25 10.5333 12.0301 9.91661 11.618C9.29993 11.206 8.81928 10.6203 8.53545 9.93506C8.25162 9.24984 8.17736 8.49584 8.32205 7.76841C8.46675 7.04098 8.8239 6.3728 9.34835 5.84835C9.8728 5.3239 10.541 4.96675 11.2684 4.82206C11.9958 4.67736 12.7498 4.75162 13.4351 5.03545C14.1203 5.31928 14.706 5.79993 15.118 6.41661C15.5301 7.0333 15.75 7.75832 15.75 8.5C15.75 9.49456 15.3549 10.4484 14.6517 11.1517C13.9484 11.8549 12.9946 12.25 12 12.25ZM12 6.25C11.555 6.25 11.12 6.38196 10.75 6.62919C10.38 6.87643 10.0916 7.22783 9.92127 7.63896C9.75097 8.0501 9.70642 8.5025 9.79323 8.93895C9.88005 9.37541 10.0943 9.77632 10.409 10.091C10.7237 10.4057 11.1246 10.62 11.561 10.7068C11.9975 10.7936 12.4499 10.749 12.861 10.5787C13.2722 10.4084 13.6236 10.12 13.8708 9.75003C14.118 9.38002 14.25 8.94501 14.25 8.5C14.25 7.90326 14.0129 7.33097 13.591 6.90901C13.169 6.48705 12.5967 6.25 12 6.25V6.25ZM19 19.25C18.8019 19.2474 18.6126 19.1676 18.4725 19.0275C18.3324 18.8874 18.2526 18.6981 18.25 18.5C18.25 16.55 17.19 15.25 12 15.25C6.81 15.25 5.75 16.55 5.75 18.5C5.75 18.6989 5.67098 18.8897 5.53033 19.0303C5.38968 19.171 5.19891 19.25 5 19.25C4.80109 19.25 4.61032 19.171 4.46967 19.0303C4.32902 18.8897 4.25 18.6989 4.25 18.5C4.25 13.75 9.68 13.75 12 13.75C14.32 13.75 19.75 13.75 19.75 18.5C19.7474 18.6981 19.6676 18.8874 19.5275 19.0275C19.3874 19.1676 19.1981 19.2474 19 19.25Z"
 										fill="currentColor"
 									/>
 								</svg>
-							</button>
+							</span>
 							<span class="rj-account-text rj-account-text--guest">
 								<span class="rj-account-greeting">{nav.account.greeting}</span>
 								<span class="rj-account-line">
 									<span class="rj-account-auth">
-										<button class="rj-account-link" type="button" onclick={() => showAuthModal('login')}>{nav.account.signIn}</button><span
-											class="rj-account-or">{nav.account.divider}</span
-										><button class="rj-account-link" type="button" onclick={() => showAuthModal('signup')}>{nav.account.register}</button>
+										<span class="rj-account-link">{nav.account.signIn}</span><span class="rj-account-or">{nav.account.divider}</span><span
+											class="rj-account-link">{nav.account.register}</span
+										>
 									</span>
-									<DropdownMenu.Trigger aria-label="Open account menu" class="rj-guest-trigger"><svg class="rj-i14" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+									<svg class="rj-i14" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
 										<path
 											d="M11.62 5.22083L7.81667 9.02417C7.3675 9.47333 6.6325 9.47333 6.18333 9.02417L2.38 5.22083"
 											stroke="#292D32"
@@ -467,19 +376,22 @@
 											stroke-linecap="round"
 											stroke-linejoin="round"
 										/>
-									</svg></DropdownMenu.Trigger>
+									</svg>
 								</span>
 							</span>
-						</span>
+							</span>
+						</DropdownMenu.Trigger>
 
 						<DropdownMenu.Content align="end" sideOffset={8} class="rj-guest-menu">
-							<AuthButton class="rj-guest-signin" type="login">Sign in / Create Account</AuthButton>
+							<DropdownMenu.Item class="rj-guest-item">
+								<AuthButton class="rj-guest-signin" type="login">Sign in / Create Account</AuthButton>
+							</DropdownMenu.Item>
 							<div class="rj-guest-rule"></div>
 							<DropdownMenu.Item class="rj-guest-item">
 								<AuthButton class="rj-guest-row" type="login"><img class="rj-guest-icon" src="/ryans-jewels/icons/order-history.svg" alt="" /><span>Order History</span><ChevronRight /></AuthButton>
 							</DropdownMenu.Item>
-							<DropdownMenu.Item class="rj-guest-item" onSelect={() => goto('/order-tracking')}>
-								<span class="rj-guest-row"><img class="rj-guest-icon" src="/ryans-jewels/icons/track-order.svg" alt="" /><span>Track Order</span><ChevronRight /></span>
+							<DropdownMenu.Item class="rj-guest-item">
+								<a class="rj-guest-row" href="/order-tracking"><img class="rj-guest-icon" src="/ryans-jewels/icons/track-order.svg" alt="" /><span>Track Order</span><ChevronRight /></a>
 							</DropdownMenu.Item>
 							<div class="rj-guest-rule"></div>
 							<DropdownMenu.Item class="rj-guest-item">
@@ -506,7 +418,7 @@
 						{@const label = menuLabel(item)}
 						{@const href = menuHref(item)}
 						{@const menuId = `rj-admin-menu-${index}`}
-						{#if menuChildren(item).length || item.id}
+						{#if menuChildren(item).length}
 							<div class="rj-menu-entry" class:is-open={openMega === menuId} onmouseenter={() => (openMega = menuId)}>
 								<a
 									class="rj-menu-item"
@@ -522,7 +434,7 @@
 										<path d="M10.9329 0.75L6.74143 4.94143C6.24643 5.43643 5.43643 5.43643 4.94143 4.94143L0.75 0.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
 									</svg>
 								</a>
-								<RjAdminMegaMenu category={item} {menuId} open={openMega === menuId} onNavigate={() => (openMega = null)} />
+								<RjAdminMegaMenu category={item} {menuId} onNavigate={() => (openMega = null)} />
 							</div>
 						{:else}
 							<a class="rj-menu-item" {href} aria-current={pathname === href ? 'page' : undefined} onmouseenter={() => (openMega = null)}>
@@ -535,8 +447,8 @@
 
 			<a class="rj-offers" href={nav.offers.href} onmouseenter={() => (openMega = null)}>
 				<span class="rj-offers-gift" aria-hidden="true">
-					<img class="rj-offers-gift-base" src={isLoggedIn ? '/ryans-jewels/icons/gift-box-3d-premium.webp' : '/ryans-jewels/icons/gift-box-3d.webp'} alt="" />
-					<img class="rj-offers-gift-top" src="/ryans-jewels/icons/gift-box-3d.webp" alt="" />
+					<img class="rj-offers-gift-base" src={isLoggedIn ? '/ryans-jewels/icons/gift-box-3d-premium.png' : '/ryans-jewels/icons/gift-box-3d.png'} alt="" />
+					<img class="rj-offers-gift-top" src="/ryans-jewels/icons/gift-box-3d.png" alt="" />
 				</span>
 				<span class="rj-offers-label">{nav.offers.label}</span>
 				<svg class="rj-i18" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
@@ -605,10 +517,6 @@
 
 	.rj-utility-link--icon {
 		gap: 10px;
-	}
-
-	.rj-utility-link--gift {
-		display: flex;
 	}
 
 	.rj-utility-link:hover {
@@ -783,14 +691,10 @@
 		position: absolute;
 		top: 7px;
 		right: 7px;
-		display: grid;
-		place-items: center;
+		display: block;
 		width: 24px;
 		height: 24px;
-		padding: 0;
-		border: 0;
-		background: transparent;
-		cursor: pointer;
+		pointer-events: none;
 	}
 
 	.rj-search-backdrop {
@@ -810,65 +714,39 @@
 		right: 0;
 		max-height: 60vh;
 		overflow-y: auto;
-		padding: 0;
+		padding: 6px;
 		background: #fff;
 		border: 1px solid var(--rj-line-2, #d9d9d9);
-		border-radius: 8px;
+		border-radius: 6px;
 		box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.28);
 	}
 
-	.rj-search-results-head {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 16px 18px 12px;
-		border-bottom: 1px solid var(--rj-line-2, #d9d9d9);
-		color: var(--rj-ink, #404040);
-	}
-
-	.rj-search-results-head strong {
-		font-size: 15px;
-		font-weight: 600;
-	}
-
-	.rj-search-results-head span {
-		font-size: 12px;
-		color: var(--rj-ink-2, #606060);
-	}
-
 	.rj-search-results ul {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 4px;
 		list-style: none;
 		margin: 0;
-		padding: 8px;
+		padding: 0;
 	}
 
-	.rj-search-results li a {
+	.rj-search-results li button {
 		display: flex;
 		align-items: center;
 		gap: 12px;
 		width: 100%;
-		min-height: 78px;
-		padding: 8px 10px;
+		padding: 8px;
 		border: 0;
 		background: none;
 		text-align: left;
-		text-decoration: none;
 		cursor: pointer;
 	}
 
-	.rj-search-results li a:hover,
-	.rj-search-results li a:focus-visible {
+	.rj-search-results li button:hover {
 		background: var(--rj-cream, #faf6ea);
-		outline: none;
 	}
 
 	.rj-search-thumb {
 		display: block;
-		width: 62px;
-		height: 62px;
+		width: 44px;
+		height: 44px;
 		flex-shrink: 0;
 		overflow: hidden;
 		border-radius: 4px;
@@ -886,15 +764,6 @@
 		flex-direction: column;
 		gap: 2px;
 		min-width: 0;
-		flex: 1;
-	}
-
-	.rj-search-category {
-		font-size: 11px;
-		line-height: 15px;
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		color: var(--rj-gold, #cca646);
 	}
 
 	.rj-search-title {
@@ -912,8 +781,8 @@
 	}
 
 	.rj-search-skeleton {
-		height: 78px;
-		margin: 8px;
+		height: 56px;
+		margin: 4px;
 		border-radius: 4px;
 		background: var(--rj-surface, #f4f4f4);
 		animation: rj-pulse 1.4s ease-in-out infinite;
@@ -924,28 +793,6 @@
 		font-size: 14px;
 		text-align: center;
 		color: var(--rj-ink-2, #606060);
-	}
-
-	.rj-search-view-all {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 5px;
-		width: 100%;
-		padding: 13px 16px;
-		border: 0;
-		border-top: 1px solid var(--rj-line-2, #d9d9d9);
-		background: #fff;
-		font: inherit;
-		font-size: 13px;
-		color: var(--rj-ink, #404040);
-		cursor: pointer;
-	}
-
-	.rj-search-view-all:hover,
-	.rj-search-view-all:focus-visible {
-		color: var(--rj-gold, #cca646);
-		outline: none;
 	}
 
 	@keyframes rj-pulse {
@@ -1084,14 +931,6 @@
 		flex-shrink: 0;
 	}
 
-	.rj-account-icon--guest {
-		padding: 0;
-		border: 0;
-		background: transparent;
-		color: inherit;
-		cursor: pointer;
-	}
-
 	/* 63:83456 is 118×28 — "Hello!" trimmed to 10, the auth line 14, gap 4. */
 	.rj-account-text {
 		display: flex;
@@ -1119,22 +958,14 @@
 	}
 
 	.rj-account-auth {
-		display: inline-flex;
-		align-items: center;
-		gap: 3px;
 		font-family: 'Sarala', sans-serif;
 		line-height: 10px;
 		white-space: nowrap;
 	}
 
 	.rj-account-link {
-		padding: 0;
-		border: 0;
-		background: transparent;
 		font-size: 14px;
-		font-family: inherit;
 		color: var(--rj-gold, #cca646);
-		cursor: pointer;
 		text-decoration: underline;
 		text-underline-position: from-font;
 		text-decoration-skip-ink: none;
@@ -1183,7 +1014,6 @@
 		font-size: 16px;
 		line-height: 24px;
 		cursor: pointer;
-		text-decoration: none;
 	}
 
 	:global(.rj-guest-rule) {
@@ -1397,7 +1227,7 @@
 
 	/* ------------------------------ tablet 744 ---------------------------- */
 
-	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
+	@media (max-width: 1023px) {
 		.rj-utility-inner {
 			min-height: 56px;
 			padding: 17px 40px;
@@ -1425,7 +1255,6 @@
 
 		.rj-header {
 			min-height: 125px;
-			border-bottom: 0;
 		}
 
 		.rj-header-inner {
@@ -1517,6 +1346,11 @@
 			height: 22.52px;
 		}
 
+		.rj-account-icon svg {
+			width: 27px;
+			height: 27px;
+		}
+
 		.rj-cart-icon--count {
 			width: 28px;
 			height: 28px;
@@ -1534,51 +1368,9 @@
 		}
 	}
 
-	/* Tablet landscape 114:58524 — desktop structure with 1024px geometry. */
-	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
-		.rj-utility-inner {
-			padding-left: 61px;
-			padding-right: 61px;
-		}
-
-		.rj-header-inner {
-			padding-left: 25px;
-			padding-right: 25px;
-		}
-
-		.rj-brand-mark {
-			width: 32px;
-			height: 30px;
-		}
-
-		.rj-brand-name {
-			font-size: 22px;
-		}
-
-		.rj-menu {
-			gap: 12px;
-		}
-
-		.rj-menu-list {
-			gap: 20px;
-		}
-	}
-
 	/* ------------------------------ mobile 412 ---------------------------- */
 
 	@media (max-width: 639px) {
-		.rj-header {
-			border-bottom: 0;
-		}
-
-		.rj-search-results ul {
-			grid-template-columns: 1fr;
-		}
-
-		.rj-search-results {
-			max-height: min(65vh, 520px);
-		}
-
 		/* Gold bar becomes two centred rows (77:106801 / 77:106809). */
 		.rj-utility-inner {
 			flex-direction: column;
@@ -1598,10 +1390,6 @@
 
 		.rj-utility-group--end {
 			padding: 0 60px;
-		}
-
-		.rj-utility-link--gift {
-			display: flex;
 		}
 
 		.rj-utility-link,
@@ -1669,50 +1457,6 @@
 			width: 120px;
 			justify-content: space-between;
 			gap: 0;
-		}
-
-		.rj-cart-icon svg,
-		.rj-account-icon svg {
-			width: 100%;
-			height: 100%;
-		}
-	}
-
-	@media (max-width: 363px) {
-		.rj-utility-inner {
-			padding-inline: 12px;
-		}
-
-		.rj-utility-group {
-			padding-inline: 0;
-		}
-
-		.rj-utility-group--end {
-			padding-inline: 20px;
-		}
-
-		.rj-header-inner {
-			padding-inline: 12px;
-		}
-
-		.rj-row-primary {
-			grid-template-columns: minmax(0, 1fr) 100px;
-			column-gap: 8px;
-			justify-content: stretch;
-		}
-
-		.rj-brand {
-			gap: 8px;
-			margin-left: 34px;
-			justify-self: start;
-		}
-
-		.rj-brand-name {
-			font-size: 16px;
-		}
-
-		.rj-actions {
-			width: 100px;
 		}
 	}
 </style>

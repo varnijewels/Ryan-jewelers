@@ -314,6 +314,7 @@ export interface NamePlateCard {
 	crop: { left: number; top: number; width: number }
 	/** Text column width from the source (1:6135 / 1:6163 / 1:6149). */
 	textWidth: number
+	imageFit?: 'contain'
 }
 
 export const namePlateCards: NamePlateCard[] = [

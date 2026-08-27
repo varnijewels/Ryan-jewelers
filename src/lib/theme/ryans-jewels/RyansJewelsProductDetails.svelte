@@ -12,10 +12,23 @@
 	import RjProductCustomizer from './RjCustomizeModal.svelte'
 	import RjProductCard from './RjProductCard.svelte'
 	import { productRating, withoutDemoProducts } from './product-filters.js'
+	import RjInstagram from './RjInstagram.svelte'
 	import RjWideBanner from './RjWideBanner.svelte'
-	import { customizationOptions, diamondImageForShape, discountPercent, groupedProductForAttribute, groupedProductForSelections, groupedValuesForAttribute, metalColorImage, metalColorTone, productAttributeValue, productDetailParagraphs, productImages, toggleStoredId, variantForOption, variantForSelections } from './product-details.logic.js'
+	import { adjacentProductImage, customizationOptions, diamondImageForShape, discountPercent, groupedProductForAttribute, groupedProductForSelections, groupedValuesForAttribute, metalColorImage, metalColorTone, productAttributeValue, productDetailParagraphs, productImages, toggleStoredId, variantForOption, variantForSelections } from './product-details.logic.js'
 
 	const COMPARE_STORAGE_KEY = 'ryans-jewels-compare-products'
+	const TESTIMONIAL_FALLBACK = [
+		{ name: 'Johan Michel', rating: 4.5, likes: '4.5k', comments: 500, createdAt: '2025-08-29', image: '/ryans-jewels/product/testimonials/avatar-1.jpg', review: "A diamond toggle bracelet was my very first purchase at Ryan's Jewels. I was impressed by the designs and how smooth the entire purchase felt." },
+		{ name: 'Emilio Lindgren', rating: 4.5, likes: '4.5k', comments: 500, createdAt: '2025-08-29', image: '/ryans-jewels/product/testimonials/avatar-2.jpg', review: 'The jewellery is beautifully finished, comfortable to wear, and looked even better in person than it did online.' },
+		{ name: 'Melinda Gusikowski', rating: 4.5, likes: '4.5k', comments: 500, createdAt: '2025-08-29', image: '/ryans-jewels/product/testimonials/avatar-3.jpg', review: 'The piece arrived safely packed and right on time. The quality, sparkle, and delicate details exceeded my expectations.' },
+		{ name: 'Ernesto Feeney', rating: 4.5, likes: '4.5k', comments: 500, createdAt: '2025-08-29', image: '/ryans-jewels/product/testimonials/avatar-4.jpg', review: 'I had an amazing experience with this product. The quality exceeded my expectations, and the customer service team was incredibly helpful.' },
+		{ name: 'Clara Kuphal', rating: 4.5, likes: '4.5k', comments: 500, createdAt: '2025-08-29', image: '/ryans-jewels/product/testimonials/avatar-5.jpg', review: 'A timeless design with a beautiful finish. It has quickly become one of my favourite pieces to wear every day.' },
+		{ name: 'Joy Zboncak', rating: 4.5, likes: '4.5k', comments: 500, createdAt: '2025-08-29', image: '/ryans-jewels/product/testimonials/avatar-6.jpg', review: 'The craftsmanship is excellent and the fit is perfect. I received so many compliments the first time I wore it.' },
+		{ name: 'Naomi Grady', rating: 4.5, likes: '4.5k', comments: 500, createdAt: '2025-08-29', image: '/ryans-jewels/product/testimonials/avatar-7.jpg', review: 'The ordering experience was simple and the jewellery feels premium. I would happily recommend Ryan’s Jewels.' },
+		{ name: 'Denise Lind', rating: 4.5, likes: '4.5k', comments: 500, createdAt: '2025-08-29', image: '/ryans-jewels/product/testimonials/avatar-8.jpg', review: 'Beautifully made, elegant, and exactly as pictured. The attention to detail makes this piece feel truly special.' },
+		{ name: 'Ernest Von', rating: 4.5, likes: '4.5k', comments: 500, createdAt: '2025-08-29', image: '/ryans-jewels/product/testimonials/avatar-9.jpg', review: 'The stones catch the light beautifully and the setting feels secure. Everything from order to delivery was excellent.' },
+		{ name: 'Mia Schaefer', rating: 4.5, likes: '4.5k', comments: 500, createdAt: '2025-08-29', image: '/ryans-jewels/product/testimonials/avatar-10.jpg', review: 'I chose this as a gift and it was loved instantly. The presentation, finish, and service were all wonderful.' }
+	]
 
 	const productState = useProductState()
 	const data = $derived(page.data)
@@ -55,12 +68,17 @@
 		if (!images.includes(activeImage)) activeImage = images[0] || ''
 		productState.selectedImage = activeImage
 	})
+	function showAdjacentImage(direction: -1 | 1) {
+		activeImage = adjacentProductImage(images, activeImage, direction)
+	}
 
 	const price = $derived(Number(selectedVariant?.price ?? product?.price ?? 0))
 	const mrp = $derived(Number(selectedVariant?.mrp ?? product?.mrp ?? price))
-	const discount = $derived(discountPercent(price, mrp))
+	const priceGapPercent = $derived(discountPercent(price, mrp))
 	const category = $derived(product?.category?.name || [...(product?.categoryHierarchy || [])].reverse().find((item: any) => item.name !== product.title)?.name || '')
 	const ratings = $derived(Array.isArray(product?.ratings) ? product.ratings : [])
+	const testimonials = $derived([...ratings, ...(Array.isArray(product?.brandReviews) ? product.brandReviews : [])])
+	const displayedTestimonials = $derived(testimonials.length ? testimonials.slice(0, 10) : TESTIMONIAL_FALLBACK)
 	const rating = $derived(productRating(product))
 	const reviewCount = $derived(Number(product?.reviewCount ?? product?.ratingCount ?? ratings.length) || ratings.length)
 	const inStock = $derived(!product?.manageInventory || Number(selectedVariant?.stock ?? product?.stock ?? 0) > 0)
@@ -121,6 +139,8 @@
 	const customizationInitial = $derived({ metal: metalColor, carat: caratWeight, size: ringSize, cut: stoneShape, stone: stoneType })
 	const wishlistKey = $derived(`${product?.id}-${selectedVariant?.id || variants[0]?.id || ''}`)
 	const wishlisted = $derived(Boolean(productState.wishlistState?.isWishlisted?.[wishlistKey]))
+	const dazzlingProducts = $derived(relatedProducts.slice(4, 8))
+	const instagramHref = $derived(data?.store?.plugins?.socialSharingButtons?.instagram || 'https://www.instagram.com/')
 
 	function selectedValue(option: any) {
 		if (!option) return ''
@@ -314,8 +334,8 @@
 		return keys.map((key) => review?.[key]).find((value) => value !== undefined && value !== null && value !== '')
 	}
 
-	function scrollRelated(direction: -1 | 1) {
-		const track = document.querySelector<HTMLElement>('#rj-related .rj-carousel-track')
+	function scrollRelated(direction: -1 | 1, section = '#rj-related') {
+		const track = document.querySelector<HTMLElement>(`${section} .rj-carousel-track`)
 		track?.scrollBy({ left: direction * track.clientWidth * .8, behavior: 'smooth' })
 	}
 
@@ -350,7 +370,13 @@
 	<section class="rj-product" aria-label={product.title}>
 		<div class="rj-gallery">
 			<div class="rj-main-image">
-				{#if activeImage}<img src={activeImage} alt={product.title} />{:else}<span class="rj-image-empty"></span>{/if}
+				{#if activeImage}<img src={activeImage} alt={product.title} fetchpriority="high" decoding="async" />{:else}<span class="rj-image-empty"></span>{/if}
+				{#if images.length > 1}
+					<div class="rj-image-navigation">
+						<button class="previous" type="button" aria-label="Previous product image" onclick={() => showAdjacentImage(-1)}><img src="/ryans-jewels/product/arrow-right.svg" alt="" /></button>
+						<button type="button" aria-label="Next product image" onclick={() => showAdjacentImage(1)}><img src="/ryans-jewels/product/arrow-right.svg" alt="" /></button>
+					</div>
+				{/if}
 				<div class="rj-image-actions">
 					<button class="rj-wishlist" class:is-active={wishlisted} type="button" disabled={wishlistLoading} onclick={toggleWishlist} aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'} aria-pressed={wishlisted} aria-busy={wishlistLoading}><img src="/ryans-jewels/product/heart.svg" alt="" /></button>
 					<button class="rj-compare" class:is-active={compared} type="button" onclick={toggleCompare} aria-label={compared ? 'Remove from compare' : 'Add to compare'} aria-pressed={compared}><img src="/ryans-jewels/product/compare.svg" alt="" /></button>
@@ -362,7 +388,7 @@
 			{#if images.length > 1}
 				<div class="rj-thumbnails">
 					{#each images.slice(0, 6) as image}
-						<button class:active={image === activeImage} type="button" onclick={() => activeImage = image}><img src={image} alt="View {product.title}" /></button>
+						<button class:active={image === activeImage} type="button" onclick={() => activeImage = image}><img src={image} alt="View {product.title}" loading="lazy" decoding="async" /></button>
 					{/each}
 				</div>
 			{/if}
@@ -376,7 +402,7 @@
 			<div class="rj-price-row">
 				<strong>{formatPrice(price, currency)}</strong>
 				{#if mrp > price}<s>{formatPrice(mrp, currency)}</s>{/if}
-				{#if discount}<span>({discount}% Off Making Charge)</span>{/if}
+				{#if priceGapPercent}<span>({priceGapPercent}% Off Making Charge)</span>{/if}
 			</div>
 
 			<div class="rj-product-meta">
@@ -396,42 +422,44 @@
 
 			<hr />
 
-			{#if optionCards.length}
-				<div class="rj-custom-section">
-					<div class="rj-custom-head"><h2><img src="/ryans-jewels/product/customize.svg" alt="" />Your Selected Product Details</h2></div>
-					<div class="rj-options">
-						{#each optionCards as option, index}
-							<label class="rj-option rj-option-{index}">
-								<span class="rj-option-title">
-									{#if index === 0}
-										<img class="rj-diamond-icon" src="/ryans-jewels/product/diamond-quality.svg" alt="" />
-									{:else if index === 1}
-										<img class="rj-metal-icon" src="/ryans-jewels/product/metal-type.svg" alt="" />
-									{:else}
-										<span class="rj-ring-icon" aria-hidden="true">
-											<span class="rj-ring-rotate"><span class="rj-ring-object">
-												{#each Array.from({ length: 16 }, (_, item) => item + 1) as part}<img class="rj-ring-part rj-ring-part-{part}" src="/ryans-jewels/product/ring-{String(part).padStart(2, '0')}.svg" alt="" />{/each}
-											</span></span>
-										</span>
+			<div class="rj-config">
+				{#if optionCards.length}
+					<div class="rj-custom-section">
+						<div class="rj-custom-head"><h2><img src="/ryans-jewels/product/customize.svg" alt="" />Your Selected Product Details</h2></div>
+						<div class="rj-options">
+							{#each optionCards as option, index}
+								<label class="rj-option rj-option-{index}">
+									<span class="rj-option-title">
+										{#if index === 0}
+											<img class="rj-diamond-icon" src="/ryans-jewels/product/diamond-quality.svg" alt="" />
+										{:else if index === 1}
+											<img class="rj-metal-icon" src="/ryans-jewels/product/metal-type.svg" alt="" />
+										{:else}
+											<span class="rj-ring-icon" aria-hidden="true">
+												<span class="rj-ring-rotate"><span class="rj-ring-object">
+													{#each Array.from({ length: 16 }, (_, item) => item + 1) as part}<img class="rj-ring-part rj-ring-part-{part}" src="/ryans-jewels/product/ring-{String(part).padStart(2, '0')}.svg" alt="" />{/each}
+												</span></span>
+											</span>
+										{/if}
+										<small>{['Diamond Quality & Color', 'Metal type', 'Ring Size'][index]}</small>
+									</span>
+									<span class="rj-option-value">{#if index === 1}<i class="rj-metal-swatch"></i>{/if}<b>{selectedValue(option)}</b></span>
+									{#if !option.readonly}
+										<select value={selectedValue(option)} onchange={(event) => selectOption(option, event)} aria-label={option.title}>
+											{#each option.values || [] as value}<option value={value.value}>{value.value}</option>{/each}
+										</select>
 									{/if}
-									<small>{['Diamond Quality & Color', 'Metal type', 'Ring Size'][index]}</small>
-								</span>
-								<span class="rj-option-value">{#if index === 1}<i class="rj-metal-swatch"></i>{/if}<b>{selectedValue(option)}</b></span>
-								{#if !option.readonly}
-									<select value={selectedValue(option)} onchange={(event) => selectOption(option, event)} aria-label={option.title}>
-										{#each option.values || [] as value}<option value={value.value}>{value.value}</option>{/each}
-									</select>
-								{/if}
-							</label>
-						{/each}
+								</label>
+							{/each}
+						</div>
 					</div>
-				</div>
-			{/if}
+				{/if}
 
-			{#if ringSizeValues.length}<a class="rj-size-guide" href="#rj-specifications"><span>Not sure about your ring size?</span><b><img src="/ryans-jewels/product/size-guide.svg" alt="" />Size Guide</b></a>{/if}
-			{#if metalColorValues.length || caratWeightValues.length || ringSizeValues.length || stoneShapeValues.length || stoneType}
-				<RjProductCustomizer initial={customizationInitial} {metalType} metalOptions={metalColorValues} caratOptions={caratWeightValues} sizeOptions={ringSizeValues} cutOptions={stoneShapeValues} stoneOptions={stoneTypeValues.length > 1 ? stoneTypeValues : []} onchange={applyCustomization} onringview={showRingView} />
-			{/if}
+				{#if ringSizeValues.length}<a class="rj-size-guide" href="#rj-specifications"><span>Not sure about your ring size?</span><b><img src="/ryans-jewels/product/size-guide.svg" alt="" />Size Guide</b></a>{/if}
+				{#if metalColorValues.length || caratWeightValues.length || ringSizeValues.length || stoneShapeValues.length || stoneType}
+					<RjProductCustomizer initial={customizationInitial} {metalType} metalOptions={metalColorValues} caratOptions={caratWeightValues} sizeOptions={ringSizeValues} cutOptions={stoneShapeValues} stoneOptions={stoneTypeValues.length > 1 ? stoneTypeValues : []} onchange={applyCustomization} onringview={showRingView} />
+				{/if}
+			</div>
 
 			<hr />
 
@@ -484,7 +512,7 @@
 
 				<div class="rj-detail-main">
 					<div class="rj-detail-visual">
-						{#if detailImage}<img class="rj-detail-product-image" src={detailImage} alt="Side view of {product.title}" />{/if}
+						{#if detailImage}<img class="rj-detail-product-image" src={detailImage} alt="Side view of {product.title}" loading="lazy" decoding="async" />{/if}
 						<div class="rj-detail-height-label"><i></i><span>{ringHeight ? `${ringHeight} ${dimensionUnit} (Height)` : ringSize ? `Ring Size ${ringSize}` : 'Ring Height'}</span><i></i></div>
 						<img class="rj-detail-height-guide" src="/ryans-jewels/product/detail-height-guide.svg?v=6" alt="" />
 						<img class="rj-detail-stone-guide" src="/ryans-jewels/product/detail-stone-guide.svg?v=6" alt="" />
@@ -516,7 +544,7 @@
 								<article class="rj-review-card">
 									<header>
 										<span class="rj-review-avatar">
-											{#if reviewValue(review, 'img', 'image', 'avatar')}<img src={reviewValue(review, 'img', 'image', 'avatar')} alt="" />{:else}{String(reviewerName).charAt(0).toUpperCase()}{/if}
+							{#if reviewValue(review, 'img', 'image', 'avatar')}<img src={reviewValue(review, 'img', 'image', 'avatar')} alt="" loading="lazy" decoding="async" />{:else}{String(reviewerName).charAt(0).toUpperCase()}{/if}
 										</span>
 										<span><b>{reviewerName}</b><small>{createdAt ? timestampToAgo(createdAt) || 'Recently' : 'Recently'}</small></span>
 										<span class="rj-review-card-rating" aria-label="{Number(review.rating || 0)} out of 5 stars">
@@ -562,26 +590,87 @@
 			{:else}
 				<button class="rj-related-arrow is-prev" type="button" onclick={() => scrollRelated(-1)} aria-label="Previous products">‹</button>
 				<RjCarousel label="You May Also Like">
-					{#each relatedProducts as item (item.id)}<div class="rj-related-item"><RjProductCard product={item} size="listing" /></div>{/each}
+					{#each relatedProducts as item, index (item.id)}<div class="rj-related-item" class:rj-mobile-extra={index > 3}><RjProductCard product={item} size="listing" /></div>{/each}
 				</RjCarousel>
 				<button class="rj-related-arrow is-next" type="button" onclick={() => scrollRelated(1)} aria-label="Next products">›</button>
 			{/if}
 		</section>
 	{/if}
 
-	{#if ratings.length}
-		<section class="rj-reviews">
-			<p>Customer Reviews</p><h2>Don't Take Our Word For It</h2>
-			<div class="rj-review-grid">{#each ratings.slice(0, 3) as review}<article><div class="rj-review-stars">★★★★★</div>{#if review.message || review.review}<p>{review.message || review.review}</p>{/if}<b>{review.name || 'Customer'}</b></article>{/each}</div>
+	<div class="rj-pdp-extras">
+		<RjWideBanner />
+
+		{#if dazzlingProducts.length}
+			<section class="rj-related rj-dazzling" id="rj-dazzling">
+				<div class="rj-related-head"><i></i><div><h2>Dazzling &amp; Stylish...</h2><p>Explore our most loved pieces, handpicked for you.</p></div><i></i></div>
+				<button class="rj-related-arrow is-prev" type="button" onclick={() => scrollRelated(-1, '#rj-dazzling')} aria-label="Previous dazzling products">‹</button>
+				<RjCarousel label="Dazzling and Stylish">
+					{#each dazzlingProducts as item (item.id)}<div class="rj-related-item"><RjProductCard product={item} size="listing" /></div>{/each}
+				</RjCarousel>
+				<button class="rj-related-arrow is-next" type="button" onclick={() => scrollRelated(1, '#rj-dazzling')} aria-label="Next dazzling products">›</button>
+			</section>
+		{/if}
+
+		{#snippet testimonialCards(reviews: any[])}
+			{#each reviews as review}
+				{@const reviewerName = reviewValue(review, 'name', 'reviewerName', 'userName') || 'Customer'}
+				{@const reviewerImage = reviewValue(review, 'img', 'image', 'avatar')}
+				{@const reviewCopy = reviewValue(review, 'review', 'message', 'comment') || 'A wonderful experience with Ryan’s Jewels.'}
+				{@const createdAt = reviewValue(review, 'createdAt', 'created_at', 'date')}
+				{@const reviewRating = Number(reviewValue(review, 'rating', 'stars', 'score') || 0)}
+				<article class="rj-testimonial-card">
+					<header class="rj-testimonial-card-head">
+						<div class="rj-mobile-reviewer">
+							<span class="rj-mobile-review-avatar">{#if reviewerImage}<img src={reviewerImage} alt="" loading="lazy" decoding="async" />{:else}{String(reviewerName).charAt(0).toUpperCase()}{/if}</span>
+							<div>
+								<b>{reviewerName}</b>
+								<span class="rj-mobile-review-rating"><img src="/ryans-jewels/product/testimonials/stars.svg" alt="" /><i></i><small>{reviewRating || 4.5} Review</small></span>
+							</div>
+						</div>
+						<div class="rj-testimonial-social">
+							<span><img src="/ryans-jewels/product/testimonials/heart.svg" alt="" />{reviewValue(review, 'likes', 'likeCount') ?? 0}</span>
+							<span><img src="/ryans-jewels/product/testimonials/comment.svg" alt="" />{reviewValue(review, 'comments', 'commentCount') ?? 0}</span>
+						</div>
+					</header>
+					<p>{reviewCopy}</p>
+					<footer>
+						<time datetime={createdAt || undefined}>{createdAt ? dateOnly(createdAt) : 'Recently'}</time>
+						<span><img src="/ryans-jewels/product/testimonials/instagram.png" alt="" />Instagram</span>
+					</footer>
+				</article>
+			{/each}
+		{/snippet}
+
+		<section class="rj-mobile-testimonials" aria-labelledby="rj-mobile-testimonials-title">
+			<header>
+				<div><h2 id="rj-mobile-testimonials-title">Don't take our word for it.</h2><p>Trust our customers</p></div>
+			</header>
+			<div class="rj-testimonial-rows">
+				<div class="rj-testimonial-row">
+					<div class="rj-testimonial-strip">
+						<div class="rj-testimonial-group">{@render testimonialCards(displayedTestimonials)}</div>
+						<div class="rj-testimonial-group" aria-hidden="true">{@render testimonialCards(displayedTestimonials)}</div>
+					</div>
+				</div>
+				<div class="rj-testimonial-row is-reverse">
+					<div class="rj-testimonial-strip">
+						<div class="rj-testimonial-group">{@render testimonialCards(displayedTestimonials)}</div>
+						<div class="rj-testimonial-group" aria-hidden="true">{@render testimonialCards(displayedTestimonials)}</div>
+					</div>
+				</div>
+			</div>
 		</section>
-	{/if}
+
+		<RjInstagram href={instagramHref} />
+	</div>
+
 </div>
 
 <LoginModal bind:show={productState.showLoginModal} />
 
 <style>
 	.rj-pdp { color: #404040; font-family: 'Sarala', var(--font-body, sans-serif); }
-	.rj-breadcrumb, .rj-product, .rj-info, .rj-related, .rj-reviews { width: min(calc(100% - clamp(120px, 8.333vw, 160px)), 1760px); margin-inline: auto; }
+	.rj-breadcrumb, .rj-product, .rj-info, .rj-related { width: min(calc(100% - clamp(120px, 8.333vw, 160px)), 1760px); margin-inline: auto; }
 	.rj-breadcrumb { display: flex; gap: 8px; align-items: center; min-height: 63px; overflow: hidden; font-size: 14px; color: #a2a2a2; white-space: nowrap; }
 	.rj-breadcrumb a { color: inherit; } .rj-breadcrumb .current { overflow: hidden; text-overflow: ellipsis; color: #505050; }
 	.rj-product { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(24px, 1.667vw, 32px); align-items: start; margin-top: 30px; }
@@ -596,6 +685,7 @@
 	.rj-image-actions button:disabled { opacity: .55; cursor: wait; }
 	.rj-image-actions button.is-active { box-shadow: inset 0 0 0 1px #cca646; }
 	.rj-wishlist.is-active img { filter: sepia(1) saturate(4) hue-rotate(330deg); }
+	.rj-image-navigation { display: none; }
 	.rj-similar { position: absolute; right: 0; bottom: 20px; display: flex; gap: 12px; align-items: center; width: 150px; height: 50px; padding: 10px; border: 0; border-radius: 30px 0 0 30px; background: #f9f9f9; font: 16px 'Lato', sans-serif; }
 	.rj-similar img { width: 30px; height: 30px; }
 	.rj-thumbnails { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(12px, .833vw, 16px) clamp(24px, 1.667vw, 32px); margin-top: clamp(12px, .833vw, 16px); }
@@ -625,6 +715,7 @@
 	.rj-description-copy { display: -webkit-box; overflow: hidden; color: #707070; font-size: 14px; line-height: 22px; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 	.rj-description-copy :global(p) { margin: 0; }
 	.rj-details hr { width: 100%; margin: 1px 0; border: 0; border-top: 1px solid #eee; }
+	.rj-config { display: flex; width: 100%; flex-direction: column; gap: 20px; }
 	.rj-custom-section { display: flex; width: calc(100% - 20px); margin-left: 10px; flex-direction: column; gap: 10px; }
 	.rj-custom-head { display: flex; min-height: 23px; align-items: center; justify-content: space-between; }
 	.rj-custom-head h2 { display: flex; align-items: center; gap: 5px; margin: 0; color: #606060; font: 400 14px 'Sarala', sans-serif; letter-spacing: 0; }
@@ -811,13 +902,46 @@
 	.rj-related-arrow.is-prev { left: -14px; }
 	.rj-related-arrow.is-next { right: -14px; }
 	.rj-loading { min-height: 300px; display: grid; place-items: center; }
-	.rj-reviews { padding-block: 80px; border-top: 1px solid #f0f0f0; text-align: center; }
-	.rj-reviews > p { margin: 0 0 8px; color: #cca646; font-size: 20px; }
-	.rj-reviews > h2 { margin: 0 0 50px; color: #202020; font: 400 34px/normal 'Rozha One', serif; letter-spacing: 0; }
-	.rj-review-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; text-align: left; }
-	.rj-review-grid article { padding: 28px; border: 1px solid #eee; border-radius: 5px; } .rj-review-stars { color: #cca646; } .rj-review-grid article p { min-height: 70px; color: #707070; font: 14px/22px 'Lato', sans-serif; }
+	.rj-pdp-extras :global(.rj-banner-card) { max-width: 1760px; }
+	.rj-mobile-testimonials { box-sizing: border-box; height: 573px; padding: 33px 0 57px; overflow: hidden; background: #fdfdfd; text-align: center; }
+	.rj-mobile-testimonials > header { display: flex; width: min(calc(100% - 40px), 1020px); height: 65px; align-items: center; gap: 10px; margin: 0 auto 41px; }
+	.rj-mobile-testimonials > header::before, .rj-mobile-testimonials > header::after { width: 340px; height: 2px; flex: 1 1 340px; background: #9e9e9e; content: ''; }
+	.rj-mobile-testimonials > header > div { flex: 0 0 auto; }
+	.rj-mobile-testimonials > header h2 { margin: 0; color: #202020; font: 600 28px/normal 'Lato', sans-serif; letter-spacing: 0; }
+	.rj-mobile-testimonials > header p { margin: 5px 0 0; color: #cca646; font: 16px/normal 'Sarala', sans-serif; }
+	.rj-testimonial-rows { display: flex; height: 377px; flex-direction: column; gap: 17px; }
+	.rj-testimonial-row { display: flex; height: 180px; align-items: center; overflow: hidden; text-align: left; }
+	.rj-testimonial-strip { display: flex; width: max-content; gap: 27px; animation: rj-testimonial-scroll 55s linear infinite; will-change: transform; }
+	.rj-testimonial-row.is-reverse .rj-testimonial-strip { animation-direction: reverse; animation-delay: -18s; }
+	.rj-testimonial-row:hover .rj-testimonial-strip { animation-play-state: paused; }
+	.rj-testimonial-group { display: flex; flex-shrink: 0; gap: 27px; }
+	.rj-testimonial-card { box-sizing: border-box; display: flex; width: 310px; height: 170px; flex: 0 0 310px; flex-direction: column; gap: 13px; padding: 14px; overflow: hidden; border: 2.5px solid #ececec; border-radius: 5px; background: #fff; }
+	.rj-testimonial-card-head { display: flex; min-height: 36px; align-items: center; justify-content: space-between; }
+	.rj-mobile-reviewer { display: flex; gap: 10px; align-items: center; }
+	.rj-mobile-review-avatar { display: grid; width: 36px; height: 36px; flex: 0 0 36px; place-items: center; overflow: hidden; border-radius: 50%; background: #f4f4f4; color: #cca646; font: 600 14px 'Sarala', sans-serif; }
+	.rj-mobile-review-avatar img { width: 40px; height: 40px; object-fit: cover; }
+	.rj-mobile-reviewer > div { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+	.rj-mobile-reviewer b { display: block; width: 107px; overflow: hidden; color: #303030; font: 400 12px/normal 'Lato', sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+	.rj-mobile-review-rating { display: flex; width: 107px; align-items: center; gap: 4px; }
+	.rj-mobile-review-rating img { width: 54px; height: 10px; flex: 0 0 54px; }
+	.rj-mobile-review-rating i { width: 1px; height: 14px; flex: 0 0 1px; background: #e9e9e9; }
+	.rj-mobile-review-rating small { color: #b5b5b5; font: 400 10px/normal 'Sarala', sans-serif; white-space: nowrap; }
+	.rj-testimonial-social { display: flex; gap: 12px; align-items: center; }
+	.rj-testimonial-social span { display: flex; gap: 5px; align-items: center; color: #606060; font: 400 10px/normal 'Sarala', sans-serif; white-space: nowrap; }
+	.rj-testimonial-social img { width: 15px; height: 15px; }
+	.rj-testimonial-card > p { display: -webkit-box; height: 62px; margin: 0; overflow: hidden; color: #555; font: 400 10px/15px 'Lato', sans-serif; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; }
+	.rj-testimonial-card > footer { display: flex; margin-top: auto; align-items: center; justify-content: space-between; }
+	.rj-testimonial-card time { overflow: hidden; color: #252525; font: 500 10px/normal 'Lato', sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+	.rj-testimonial-card > footer span { display: flex; gap: 5px; align-items: center; color: #555; font: 400 10px/normal 'Lato', sans-serif; }
+	.rj-testimonial-card > footer img { width: 18px; height: 18px; }
+	@keyframes rj-testimonial-scroll { to { transform: translateX(calc(-50% - 13.5px)); } }
+	@media (prefers-reduced-motion: reduce) {
+		.rj-testimonial-strip { animation: none; will-change: auto; }
+		.rj-testimonial-row { overflow-x: auto; scrollbar-width: none; }
+		.rj-testimonial-row::-webkit-scrollbar { display: none; }
+	}
 	@media (max-width: 1023px) {
-		.rj-breadcrumb, .rj-product, .rj-info, .rj-related, .rj-reviews { width: min(calc(100% - 60px), 684px); }
+		.rj-breadcrumb, .rj-product, .rj-info, .rj-related { width: min(calc(100% - 60px), 684px); }
 		.rj-related { width: calc(100% - 48px); }
 		.rj-product { grid-template-columns: 1fr; }
 		.rj-main-image { max-height: 684px; }
@@ -837,23 +961,75 @@
 		.rj-related :global(.rj-carousel-track) { gap: 20px; }
 	}
 	@media (max-width: 639px) {
-		.rj-breadcrumb, .rj-product, .rj-info, .rj-related, .rj-reviews { width: calc(100% - 40px); }
+		.rj-breadcrumb, .rj-product, .rj-info, .rj-related { width: calc(100% - 40px); }
 		.rj-info { width: calc(100% - 30px); margin-top: 65px; }
 		.rj-breadcrumb { min-height: 50px; font-size: 12px; }
 		.rj-main-image { aspect-ratio: 1; }
 		.rj-image-actions { top: 10px; left: 10px; gap: 6px; } .rj-image-actions button, .rj-image-actions a { width: 44px; height: 44px; } .rj-image-actions img { max-width: 22px; max-height: 22px; }
+		.rj-image-navigation { position: absolute; z-index: 2; top: 50%; right: 10px; left: 10px; display: flex; justify-content: space-between; transform: translateY(-50%); pointer-events: none; }
+		.rj-image-navigation button { display: grid; width: 36px; height: 36px; padding: 0; place-items: center; border: 0; background: transparent; cursor: pointer; pointer-events: auto; }
+		.rj-image-navigation img { width: 16px; height: 16px; filter: brightness(0); } .rj-image-navigation .previous img { transform: rotate(180deg); }
 		.rj-similar { right: 10px; bottom: 10px; width: auto; height: 42px; padding-inline: 14px; border-radius: 25px; }
-		.rj-thumbnails { display: flex; gap: 10px; overflow-x: auto; margin-top: 12px; } .rj-thumbnails button { width: 92px; flex: 0 0 92px; }
+		.rj-thumbnails { display: flex; gap: 10px; overflow-x: auto; margin-top: 12px; scrollbar-width: none; }
+		.rj-thumbnails::-webkit-scrollbar { display: none; }
+		.rj-thumbnails button { width: 92px; flex: 0 0 92px; }
 		.rj-title-row h1 { font-size: 22px; line-height: 31px; }
 		.rj-price-row strong { font-size: 24px; }
 		.rj-product-meta { gap: 10px 14px; }
 		.rj-product-meta > i { display: none; }
 		.rj-meta-summary { flex-wrap: wrap; }
+		.rj-config { gap: 14px; }
+		.rj-config :global(.rj-customizer) { order: -1; }
 		.rj-custom-section, .rj-size-guide, .rj-purchase, .rj-delivery { width: 100%; margin-left: 0; }
-		.rj-options { grid-template-columns: 1fr; height: auto; } .rj-option { height: 96px; }
-		.rj-buy-row { grid-template-columns: 112px 1fr; } .rj-share { display: none; }
-		.rj-service-row { flex-direction: column; align-items: flex-start; gap: 16px; }
-		.rj-payments { gap: 10px; }
+		.rj-custom-head { display: none; }
+		.rj-options { grid-template-columns: repeat(3, minmax(0, 1fr)); height: 100px; }
+		.rj-option { height: 96px; justify-content: center; gap: 15px; padding: 13px 10px; }
+		.rj-option-title { align-items: center; }
+		.rj-option-title small { font-size: 12px; line-height: normal; text-overflow: clip; white-space: normal; }
+		.rj-option-value { gap: 5px; }
+		.rj-option-value b { font-size: 13px; }
+		.rj-diamond-icon, .rj-metal-icon, .rj-ring-icon { width: 18px; height: 18px; flex-basis: 18px; }
+		.rj-metal-swatch { width: 15px; height: 15px; flex-basis: 15px; }
+		.rj-purchase-actions { gap: 15px; }
+		.rj-buy-row { grid-template-columns: 80px minmax(0, 1fr) 81px; gap: 10px; height: 45px; }
+		.rj-qty img { width: 18px; height: 18px; }
+		.rj-add { font-size: 15px; }
+		.rj-share { display: flex; gap: 2px; padding: 0; font-size: 14px; }
+		.rj-share img { width: 22px; height: 22px; }
+		.rj-buy-now { height: 46px; font-size: 16px; }
+		.rj-buy-now img { width: 25px; height: 25px; }
+		/* Figma 77:121085 — 380×203 assurance block at the 412px viewport. */
+		.rj-service-row {
+			display: grid;
+			width: calc(100vw - 32px);
+			height: 90px;
+			grid-template-columns: 147px 148px;
+			grid-template-rows: repeat(2, 36px);
+			column-gap: 67px;
+			row-gap: 18px;
+			align-items: center;
+			justify-content: center;
+			margin-left: -4px;
+			padding: 0;
+			border-top: 0;
+		}
+		.rj-service-row > div { gap: 8px; }
+		.rj-service-row > div:nth-child(2) { gap: 9px; }
+		.rj-service-row > div:nth-child(3) { grid-column: 1 / -1; justify-content: center; }
+		.rj-service-row img { width: 35px; height: 35px; }
+		.rj-service-row span { width: 104px; }
+		.rj-service-row > div:nth-child(3) span { width: 125px; }
+		.rj-service-row b { color: #000; font-size: 14px; line-height: 18px; white-space: nowrap; }
+		.rj-service-row small { font-size: 10px; line-height: 18px; white-space: nowrap; }
+		.rj-payments {
+			box-sizing: border-box;
+			width: calc(100vw - 32px);
+			min-height: 91px;
+			gap: 10px;
+			margin: 2px 0 0 -4px;
+			padding: 15px;
+		}
+		.rj-payments a { color: var(--rj-gold, #cca646); }
 		.rj-detail-tabs { height: 58px; padding: 12px 15px; }
 		.rj-detail-tabs > div:first-child { gap: 12px; }
 		.rj-detail-tabs > div:first-child button { padding-bottom: 4px; font-size: 12px; line-height: 18px; }
@@ -896,7 +1072,7 @@
 		.rj-review-card header b { max-width: 105px; }
 		.rj-review-card-rating { gap: 1px; }
 		.rj-review-card-rating i { width: 11px; height: 11px; }
-		.rj-related, .rj-reviews { padding-block: 35px; }
+		.rj-related { padding-block: 35px; }
 		.rj-related { width: calc(100% - 30px); }
 		.rj-related-head { grid-template-columns: 25px max-content minmax(25px, 1fr); margin-bottom: 15px; }
 		.rj-related-head h2 { font-size: 15px; line-height: 19px; }
@@ -906,8 +1082,19 @@
 		.rj-related-arrow { width: 34px; height: 34px; }
 		.rj-related-arrow.is-prev { left: -10px; }
 		.rj-related-arrow.is-next { right: -10px; }
-		.rj-reviews > p { font-size: 15px; }
-		.rj-reviews > h2 { margin-bottom: 30px; font-size: 25px; }
-		.rj-review-grid { grid-template-columns: 1fr; }
+		.rj-related-item.rj-mobile-extra { display: none; }
+		.rj-dazzling { padding-top: 35px; }
+		.rj-mobile-testimonials { height: 530px; padding: 30px 0 35px; background: #fdfdfd; }
+		.rj-mobile-testimonials > header { width: calc(100% - 30px); height: 60px; margin-bottom: 24px; }
+		.rj-mobile-testimonials > header::before, .rj-mobile-testimonials > header::after { min-width: 20px; }
+		.rj-mobile-testimonials > header h2 { font-size: 19px; }
+		.rj-mobile-testimonials > header p { margin-top: 3px; font-size: 14px; }
+		.rj-testimonial-rows { height: 367px; gap: 7px; }
+		.rj-testimonial-row { box-sizing: border-box; padding-inline: 15px; overflow-x: auto; scroll-behavior: smooth; scroll-snap-type: x mandatory; scrollbar-width: none; }
+		.rj-testimonial-row::-webkit-scrollbar { display: none; }
+		.rj-testimonial-strip, .rj-testimonial-row.is-reverse .rj-testimonial-strip { gap: 0; animation: none; will-change: auto; }
+		.rj-testimonial-group { gap: 12px; }
+		.rj-testimonial-group[aria-hidden='true'] { display: none; }
+		.rj-testimonial-card { width: calc(100vw - 30px); flex-basis: calc(100vw - 30px); scroll-snap-align: center; }
 	}
 </style>

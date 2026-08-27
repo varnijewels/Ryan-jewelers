@@ -11,11 +11,6 @@
 	import CheckoutHeader from '$lib/components/checkout/checkout-header.svelte'
 	import { appendOneTimeCartId } from '$lib/core/utils/index.js'
 	import CheckoutButton from '$lib/components/buttons/checkout-button.svelte'
-	import RyansJewelsPaymentPage from '$lib/theme/ryans-jewels/RyansJewelsPaymentPage.svelte'
-	import { getUserState } from '$lib/core/stores/index.js'
-	import { showAuthModal } from '$lib/core/components/index.js'
-	import { isCustomerSignedIn } from '$lib/theme/ryans-jewels/auth-gate.logic.js'
-	import { onMount } from 'svelte'
 
 	// Check if phone is required based on login type
 	const isPhoneRequired = page.data?.store?.isPhoneMandatory
@@ -23,18 +18,6 @@
 
 	const paymentModule = new PaymentModule()
 	const cartState = paymentModule.cartState
-	const userState = getUserState()
-	const isRyansJewels = $derived(page.data?.theme?.name === 'ryans-jewels')
-
-	onMount(async () => {
-		if (!isRyansJewels) return
-		await userState.hasLoaded.catch(() => undefined)
-		if (isCustomerSignedIn(userState.user)) return
-		const returnTo = '/checkout/payment'
-		sessionStorage.setItem('rj-auth-return-to', returnTo)
-		await goto('/checkout/cart')
-		showAuthModal('login', { redirect: returnTo })
-	})
 
 	let showAddress = $state(false)
 </script>
@@ -43,9 +26,6 @@
 	<title>Checkout - Secure Payment</title>
 </svelte:head>
 
-{#if isRyansJewels}
-	<RyansJewelsPaymentPage {paymentModule} {cartState} />
-{:else}
 <div class="min-h-screen py-8">
 	<div class="container mx-auto px-4">
 		<CheckoutHeader step={3} />
@@ -354,4 +334,3 @@
 		{/if}
 	</div>
 </div>
-{/if}

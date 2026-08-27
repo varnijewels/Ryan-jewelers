@@ -8,7 +8,8 @@ export async function load(event: any) {
 	const theme = resolveStorefrontTheme(data?.store)
 	let megaMenu: any[] = []
 
-	if (event.cookies.get('connect.sid')) {
+	const sid = event.cookies.get('connect.sid')
+	if (sid && sid !== 'dev-session') {
 		try {
 			user = await new UserService(event.fetch).getMe()
 		} catch {

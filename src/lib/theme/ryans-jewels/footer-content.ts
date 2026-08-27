@@ -136,7 +136,7 @@ export const ryansJewelsFooter = {
 		rights: 'All Rights Reserved.',
 		links: [
 			{ label: 'Terms & Conditions', href: '/terms-and-conditions' },
-			{ label: 'Privacy policy', href: '/privacy-policy' },
+			{ label: 'Privacy Policy', href: '/privacy-policy' },
 			{ label: 'Disclaimer', href: '/terms-and-conditions' }
 		]
 	}

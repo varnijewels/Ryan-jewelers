@@ -7,7 +7,6 @@
 	 * Product content is live API data; the three swatches follow the source frame.
 	 */
 	import { page } from '$app/state'
-	import { ProductCardRenderer } from '$lib/core/composables/index.js'
 	import { formatPrice } from '$lib/core/utils/index.js'
 	import { metalSwatchFills } from './home-content.js'
 	import { listingImage, metalColorImage, metalVariantChoices } from './product-details.logic.js'
@@ -32,7 +31,6 @@
 	} = $props()
 
 	const currencyCode = $derived(page?.data?.store?.currency?.code || '')
-	const wishlistPlugin = $derived(page?.data?.store?.plugins?.isWishlist)
 	let selectedMetal = $state('')
 
 	const title = $derived(product?.title || product?.name || '')
@@ -54,9 +52,7 @@
 
 </script>
 
-<ProductCardRenderer {product} {aspectRatio}>
-	{#snippet content({ toggleWishlist, isWishlisted, loadingForWishlist })}
-		<article class="rj-card rj-card--{size}" data-testid="product-card-{product?.id}">
+	<article class="rj-card rj-card--{size}" data-testid="product-card-{product?.id}">
 			<div class="rj-card-media">
 				<a class="rj-card-media-link" {href} aria-label={title || 'View product'}>
 					{#if image}
@@ -66,32 +62,9 @@
 					{/if}
 				</a>
 
-				{#if wishlistPlugin?.active}
-					<button
-						type="button"
-						class="rj-card-wish"
-						class:is-active={isWishlisted}
-						class:is-loading={loadingForWishlist}
-						disabled={loadingForWishlist}
-						aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-						aria-busy={loadingForWishlist}
-						onclick={(e) => {
-							e.preventDefault()
-							e.stopPropagation()
-							toggleWishlist()
-						}}
-					>
-					{#if loadingForWishlist}
-							<span class="rj-card-spinner" aria-hidden="true"></span>
-						{:else}
-							<img class="rj-card-heart" src="/ryans-jewels/home/heart.svg" alt="" aria-hidden="true" />
-						{/if}
-					</button>
-				{:else}
-					<span class="rj-card-wish rj-card-wish--static" aria-hidden="true">
-						<img class="rj-card-heart" src="/ryans-jewels/home/heart.svg" alt="" />
-					</span>
-				{/if}
+				<span class="rj-card-wish rj-card-wish--static" aria-hidden="true">
+					<img class="rj-card-heart" src="/ryans-jewels/home/heart.svg" alt="" />
+				</span>
 			</div>
 
 			<div class="rj-card-info">
@@ -125,8 +98,6 @@
 				{/if}
 			</div>
 		</article>
-	{/snippet}
-</ProductCardRenderer>
 
 <style>
 	.rj-card {
@@ -410,6 +381,20 @@
 
 		.rj-card-info {
 			width: 175px;
+		}
+
+		.rj-card--wide .rj-card-info {
+			height: 122px;
+			justify-content: space-between;
+		}
+
+		.rj-card--wide .rj-card-name {
+			display: -webkit-box;
+			-webkit-box-orient: vertical;
+			-webkit-line-clamp: 2;
+			line-clamp: 2;
+			overflow: hidden;
+			white-space: normal;
 		}
 
 		.rj-card--listing .rj-card-info {

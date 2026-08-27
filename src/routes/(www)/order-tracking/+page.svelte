@@ -2,7 +2,7 @@
 	import { page } from '$app/state'
 	import productNonVeg from '$lib/assets/product/non-veg.png'
 	import productVeg from '$lib/assets/product/veg.png'
-	import { date, formatPrice } from '$lib/core/utils/index.js'
+	import { date, formatPrice } from '$lib/core/utils'
 	import LazyImg from '$lib/core/components/image/lazy-img.svelte'
 	import Button from '$lib/components/ui/button/button.svelte'
 	import OrderListSkeleton from '../../(my)/my/orders/_OrderListSkeleton.svelte'
@@ -10,19 +10,13 @@
 	import StatusCell from '$lib/components/common/status-cell.svelte'
 	import { OrderTrackingModule } from '$lib/core/composables/index.js'
 	import { CheckCircle } from '@lucide/svelte'
-	import RyansJewelsTrackOrderPage from '$lib/theme/ryans-jewels/RyansJewelsTrackOrderPage.svelte'
 
-	const showRyansJewelsPage = page.data?.theme?.name === 'ryans-jewels'
-	const hasTrackingQuery = page.url.searchParams.get('otp') && page.url.searchParams.get('email')
-	const orderTrackingModule: any = showRyansJewelsPage && !hasTrackingQuery ? null : new OrderTrackingModule()
+	const orderTrackingModule = new OrderTrackingModule()
 </script>
 
 <svelte:head>
 	<title>Order</title>
 </svelte:head>
-{#if showRyansJewelsPage}
-	<RyansJewelsTrackOrderPage {orderTrackingModule} />
-{:else if orderTrackingModule}
 <div>
 	{#if orderTrackingModule.loading}
 		<div class="flex items-center justify-center">
@@ -355,4 +349,3 @@
 		</div>
 	{/if}
 </div>
-{/if}

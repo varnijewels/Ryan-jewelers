@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { searchService } from '$lib/core/services/index.js'
-	import { menuChildren, menuHref, menuLabel, type AdminMenuItem } from './admin-menu.js'
+	import { isCollectionGroup, menuChildren, menuHref, menuLabel, type AdminMenuItem } from './admin-menu.js'
 	import { realCatalogUrl, withoutDemoProducts } from './product-filters.js'
 
 	let {
@@ -13,10 +13,10 @@
 	}: {
 		category: AdminMenuItem
 		fallbackItems?: AdminMenuItem[]
-		variant?: 'lab' | 'all-diamond' | 'earrings'
+		variant?: 'lab' | 'all-diamond' | 'earrings' | 'bracelets' | 'pendants' | 'engagement-rings'
 		open?: boolean
 		onBack: () => void
-		onClose: () => void
+		onClose: (event: MouseEvent) => void
 	} = $props()
 
 	type MenuProduct = {
@@ -49,15 +49,22 @@
 	const fallbackPriceNames = ['Below $1000', 'Between $1000 -$5000', 'Between $5000 -$10,000', '$10,000 and above']
 	const fallbackEarringNames = ['All Earring', 'Drops', 'Solitaire Studs', 'J Hoops', 'Front back', 'Danglers']
 	const isEarringLayout = $derived(variant === 'all-diamond' || variant === 'earrings')
+	const isCategoryLayout = $derived(variant === 'bracelets' || variant === 'pendants' || variant === 'engagement-rings')
 	const groups = $derived(menuChildren(category))
 	const primaryGroup = $derived(
 		groups.find((group) => /popular|lab grown/i.test(menuLabel(group) || '')) ||
 			groups.find((group) => !/price|budget|collection|metal|stamp/i.test(menuLabel(group) || '')) ||
 			null
 	)
-	const categoryGroup = $derived(
-		groups.find((group) => group !== primaryGroup && /categor|jewel/i.test(menuLabel(group) || '')) || null
-	)
+	const categoryGroups = $derived.by(() => {
+		if (isCategoryLayout) {
+			return groups.filter(
+				(group) => group !== primaryGroup && !isCollectionGroup(group) && !/metal|stamp|price|budget/i.test(menuLabel(group) || '')
+			)
+		}
+		const group = groups.find((item) => item !== primaryGroup && /categor|jewel/i.test(menuLabel(item) || ''))
+		return group ? [group] : []
+	})
 	const metalGroup = $derived(groups.find((group) => /metal|stamp/i.test(menuLabel(group) || '')) || null)
 	const priceGroup = $derived(groups.find((group) => /price|budget/i.test(menuLabel(group) || '')) || null)
 	const fallbackPrimaryGroup = $derived({
@@ -84,15 +91,18 @@
 	const displayPrimaryGroup = $derived(primaryGroup || (isEarringLayout && menuChildren(fallbackPrimaryGroup).length ? fallbackPrimaryGroup : null))
 	const displayMetalGroup = $derived(metalGroup || (isEarringLayout ? fallbackMetalGroup : null))
 	const displayPriceGroup = $derived(priceGroup || (isEarringLayout ? fallbackPriceGroup : null))
-	const primaryItems = $derived(
-		displayPrimaryGroup ? (menuChildren(displayPrimaryGroup).length ? menuChildren(displayPrimaryGroup) : [displayPrimaryGroup]) : []
-	)
-	const categoryItems = $derived(
-		categoryGroup ? menuChildren(categoryGroup) : []
-	)
+	const primaryItems = $derived.by(() => {
+		if (!displayPrimaryGroup) return []
+		const items = menuChildren(displayPrimaryGroup).length ? menuChildren(displayPrimaryGroup) : [displayPrimaryGroup]
+		if (!isCategoryLayout) return items
+		return [{ ...category, name: `All ${menuLabel(category)}` }, ...items].filter(
+			(item, index, all) => all.findIndex((candidate) => menuLabel(candidate)?.trim().toLowerCase() === menuLabel(item)?.trim().toLowerCase()) === index
+		)
+	})
 	const metalItems = $derived(displayMetalGroup ? menuChildren(displayMetalGroup) : [])
 	const priceItems = $derived(displayPriceGroup ? menuChildren(displayPriceGroup) : [])
 	const collectionProducts = $derived(products.length ? products : variant === 'earrings' ? fallbackEarringProducts : [])
+	const categoryArt = $derived(collectionProducts[0]?.thumbnail || collectionProducts[0]?.featuredImage)
 	const primarySplit = $derived(Math.ceil(Math.min(primaryItems.length, 11) / 2))
 	const primaryColumns = $derived(
 		isEarringLayout
@@ -124,7 +134,7 @@
 				fetch(`/api/popularity?category=${encodeURIComponent(slug)}&limit=2`)
 			])
 			let listed = withoutDemoProducts(categoryResult?.data || []).filter((product) => Boolean(product.slug)) as MenuProduct[]
-			if (!listed.length && variant !== 'lab') {
+			if (!listed.length && isEarringLayout) {
 				const search = variant === 'earrings' ? 'earring' : 'diamond'
 				const fallbackResult = await searchService.searchWithUrl(
 					realCatalogUrl(new URL(`/products?search=${search}&sort=popularity:desc`, window.location.origin))
@@ -228,22 +238,24 @@
 			</section>
 		{/if}
 
-		{#if categoryGroup && categoryItems.length}
-			<section class="rj-tablet-lab-section rj-tablet-lab-categories">
-				<div class="rj-tablet-lab-section-title">
-					<img src="/ryans-jewels/mega-menu/all-categories.png" alt="" aria-hidden="true" />
-					<span>{menuLabel(categoryGroup)}</span>
-				</div>
-				<div class="rj-tablet-lab-grid-links">
-					{#each categoryItems.slice(0, 8) as item}
-						<a class="rj-tablet-lab-link" href={menuHref(item)} onclick={onClose}>
-							<span>{menuLabel(item)}</span>
-							<img src="/ryans-jewels/navigation/tablet-menu-arrow.svg" alt="" aria-hidden="true" />
-						</a>
-					{/each}
-				</div>
-			</section>
-		{/if}
+		{#each categoryGroups as categoryGroup}
+			{#if menuChildren(categoryGroup).length}
+				<section class="rj-tablet-lab-section rj-tablet-lab-categories">
+					<div class="rj-tablet-lab-section-title">
+						<img src="/ryans-jewels/mega-menu/all-categories.png" alt="" aria-hidden="true" />
+						<span>{menuLabel(categoryGroup)}</span>
+					</div>
+					<div class="rj-tablet-lab-grid-links">
+						{#each menuChildren(categoryGroup).slice(0, 8) as item}
+							<a class="rj-tablet-lab-link" href={menuHref(item)} onclick={onClose}>
+								<span>{menuLabel(item)}</span>
+								<img src="/ryans-jewels/navigation/tablet-menu-arrow.svg" alt="" aria-hidden="true" />
+							</a>
+						{/each}
+					</div>
+				</section>
+			{/if}
+		{/each}
 
 		{#if displayPriceGroup && priceItems.length}
 			<section class="rj-tablet-lab-section rj-tablet-lab-price">
@@ -287,7 +299,9 @@
 				{/each}
 			</div>
 
-			{#if isEarringLayout}
+			{#if isCategoryLayout && categoryArt}
+				<div class="rj-tablet-lab-bracelet-art" aria-hidden="true"><img src={categoryArt} alt="" /></div>
+			{:else if isEarringLayout}
 				<div class="rj-tablet-lab-earring-art" aria-hidden="true">
 					<div class="rj-tablet-lab-earring-piece rj-tablet-lab-earring-piece--main"><div><img src="/ryans-jewels/mega-menu/earring-art.webp" alt="" /></div></div>
 					<div class="rj-tablet-lab-earring-piece rj-tablet-lab-earring-piece--reflection"><div><img src="/ryans-jewels/mega-menu/earring-art.webp" alt="" /></div></div>
@@ -658,6 +672,8 @@
 	.rj-tablet-lab-ring-art img { position: absolute; object-fit: contain; }
 	.rj-tablet-lab-ring-main { right: 22px; top: 0; width: 141px; height: 141px; transform: rotate(-90deg); }
 	.rj-tablet-lab-ring-side { right: 8px; top: 12px; width: 121px; height: 121px; }
+	.rj-tablet-lab-bracelet-art { position: absolute; right: -18px; bottom: -58px; width: 180px; height: 180px; opacity: 0.8; }
+	.rj-tablet-lab-bracelet-art img { width: 100%; height: 100%; object-fit: contain; transform: rotate(-18deg); }
 	.rj-tablet-lab-earring-art { position: absolute; right: -4px; bottom: -90px; width: 216px; height: 218px; }
 	.rj-tablet-lab-earring-piece { position: absolute; display: flex; align-items: center; justify-content: center; }
 	.rj-tablet-lab-earring-piece > div { position: relative; overflow: hidden; }
@@ -673,4 +689,62 @@
 	.rj-tablet-lab a:focus-visible { color: #cca646; }
 	.rj-tablet-lab button:focus-visible,
 	.rj-tablet-lab a:focus-visible { outline: 2px solid #cca646; outline-offset: 3px; }
+
+	@media (max-width: 639px) {
+		.rj-tablet-lab { max-height: 100dvh; }
+		.rj-tablet-lab-canvas { width: min(350px, 100vw); }
+
+		.rj-tablet-lab-header {
+			width: auto;
+			height: 46px;
+			margin: 25px 25px 20px;
+		}
+
+		.rj-tablet-lab-brand { gap: 10px; font-size: 18px; }
+		.rj-tablet-lab-logo { width: 32px; height: 30px; }
+		.rj-tablet-lab-divider { width: 100%; margin: 0; }
+		.rj-tablet-lab-back { margin: 25px 20px 0; gap: 12px; font-size: 16px; }
+
+		.rj-tablet-lab-primary {
+			width: auto;
+			margin: 25px 20px 0;
+		}
+
+		.rj-tablet-lab-primary-links {
+			width: 100%;
+			flex-direction: column;
+			gap: 12px;
+			margin-top: 20px;
+		}
+
+		.rj-tablet-lab-link-column,
+		.rj-tablet-lab-link,
+		.rj-tablet-lab--all-diamond .rj-tablet-lab-primary-links,
+		.rj-tablet-lab--all-diamond .rj-tablet-lab-link-column,
+		.rj-tablet-lab--all-diamond .rj-tablet-lab-primary .rj-tablet-lab-link {
+			width: 100%;
+		}
+
+		.rj-tablet-lab-link { height: 21px; font-size: 15px; line-height: normal; }
+		.rj-tablet-lab-view-all { width: 100%; margin-top: 20px; }
+
+		.rj-tablet-lab-categories,
+		.rj-tablet-lab-metals {
+			width: 100%;
+			margin-top: 25px;
+		}
+
+		.rj-tablet-lab-metal-grid,
+		.rj-tablet-lab-grid-links {
+			width: 100%;
+			grid-template-columns: 1fr;
+			gap: 12px;
+		}
+
+		.rj-tablet-lab-price { width: auto; margin: 24px 20px 0; }
+		.rj-tablet-lab-collection { width: 100%; margin-top: 25px; }
+		.rj-tablet-lab-collection-head,
+		.rj-tablet-lab-product { width: 100%; }
+		.rj-tablet-lab-product small { width: 100%; }
+	}
 </style>

@@ -425,6 +425,7 @@
 		}
 
 		.rj-faq-intro {
+			height: 310px;
 			gap: 18px;
 			padding-left: 92px;
 		}

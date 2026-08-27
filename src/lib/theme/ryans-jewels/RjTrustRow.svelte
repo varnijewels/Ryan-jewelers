@@ -155,9 +155,10 @@
 		}
 
 		.rj-trust-list {
+			height: 62px;
 			flex-wrap: wrap;
+			align-content: space-between;
 			justify-content: space-between;
-			row-gap: 16px;
 			gap: 0;
 		}
 

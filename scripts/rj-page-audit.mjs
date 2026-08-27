@@ -4,19 +4,21 @@ import { chromium } from 'playwright'
 const ORDER = [
 	'.rj-hero-wrap', '.rj-band--trust', '.rj-band--cut', '.rj-band--products',
 	'.rj-mq-track', '.rj-passion', '.rj-bestsellers', '.rj-plate',
-	'.rj-look', '.rj-banner', '.rj-trend', '.rj-enq', '.rj-faq', '.rj-ig', '.rj-foot'
+	'.rj-look', '.rj-banner', '.rj-trend', '.rj-enq', '.rj-faq', '.rj-foot'
 ]
 const VIEWPORTS = (process.env.RJ_WIDTHS || '1440,744,412')
 	.split(',')
 	.map((w) => ({ key: `w${w.trim()}`, width: Number(w.trim()), height: 900 }))
 
-const browser = await chromium.launch()
+const baseUrl = process.env.RJ_BASE_URL || 'http://127.0.0.1:3000/'
+const browser = await chromium.launch(process.env.PLAYWRIGHT_CHANNEL ? { channel: process.env.PLAYWRIGHT_CHANNEL } : {})
 for (const vp of VIEWPORTS) {
 	const page = await browser.newPage({ viewport: { width: vp.width, height: vp.height } })
 	const errors = []
 	page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
 	page.on('pageerror', (e) => errors.push('PAGEERROR ' + String(e)))
-	await page.goto('http://127.0.0.1:5173/', { waitUntil: 'networkidle', timeout: 90000 })
+	page.on('response', (response) => ['document', 'stylesheet', 'image', 'script', 'font'].includes(response.request().resourceType()) && response.status() >= 400 && errors.push(`${response.status()} ${response.url()}`))
+	await page.goto(baseUrl, { waitUntil: 'networkidle', timeout: 90000 })
 	await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
 	await page.waitForTimeout(1200)
 	await page.evaluate(() => window.scrollTo(0, 0))

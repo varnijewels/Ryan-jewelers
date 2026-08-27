@@ -7,6 +7,7 @@
 	 * Theme content, not commerce data — the rating is presentation from Figma.
 	 */
 	import type { NamePlateCard } from './home-content.js'
+	import { listingImage } from './product-details.logic.js'
 
 	let { card }: { card: NamePlateCard } = $props()
 </script>
@@ -15,7 +16,8 @@
 	<span class="rj-cust-well">
 		<img
 			class="rj-cust-photo"
-			src={card.image}
+			class:rj-cust-photo--contain={card.imageFit === 'contain'}
+			src={listingImage(card.image)}
 			alt={card.imageAlt}
 			loading="lazy"
 			decoding="async"
@@ -27,13 +29,15 @@
 		<span class="rj-cust-name">{card.name}</span>
 		<span class="rj-cust-meta">
 			<span class="rj-cust-category">{card.category}</span>
-			<span class="rj-cust-rating" aria-label="Rating {card.rating} out of 5">
-				<span class="rj-cust-stars" aria-hidden="true">
-					<img src="/ryans-jewels/home/star.svg" alt="" />
-					<img src="/ryans-jewels/home/star.svg" alt="" />
+			{#if card.rating > 0}
+				<span class="rj-cust-rating" aria-label="Rating {card.rating} out of 5">
+					<span class="rj-cust-stars" aria-hidden="true">
+						<img src="/ryans-jewels/home/star.svg" alt="" />
+						<img src="/ryans-jewels/home/star.svg" alt="" />
+					</span>
+					<span>{card.rating}</span>
 				</span>
-				<span>{card.rating}</span>
-			</span>
+			{/if}
 		</span>
 		<span class="rj-cust-cta">{card.cta}</span>
 	</span>
@@ -66,6 +70,10 @@
 		height: 100%;
 		max-width: none;
 		transition: transform 0.4s var(--rj-ease, ease);
+	}
+
+	.rj-cust-photo--contain {
+		object-fit: contain;
 	}
 
 	.rj-cust:hover .rj-cust-photo {
@@ -162,7 +170,16 @@
 		}
 
 		.rj-cust-name {
+			display: block;
+			width: 100%;
+			overflow: hidden;
 			font-size: 14px;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		.rj-cust-cta {
+			color: #a80139;
 		}
 	}
 </style>

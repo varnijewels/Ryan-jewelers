@@ -42,6 +42,7 @@
 	let selectedSize = $state('')
 	let selectedCut = $state('')
 	let selectedStone = $state('')
+	let isOpen = $state(false)
 
 	$effect(() => {
 		selectedMetal = initial.metal
@@ -57,7 +58,7 @@
 
 	function metalImage(value: string) {
 		const tone = /rose|pink|red/i.test(value) ? 'rose' : /white|silver|platinum/i.test(value) ? 'white' : 'yellow'
-		return `/ryans-jewels/product/customizer/metal-${tone}.png`
+		return `/ryans-jewels/product/customizer/metal-${tone}.webp`
 	}
 
 	function metalLabel(value: string) {
@@ -80,13 +81,18 @@
 
 </script>
 
-<section class="rj-customizer" aria-labelledby="rj-customizer-title">
-	<header>
-		<img src="/ryans-jewels/product/customizer/header-ring.png" alt="" />
-		<div><small>MAKE IT YOURS</small><h2 id="rj-customizer-title">Customize Your Jewelry</h2><p>Explore our in-stock and made-to-order metal, carat and diamond options.</p></div>
-	</header>
+<details class="rj-customizer" bind:open={isOpen}>
+	<summary>
+		<span><img src="/ryans-jewels/product/customize.svg" alt="" />Select your Customise variation</span>
+		<span>+ Customise<img src="/ryans-jewels/product/customizer/arrow-right.svg" alt="" /></span>
+	</summary>
+	{#if isOpen}
+		<header>
+			<img src="/ryans-jewels/product/customizer/header-ring.png" alt="" />
+			<div><small>MAKE IT YOURS</small><h2 id="rj-customizer-title">Customize Your Jewelry</h2><p>Explore our in-stock and made-to-order metal, carat and diamond options.</p></div>
+		</header>
 
-	<div class="rj-customizer-form">
+		<div class="rj-customizer-form">
 		<div class="rj-customizer-body">
 			{#if metalOptions.length}
 				<fieldset>
@@ -135,12 +141,21 @@
 		<footer>
 			<div><button class="rj-ring-view" type="button" onclick={() => onringview?.()}><img src="/ryans-jewels/product/customizer/ring-view.png" alt="" /><span>View Ring</span><img src="/ryans-jewels/product/customizer/arrow-right.svg" alt="" /></button><small>Made-to-order pricing and delivery are confirmed separately.</small></div>
 		</footer>
-	</div>
-</section>
+		</div>
+	{/if}
+</details>
 
 <style>
 	.rj-customizer { box-sizing: border-box; width: calc(100% - 20px); margin-left: 10px; overflow: hidden; border: 1px solid #ece8df; border-radius: 5px; background: #fff; color: #404040; font-family: 'Lato', sans-serif; }
-	.rj-customizer > header { display: flex; gap: 14px; align-items: center; padding: 14px 18px; border-bottom: 1px solid #eeeae2; background: #fbfaf7; }
+	.rj-customizer > summary { display: flex; min-height: 35px; align-items: center; justify-content: space-between; gap: 16px; padding: 6px 10px; color: #606060; font: 400 14px/normal 'Sarala', sans-serif; cursor: pointer; list-style: none; }
+	.rj-customizer > summary::-webkit-details-marker { display: none; }
+	.rj-customizer > summary span { display: flex; align-items: center; gap: 5px; }
+	.rj-customizer > summary span:last-child { flex: 0 0 auto; color: #cca646; }
+	.rj-customizer > summary img { width: 19px; height: 19px; object-fit: contain; }
+	.rj-customizer > summary span:last-child img { width: 16px; height: 16px; transition: transform .15s ease; }
+	.rj-customizer[open] > summary span:last-child img { transform: rotate(90deg); }
+	.rj-customizer:not([open]) > .rj-customizer-form { display: none; }
+	.rj-customizer > header { display: none; gap: 14px; align-items: center; padding: 14px 18px; border-bottom: 1px solid #eeeae2; background: #fbfaf7; }
 	.rj-customizer > header > img { width: 44px; height: 52px; object-fit: contain; }
 	.rj-customizer > header div { min-width: 0; flex: 1; }
 	.rj-customizer > header small { color: #a80139; font: 600 10px/14px 'Sarala', sans-serif; letter-spacing: 1.2px; }
@@ -170,7 +185,8 @@
 
 	@media (max-width: 639px) {
 		.rj-customizer { width: 100%; margin-left: 0; }
-		.rj-customizer > header { padding: 12px 14px; }
+		.rj-customizer > summary { display: flex; min-height: 38px; padding: 6px 0; border: 0; }
+		.rj-customizer[open] > header { display: flex; padding: 12px 14px; }
 		.rj-customizer > header > img { width: 38px; height: 46px; }
 		.rj-customizer h2 { font-size: 17px; line-height: 23px; }
 		.rj-customizer-form { padding: 0 14px 15px; }

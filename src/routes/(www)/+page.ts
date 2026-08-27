@@ -1,10 +1,18 @@
 import { wwwLoad, wwwProductsLoad } from '$lib/core/load-functions/index.js'
-import { realCatalogUrl } from '$lib/theme/ryans-jewels/product-filters.js'
+import { realCatalogUrl, withoutDemoProducts } from '$lib/theme/ryans-jewels/product-filters.js'
 
 export const load = async (event: any) => {
 	const parent = await event.parent()
 	if (parent?.theme?.name === 'ryans-jewels') {
-		return { storefrontProducts: [] }
+		try {
+			const response = await event.fetch('/api/products?page=1&sort=-createdAt', {
+				headers: { 'x-litekart-store': parent.store?.id || '' }
+			})
+			const catalog = response.ok ? await response.json() : {}
+			return { storefrontProducts: withoutDemoProducts(catalog.data || []) }
+		} catch {
+			return { storefrontProducts: [] }
+		}
 	}
 
 	const [home, catalog] = await Promise.all([

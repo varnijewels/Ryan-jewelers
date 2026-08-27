@@ -14,10 +14,11 @@ vi.mock('$lib/core/services/index.js', () => ({
 
 import { load } from '../src/routes/(www)/checkout/+layout.server.js'
 
-function event(path: string, sid?: string, response = new Response('{}', { status: 401 })) {
+function event(path: string, sid?: string, response = new Response('{}', { status: 401 }), guestCheckout = false) {
 	return {
 		cookies: { get: (name: string) => (name === 'connect.sid' ? sid : undefined) },
 		fetch: vi.fn().mockResolvedValue(response),
+		parent: vi.fn().mockResolvedValue({ store: { plugins: { isGuestCheckout: { active: guestCheckout } } } }),
 		url: new URL(`https://shop.test${path}`)
 	} as any
 }
@@ -42,5 +43,9 @@ describe('Ryan checkout authentication', () => {
 			headers: { 'content-type': 'application/json' }
 		})
 		await expect(load(event('/checkout/payment', 'valid-session', response))).resolves.toEqual({})
+	})
+
+	it('allows guest checkout when the store enables it', async () => {
+		await expect(load(event('/checkout/address', undefined, undefined, true))).resolves.toEqual({})
 	})
 })

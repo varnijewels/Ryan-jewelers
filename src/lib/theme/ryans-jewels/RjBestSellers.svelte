@@ -204,7 +204,7 @@
 	/* Mobile 412 — full-bleed section, head padded 16, cards + rail inset 15. */
 	@media (max-width: 639px) {
 		.rj-bestsellers {
-			padding: 30px 0;
+			padding: 25px 0;
 		}
 
 		.rj-bestsellers-inner {
@@ -218,6 +218,10 @@
 		.rj-bestsellers-head {
 			padding: 0 16px;
 			margin-bottom: 22px;
+		}
+
+		.rj-bestsellers :global(.rj-carousel-arrows) {
+			display: none;
 		}
 
 		.rj-bestsellers-skeletons {

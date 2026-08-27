@@ -5,6 +5,8 @@ import type { PageServerLoad } from './$types'
 const catalogRedirects: Record<string, string> = {
 	'lab-grown-diamond': '/products?search=lab+grown+diamond',
 	rings: '/products?categories=engagement',
+	engagement: '/products?categories=engagement',
+	bracelets: '/products?search=bracelets',
 	earrings: '/products?search=earrings',
 	pendants: '/products?search=pendants'
 }

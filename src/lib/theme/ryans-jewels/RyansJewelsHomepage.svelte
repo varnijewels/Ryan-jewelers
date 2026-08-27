@@ -23,6 +23,7 @@
 	import RjTrending from './RjTrending.svelte'
 	import RjEnquiry from './RjEnquiry.svelte'
 	import RjFaq from './RjFaq.svelte'
+	import RjInstagram from './RjInstagram.svelte'
 	import { onMount } from 'svelte'
 	import { reveal } from '$lib/core/actions/reveal.js'
 
@@ -93,7 +94,7 @@
 	<RjBestSellers products={featuredProducts} {loading} />
 
 	<!-- 9 — personalised name plate + top rated collection (1:6110 / 63:40549 / 77:107373) -->
-	<RjNamePlate />
+	<RjNamePlate products={featuredProducts} />
 
 	<!-- 10 — tagline marquee (1:5870 / 63:40616 / 77:107438) -->
 	<RjMarquee variant="taglines" duration={45} />
@@ -116,6 +117,7 @@
 	<!-- 16a — Instagram strip (1:6323 / 63:40958 / 77:107699).
 	     16b — the footer itself is global; see RyansJewelsFooter, wired from
 	     src/lib/components/common/footer.svelte. -->
+	<RjInstagram />
 </div>
 
 <style>

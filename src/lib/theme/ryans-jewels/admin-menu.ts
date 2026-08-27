@@ -12,7 +12,15 @@ export type AdminMenuItem = {
 }
 
 export const menuLabel = (item: AdminMenuItem) => item.name || item.label
-export const menuHref = (item: AdminMenuItem) => item.link || item.href || (item.slug ? (item.slug === 'home' ? '/' : `/categories/${encodeURIComponent(item.slug)}`) : '/products')
+export const menuHref = (item: AdminMenuItem) => {
+	const href = item.link || item.href
+	if (href && !href.startsWith('/categories/')) return href
+	if (item.slug === 'home') return '/'
+	const label = menuLabel(item)?.trim() || item.slug?.replaceAll('-', ' ')
+	if (!label) return '/products'
+	if (/^(?:all )?(?:engagement )?rings?$/i.test(label)) return '/products?categories=engagement'
+	return `/products?search=${encodeURIComponent(/^all diamond jewel(?:lery|ry)$/i.test(label) ? 'diamond' : label)}`
+}
 export const menuChildren = (item: AdminMenuItem) => item.children || item.items || []
 export const tabletMenuView = (label = '') =>
 	/lab grown diamond/i.test(label)
@@ -21,6 +29,14 @@ export const tabletMenuView = (label = '') =>
 			? 'all-diamond'
 			: /^earrings?$/i.test(label.trim())
 				? 'earrings'
+				: null
+export const mobileMenuView = (label = '') =>
+	/^bracelets?$/i.test(label.trim())
+		? 'bracelets'
+		: /^pendants?$/i.test(label.trim())
+			? 'pendants'
+			: /^engagement rings?$/i.test(label.trim())
+				? 'engagement-rings'
 				: null
 export const isCollectionGroup = (item: AdminMenuItem) => /^brows(?:e|er)? by collection$/i.test(menuLabel(item)?.trim() || '')
 export const menuGroups = (item: AdminMenuItem) => {

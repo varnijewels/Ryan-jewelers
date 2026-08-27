@@ -14,7 +14,6 @@
 	 */
 	import { NewsletterRenderer } from '$lib/core/composables/index.js'
 	import { ryansJewelsFooter } from './footer-content.js'
-	import RjInstagram from './RjInstagram.svelte'
 
 	let {
 		description = ryansJewelsFooter.description,
@@ -28,7 +27,6 @@
 </script>
 
 <footer class="rj-foot">
-	<RjInstagram />
 	<div class="rj-foot-main">
 		<div class="rj-foot-inner">
 			<div class="rj-foot-usps">
@@ -534,11 +532,11 @@
 	}
 
 	/* ---- legal bar ------------------------------------------------------ */
-	/* 63:50088 — maroon legal band with compact horizontal gutters. */
+	/* 1:6416 — gold band, 61/12 padding, 16px white capitalised text. */
 	.rj-foot-legal {
 		width: 100%;
 		padding: 12px 61px;
-		background: #a80139;
+		background: #a80d39;
 	}
 
 	.rj-foot-legal-inner {
@@ -600,110 +598,17 @@
 		}
 	}
 
-	@media (min-width: 640px) and (max-width: 1100px) {
-		.rj-foot-nav:first-of-type .rj-foot-nav-list li:nth-child(5) {
-			display: none;
-		}
-
-		.rj-foot-nav-list {
-			gap: 10px;
-		}
-
-		.rj-foot-nav-list li {
-			height: 23px;
-			line-height: 23px;
-		}
-	}
-
-	/* Tablet landscape 114:59541 — single-row footer inside 24px gutters. */
-	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
-		.rj-foot-inner {
-			gap: 28px;
-			padding: 22px 25px;
-		}
-
-		.rj-foot-usps {
-			padding-bottom: 28px;
-		}
-
-		.rj-foot-usp-row {
-			flex-wrap: nowrap;
-			gap: 15px;
-		}
-
-		.rj-foot-usp + .rj-foot-usp {
-			padding-left: 15px;
-		}
-
-		.rj-foot-usp-text {
-			font-size: 12px;
-		}
-
-		.rj-foot-cols {
-			flex-wrap: nowrap;
-			gap: 36px;
-			min-height: 262px;
-		}
-
-		.rj-foot-left {
-			flex: 0 0 auto;
-			gap: 25px;
-		}
-
-		.rj-foot-brand {
-			width: 264px;
-		}
-
-		.rj-foot-mark {
-			width: 32px;
-			height: 30px;
-		}
-
-		.rj-foot-brand-name {
-			font-size: 22px;
-		}
-
-		.rj-foot-nav {
-			width: 124px;
-		}
-
-		.rj-foot-nav + .rj-foot-nav {
-			width: 132px;
-			margin-left: 11px;
-		}
-
-		.rj-foot-nav-title,
-		.rj-foot-news-title {
-			font-size: 22px;
-			line-height: 30px;
-		}
-
-		.rj-foot-link {
-			font-size: 14px;
-		}
-
-		.rj-foot-news {
-			flex: 0 0 359px;
-			min-width: 0;
-		}
-
-		.rj-foot-legal {
-			padding: 12px 25px;
-		}
-	}
-
 	/* ---- tablet 744 (63:40969) ------------------------------------------ */
-	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
+	@media (max-width: 1023px) {
 		.rj-foot-inner {
-			max-width: none;
+			max-width: 744px;
 			gap: 20px;
-			padding: 25px;
+			padding: 25px 24px;
 		}
 
 		/* 63:40974 + 63:41001 — the strip wraps 3 + 2. */
 		.rj-foot-usps {
-			height: auto;
-			padding-bottom: 20px;
+			padding-bottom: 16px;
 		}
 
 		.rj-foot-usp-row {
@@ -759,7 +664,6 @@
 
 		.rj-foot-cols {
 			flex-direction: column;
-			height: auto;
 			gap: 30px;
 		}
 
@@ -806,15 +710,11 @@
 		}
 
 		.rj-foot-legal {
-			display: flex;
-			align-items: center;
-			height: 44px;
-			padding: 0 25px;
-			background: #a80139;
+			padding: 13px 25px;
 		}
 
 		.rj-foot-legal-inner {
-			max-width: none;
+			max-width: 694px;
 			font-size: 14px;
 		}
 
@@ -826,9 +726,15 @@
 
 	/* ---- mobile 412 (77:107710) ----------------------------------------- */
 	@media (max-width: 639px) {
+		.rj-foot {
+			display: flex;
+			flex-direction: column;
+			gap: 20px;
+		}
+
 		.rj-foot-inner {
 			gap: 20px;
-			padding: 20px;
+			padding: 0 20px;
 		}
 
 		.rj-foot-usps {
@@ -838,7 +744,6 @@
 		/* 77:107713 → exact 2 + 2 + 1 USP grid. */
 		.rj-foot-usp-row {
 			grid-template-columns: 154px 159px;
-			grid-template-rows: 96.515px 98px 98px;
 			justify-content: space-between;
 			column-gap: 0;
 			row-gap: 20px;
@@ -890,17 +795,25 @@
 
 		.rj-foot-usp-text {
 			font-size: 10px;
+			line-height: 16px;
+		}
+
+		.rj-foot-usp:first-child .rj-foot-usp-text {
+			line-height: 15.5px;
+		}
+
+		.rj-foot-verify {
+			width: 28px;
+			height: 28px;
+		}
+
+		.rj-foot-cols {
+			gap: 20px;
 		}
 
 		.rj-foot-left {
 			flex-direction: column;
 			gap: 20px;
-		}
-
-		.rj-foot-cols {
-			flex-wrap: nowrap;
-			gap: 20px;
-			height: auto;
 		}
 
 		.rj-foot-brand,
@@ -911,15 +824,22 @@
 		/* 77:107758 — the two link columns sit side by side. */
 		.rj-foot-left {
 			display: grid;
-			grid-template-columns: 126px 167px;
-			justify-content: center;
-			column-gap: 25px;
+			grid-template-columns: 1fr 126px 25px 113px 1fr;
+			column-gap: 0;
 			row-gap: 20px;
 		}
 
 		.rj-foot-brand {
 			grid-column: 1 / -1;
 			gap: 12px;
+		}
+
+		.rj-foot-nav:nth-of-type(1) {
+			grid-column: 2;
+		}
+
+		.rj-foot-nav:nth-of-type(2) {
+			grid-column: 4;
 		}
 
 		.rj-foot-mark {
@@ -940,21 +860,28 @@
 		}
 
 		.rj-foot-nav-list {
-			gap: 8px;
+			gap: 10px;
 		}
 
-		.rj-foot-link {
-			display: block;
+		.rj-foot-nav:first-of-type .rj-foot-nav-list {
+			gap: 4px;
+		}
+
+		.rj-foot-nav-list li {
 			font-size: 12px;
 			line-height: 20px;
 		}
 
-		.rj-foot-news-block {
-			gap: 10px;
+		.rj-foot-link {
+			font-size: 12px;
 		}
 
 		.rj-foot-news-title {
 			font-size: 16px;
+		}
+
+		.rj-foot-news-block {
+			gap: 10px;
 		}
 
 		.rj-foot-news-input,
@@ -973,7 +900,7 @@
 
 		/* 77:107789 — the legal bar centres over two rows. */
 		.rj-foot-legal {
-			padding: 13px 20px;
+			padding: 16.75px 20px;
 		}
 
 		.rj-foot-legal-inner {
@@ -990,23 +917,6 @@
 
 		.rj-foot-legal-links {
 			gap: 15px;
-		}
-	}
-
-	@media (max-width: 363px) {
-		.rj-foot-usp-row,
-		.rj-foot-left {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-			column-gap: 20px;
-		}
-
-		.rj-foot-usp:nth-child(n) {
-			width: 100%;
-		}
-
-		.rj-foot-usp:nth-child(2)::before,
-		.rj-foot-usp:nth-child(4)::before {
-			left: -10px;
 		}
 	}
 </style>

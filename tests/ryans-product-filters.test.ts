@@ -13,6 +13,7 @@ describe('Ryan product filters', () => {
 		expect(applyClientFilters(products, new URL('https://shop.test/products?uiMaterial=10k%2520Rose%2520gold')).map((p: any) => p.id)).toEqual(['a'])
 		expect(applyClientFilters(products, new URL('https://shop.test/products?uiShape=Oval')).map((p: any) => p.id)).toEqual(['b'])
 		expect(applyClientFilters(products, new URL('https://shop.test/products?uiSort=title%3Aasc')).map((p: any) => p.id)).toEqual(['b', 'a'])
+		expect(applyClientFilters(products, new URL('https://shop.test/products?uiSort=rating%3Adesc')).map((p: any) => p.id)).toEqual(['b', 'a'])
 	})
 
 	it('builds filter options from admin facets', () => {

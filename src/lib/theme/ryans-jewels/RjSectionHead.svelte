@@ -85,6 +85,7 @@
 		}
 
 		.rj-head-eyebrow {
+			margin-bottom: -2px;
 			font-size: 18px;
 			line-height: 33px;
 		}

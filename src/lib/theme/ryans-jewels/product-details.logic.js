@@ -4,6 +4,12 @@ export function productImages(product, variant) {
 	return [...new Set([variant?.thumbnail || variant?.img || product?.thumbnail, ...String(raw).split(',')].map((image) => image?.trim()).filter(Boolean))]
 }
 
+/** @param {string[]} images @param {string} current @param {-1 | 1} direction */
+export function adjacentProductImage(images, current, direction) {
+	if (!images.length) return ''
+	return images[(Math.max(0, images.indexOf(current)) + direction + images.length) % images.length]
+}
+
 /** @param {any[]} variants @param {any} current @param {string} optionId @param {string} value */
 export function variantForOption(variants, current, optionId, value) {
 	const selectedOptions = /** @type {any[]} */ (current?.options || [])
@@ -170,6 +176,8 @@ if (typeof process !== 'undefined' && process.argv[1]?.endsWith('product-details
 	console.assert(productDetailParagraphs('<p>First sentence. Second sentence.</p><li>Skip this.</li>').join('|') === 'First sentence.|Second sentence.')
 	console.assert(productImages({ thumbnail: 'a', images: 'a,b' }, {}).join(',') === 'a,b')
 	console.assert(productImages({ thumbnail: 'product' }, { thumbnail: 'variant', images: 'variant,detail' }).join(',') === 'variant,detail')
+	console.assert(adjacentProductImage(['a', 'b', 'c'], 'a', -1) === 'c')
+	console.assert(adjacentProductImage(['a', 'b', 'c'], 'a', 1) === 'b')
 	const grouped = [
 		{ id: 'yellow-6', slug: 'yellow-6', Color: 'Yellow', Size: '6', variantId: 'a' },
 		{ id: 'rose-6', slug: 'rose-6', Color: 'Rose', Size: '6', variantId: 'b' },

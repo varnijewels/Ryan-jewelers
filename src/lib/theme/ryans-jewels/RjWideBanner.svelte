@@ -26,6 +26,7 @@
 		image?: string
 		imageAlt?: string
 		centered?: boolean
+		containImage?: boolean
 	}
 
 	const {
@@ -37,11 +38,12 @@
 		background = wideBanner.background,
 		image = wideBanner.image,
 		imageAlt = wideBanner.imageAlt,
-		centered = false
+		centered = false,
+		containImage = false
 	}: Props = $props()
 </script>
 
-<section class="rj-banner" class:is-centered={centered} aria-labelledby="rj-banner-heading">
+<section class="rj-banner" class:is-centered={centered} class:is-product-image={containImage} aria-labelledby="rj-banner-heading">
 	<div class="rj-banner-card" style="background-image: url({background})">
 		<div class="rj-banner-row" class:is-centered={centered}>
 			<div class="rj-banner-text">
@@ -60,7 +62,7 @@
 			</div>
 
 			{#if !centered}
-				<span class="rj-banner-cutout">
+				<span class="rj-banner-cutout" class:is-contained={containImage}>
 					<img src={image} alt={imageAlt} loading="lazy" decoding="async" />
 				</span>
 			{/if}
@@ -224,6 +226,21 @@
 		max-width: none;
 	}
 
+	.rj-banner-cutout.is-contained img {
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+	}
+
+	.rj-banner.is-product-image .rj-banner-heading {
+		display: -webkit-box;
+		overflow: hidden;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+	}
+
 	@media (max-width: 1279px) {
 		.rj-banner {
 			padding: 50px 40px;
@@ -371,7 +388,7 @@
 	/* ---- mobile 412 (77:107518) — full-bleed, 133 tall ------------------ */
 	@media (max-width: 639px) {
 		.rj-banner {
-			padding: 25px 0;
+			padding: 0;
 		}
 
 		.rj-banner-card {

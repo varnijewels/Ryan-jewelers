@@ -323,7 +323,8 @@
 	/* ---- mobile 412 (77:107535) — 190 cards, gap 26, bar 13px ----------- */
 	@media (max-width: 639px) {
 		.rj-trend {
-			padding: 30px 0;
+			height: auto;
+			padding: 25px 0;
 		}
 
 		.rj-trend-head {

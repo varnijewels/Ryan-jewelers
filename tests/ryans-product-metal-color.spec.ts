@@ -38,7 +38,11 @@ test('page navigation starts at the top', async ({ page }) => {
 test('mobile account icon opens login and registration', async ({ page }) => {
 	await page.setViewportSize({ width: 412, height: 915 })
 	await page.goto('/')
-	await page.getByRole('button', { name: 'Sign in or register' }).click()
+	await page.waitForLoadState('networkidle')
+	const accountMenu = page.getByRole('button', { name: 'Open account menu' })
+	await accountMenu.click()
+	await expect(accountMenu).toHaveAttribute('aria-expanded', 'true')
+	await page.getByRole('button', { name: 'Open authentication modal' }).filter({ hasText: 'Sign in / Create Account' }).click()
 	await expect(page.locator('.rj-auth-popup')).toBeVisible()
 	await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
 	await page.getByRole('button', { name: 'Open authentication modal' }).filter({ hasText: 'Create an account' }).click()
@@ -65,20 +69,76 @@ test('Ryan catalog hides non-Ryan placeholder products', async ({ page }) => {
 	await expect(page.locator('a[href="/products/slit-knit-dress"], a[href="/products/satin-crop-top"]')).toHaveCount(0)
 })
 
+test('mobile product filter opens, fits the viewport, and closes with Escape', async ({ page }) => {
+	await page.setViewportSize({ width: 412, height: 915 })
+	await page.goto('/products')
+	const filterButton = page.getByRole('button', { name: 'Filter', exact: true })
+
+	await filterButton.click()
+	await expect(filterButton).toHaveAttribute('aria-expanded', 'true')
+	const dialog = page.getByRole('dialog', { name: 'Filters' })
+	await expect(dialog).toBeVisible()
+	await expect(dialog.getByRole('button', { name: /View(?: \d+)? Results/ })).toBeVisible()
+	await expect.poll(async () => Math.round((await dialog.boundingBox())?.x ?? -999)).toBe(0)
+
+	const [dialogBox, filterButtonBox, closeButtonBox] = await Promise.all([
+		dialog.boundingBox(),
+		filterButton.boundingBox(),
+		dialog.getByRole('button', { name: 'Close filters' }).boundingBox()
+	])
+	expect(dialogBox?.x).toBe(0)
+	expect(dialogBox?.width).toBeLessThanOrEqual(412)
+	expect(filterButtonBox?.height).toBeGreaterThanOrEqual(44)
+	expect(closeButtonBox?.width).toBeGreaterThanOrEqual(44)
+	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(412)
+
+	await page.keyboard.press('Escape')
+	await expect(filterButton).toHaveAttribute('aria-expanded', 'false')
+	await expect(filterButton).toBeFocused()
+
+	await filterButton.click()
+	await dialog.getByRole('checkbox', { name: 'In Stock' }).check()
+	await expect.poll(() => new URL(page.url()).searchParams.has('uiStatus')).toBe(true)
+	await dialog.getByRole('button', { name: /View(?: \d+)? Results/ }).click()
+	await expect(filterButton).toHaveAttribute('aria-expanded', 'false')
+
+	await filterButton.click()
+	const clearButton = dialog.getByRole('button', { name: 'Clear All' })
+	await expect(clearButton).toBeEnabled()
+	await clearButton.click()
+	await expect.poll(() => new URL(page.url()).searchParams.has('uiStatus')).toBe(false)
+	await expect(filterButton).toHaveAttribute('aria-expanded', 'false')
+})
+
+test('Ryan header does not render the static fallback menu', async ({ request }) => {
+	const response = await request.get('/')
+	expect(response.status()).toBe(200)
+	expect(await response.text()).not.toContain('>All Jewellery<')
+})
+
 test('sitemap serves Ryan pages instead of redirecting to a missing file', async ({ request }) => {
 	const response = await request.get('/sitemap.xml')
 	expect(response.status()).toBe(200)
 	expect(response.headers()['content-type']).toContain('application/xml')
-	expect(await response.text()).toContain('<loc>http://localhost:3000/products</loc>')
+	expect(await response.text()).toContain(`<loc>${new URL(response.url()).origin}/products</loc>`)
 })
 
-for (const path of ['/collections', '/categories/lab-grown-diamond', '/categories/rings', '/categories/earrings', '/categories/pendants']) {
+for (const path of ['/collections', '/categories/lab-grown-diamond', '/categories/rings', '/categories/engagement', '/categories/bracelets', '/categories/earrings', '/categories/pendants']) {
 	test(`${path} redirects to the working catalog`, async ({ request }) => {
 		const response = await request.get(path)
 		expect(response.status()).toBe(200)
 		expect(response.url()).toContain('/products')
 	})
 }
+
+test('mobile submenu opens its working catalog destination', async ({ page }) => {
+	await page.setViewportSize({ width: 412, height: 917 })
+	await page.goto('/')
+	await page.getByRole('button', { name: 'Open menu' }).click()
+	await page.locator('.rj-tablet-menu-item', { hasText: 'Bracelets' }).click()
+	await page.locator('.rj-tablet-menu .rj-tablet-lab-view-all').click()
+	await expect(page).toHaveURL(/\/products\?search=Bracelets$/)
+})
 
 for (const [name, viewport] of Object.entries({ desktop: { width: 1440, height: 900 }, mobile: { width: 412, height: 915 } })) {
 	test(`cart login releases the page scroll on ${name}`, async ({ page }) => {

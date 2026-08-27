@@ -5,6 +5,7 @@
 	import { setUserState } from '$lib/core/stores/index.js'
 	import { GoogleAnalytics } from '$lib/core/components/index.js'
 	import { navigating } from '$app/stores'
+	import { page } from '$app/state'
 	import { updated } from '$app/state'
 	import { afterNavigate, beforeNavigate, disableScrollHandling } from '$app/navigation'
 	import { Loader } from '@lucide/svelte'
@@ -130,7 +131,7 @@
 				<!-- Ignore any errors from the promise ->
 			{/await}
 		{/if}-->
-		{@render children()}
+		{#key page.url.pathname}{@render children()}{/key}
 	</main>
 </div>
 <Toaster position="top-center" />

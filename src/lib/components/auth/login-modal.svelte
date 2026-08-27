@@ -7,12 +7,11 @@
 	import Textbox from '$lib/components/form/textbox.svelte'
 	import Modal from '../common/modal.svelte'
 	import { page } from '$app/state'
-	import { dev } from '$app/environment'
 	import { AuthButton } from '$lib/core/components/index.js'
 	import { LoginModule, loginModuleSchema as schemas } from '$lib/core/composables/index.js'
 	import { z } from 'zod'
 	import { toast } from '@misiki/kitcommerce-core'
-	import { authService, type User } from '$lib/core/services/index.js'
+	import { authService } from '$lib/core/services/index.js'
 	import { goto } from '$app/navigation'
 	import RyansJewelsAuthPopupShell from '$lib/theme/ryans-jewels/RyansJewelsAuthPopupShell.svelte'
 
@@ -104,11 +103,6 @@
 	async function handleResendOtp() {
 		if (resendSeconds > 0) return
 		try {
-			if (dev) {
-				toast.success('OTP resent successfully (Dev Mode: 1111)')
-				startResendCooldown()
-				return
-			}
 			await authService.getOtp({ phone: loginModule.identifier })
 			toast.success('OTP resent successfully')
 			startResendCooldown()
@@ -150,50 +144,11 @@
 	import { onDestroy, onMount } from 'svelte'
 
 	onMount(() => {
-		if (dev) {
-			// Purge any dev-session mock cookies to avoid remote API validation errors
-			if (document.cookie.includes('connect.sid=dev-session')) {
-				document.cookie = 'connect.sid=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-				document.cookie = 'me=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-			}
-
-			// Monkey patch send OTP to intercept rate limit error
-			const originalGetOtp = authService.getOtp
-			authService.getOtp = async (args) => {
-				try {
-					return await originalGetOtp.call(authService, args)
-				} catch (err: any) {
-					if (err.message?.includes('Please wait') || err.message?.includes('cooldown') || err.status === 429) {
-						toast.success('Dev Mode: Rate limit bypassed. Use OTP 1111')
-						loginModule.step = 2
-						setTimeout(() => {
-							loginModule.otpInputRef?.focus()
-						}, 100)
-						return { success: true, message: 'Bypassed' } as unknown as User
-					}
-					throw err
-				}
-			}
-
-			// Monkey patch verify OTP to support 1111 bypass on rate limit failover
-			const originalVerifyOtp = authService.verifyOtp
-			authService.verifyOtp = async (args) => {
-				if (args.otp === '1111') {
-					const mockUser = {
-						id: 'dev_user',
-						phone: args.phone,
-						firstName: 'Dev',
-						lastName: 'User',
-						role: 'user'
-					}
-					document.cookie = `connect.sid=dev-session; path=/; max-age=${60 * 60 * 24 * 30}`
-					document.cookie = `me=${encodeURIComponent(JSON.stringify(mockUser))}; path=/; max-age=${60 * 60 * 24 * 30}`
-					userState.user = mockUser as unknown as User
-					await resumeCheckout()
-					return mockUser as unknown as User
-				}
-				return await originalVerifyOtp.call(authService, args)
-			}
+		// Remove legacy local mock sessions; only the real auth API may sign a user in.
+		if (document.cookie.includes('connect.sid=dev-session')) {
+			document.cookie = 'connect.sid=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+			document.cookie = 'me=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+			userState.user = null
 		}
 	})
 
@@ -437,9 +392,6 @@
 					<p class="text-sm leading-6 text-gray-600 dark:text-gray-300">
 						Enter the 4-digit code sent to <span class="font-semibold text-gray-950 dark:text-white">{recipient}</span>.
 					</p>
-					{#if dev}
-						<p class="text-xs font-semibold text-amber-700 dark:text-amber-300">Dev mode: use 1111</p>
-					{/if}
 				</div>
 
 				<div class="flex flex-1 items-center justify-center py-10 sm:py-8">

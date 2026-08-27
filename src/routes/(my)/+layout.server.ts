@@ -4,7 +4,7 @@ import type { LayoutServerLoad } from './$types.js'
 
 export const load: LayoutServerLoad = async ({ cookies, fetch, url }) => {
 	const sid = cookies.get('connect.sid')
-	if (sid) {
+	if (sid && sid !== 'dev-session') {
 		try {
 			const user = await new UserService(fetch).getMe()
 			if (user?.id || (user as { userId?: string })?.userId) return { user }

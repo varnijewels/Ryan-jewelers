@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { setCartState, setProductState, setWishlistState } from '$lib/core/stores/index.js'
+	import { setCartState, setProductState, setUserState, setWishlistState } from '$lib/core/stores/index.js'
 	import Nav from '$lib/components/nav/nav.svelte'
 	import Footer from '$lib/components/common/footer.svelte'
 	import { StorePlugins } from '$lib/core/components/index.js'
@@ -16,6 +16,7 @@
 
 	setCartState()
 	setProductState()
+	setUserState()
 	setWishlistState()
 
 	$effect(() => {
@@ -34,7 +35,7 @@
 		pageContent.classList.add('rj-page-enter')
 		for (const cleanup of revealCleanups) cleanup()
 		revealCleanups = Array.from(pageContent?.children || [])
-			.filter((node) => !node.classList.contains('rj-home'))
+			.filter((node) => !node.classList.contains('rj-home') && !node.classList.contains('rj-products-layout'))
 			.map((node, index) => {
 				const element = node as HTMLElement
 				element.style.setProperty('--rj-reveal-delay', `${Math.min(index, 4) * 55}ms`)
@@ -53,7 +54,7 @@
 <div class="flex min-h-screen flex-col justify-between">
 	<Nav storeData={data.store} />
 	<main bind:this={pageContent} class="inter-gap rj-page-enter flex min-h-screen flex-1 flex-col">
-		{@render children()}
+		{#key page.url.pathname}{@render children()}{/key}
 	</main>
 	<Footer />
 </div>

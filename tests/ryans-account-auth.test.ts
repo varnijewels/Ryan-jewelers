@@ -52,6 +52,19 @@ describe('Ryan account auth guard', () => {
 		})
 	})
 
+	it('does not accept the removed local dev-session as a customer login', async () => {
+		const request = load({
+			cookies: { get: (name: string) => (name === 'connect.sid' ? 'dev-session' : encodeURIComponent(JSON.stringify({ id: 'dev_user' }))) },
+			fetch: vi.fn(),
+			url: new URL('https://shop.test/my')
+		} as any)
+
+		await expect(request).rejects.toMatchObject({
+			status: 307,
+			location: '/?show_auth=true&login=true&redirect=%2Fmy'
+		})
+	})
+
 	it('requires login before serving the messages page', async () => {
 		const request = loadMessages({
 			cookies: { get: () => undefined },

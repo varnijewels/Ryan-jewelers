@@ -81,8 +81,12 @@
 	onMount(async () => {
 		if (activeTheme !== 'ryans-jewels' || storefrontProducts.length) return
 		try {
-			const response = await fetch('/api/ms/products?page=1&sort=createdAt%3Adesc&tags=JewelWeSell')
-			if (response.ok) storefrontProducts = withoutDemoProducts((await response.json())?.hits || [])
+			const response = await fetch('/api/products?page=1&sort=-createdAt', {
+				headers: { 'x-litekart-store': data?.store?.id || '' }
+			})
+			if (response.ok) storefrontProducts = withoutDemoProducts((await response.json())?.data || [])
+		} catch {
+			storefrontProducts = []
 		} finally {
 			storefrontProductsLoading = false
 		}

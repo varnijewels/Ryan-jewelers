@@ -401,7 +401,8 @@
 	/* ---- mobile 412 (77:107447) ----------------------------------------- */
 	@media (max-width: 639px) {
 		.rj-look {
-			padding: 30px 0;
+			height: auto;
+			padding: 25px 0;
 		}
 
 		.rj-look-inner {
@@ -465,6 +466,10 @@
 		}
 
 		.rj-look-skeleton:nth-child(n + 3) {
+			display: none;
+		}
+
+		.rj-look :global(.rj-carousel-rail) {
 			display: none;
 		}
 	}

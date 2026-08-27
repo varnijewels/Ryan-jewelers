@@ -4,10 +4,16 @@
 	 * Source: 1:6323 (desktop, six 203×251 tiles, gap 20 on a #fafafa band)
 	 *         · 63:40958 (tablet, five 124×153) · 77:107699 (mobile)
 	 *
-	 * Tiles are theme-owned imagery, not API data — swap them when the store's
-	 * real feed is wired up.
+	 * Tiles default to theme imagery; callers can provide live store imagery.
 	 */
 	import { instagramStrip } from './footer-content.js'
+
+	interface Props {
+		tiles?: { src: string; alt: string }[]
+		href?: string
+	}
+
+	const { tiles = instagramStrip.tiles, href = instagramStrip.href }: Props = $props()
 </script>
 
 <section class="rj-ig" aria-labelledby="rj-ig-heading">
@@ -18,9 +24,9 @@
 		</div>
 
 		<ul class="rj-ig-grid">
-			{#each instagramStrip.tiles as tile, i (tile.src)}
+			{#each tiles as tile, i (tile.src)}
 				<li class="rj-ig-cell">
-					<a class="rj-ig-tile" href={instagramStrip.href} target="_blank" rel="noopener noreferrer">
+					<a class="rj-ig-tile" {href} target="_blank" rel="noopener noreferrer">
 						<img src={tile.src} alt={tile.alt} loading="lazy" decoding="async" />
 					</a>
 				</li>
@@ -188,6 +194,7 @@
 	/* Mobile 412 — five 64×79 tiles distributed across the 372px content row. */
 	@media (max-width: 639px) {
 		.rj-ig {
+			height: auto;
 			padding: 20px;
 		}
 

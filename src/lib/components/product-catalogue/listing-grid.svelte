@@ -17,7 +17,7 @@
 	let loadingMore = $state(false)
 
 	const hasMore = $derived(currentPage < (data.products?.totalPages ?? 0))
-	const visibleProducts = (items: any[]) => isRyan ? items.filter((product) => product?.styleCode) : items
+	const visibleProducts = (items: any[]) => items
 
 	$effect(() => {
 		products = visibleProducts(data.products?.data ?? [])

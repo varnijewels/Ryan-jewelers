@@ -36,7 +36,7 @@
 	import BorisAndTwinsNav from '$lib/theme/boris-and-twins/BorisAndTwinsNav.svelte'
 	import RyansJewelsNav from '$lib/theme/ryans-jewels/RyansJewelsNav.svelte'
 	import RjTabletLabMenu from '$lib/theme/ryans-jewels/RjTabletLabMenu.svelte'
-	import { menuChildren, menuHref, menuLabel, tabletMenuView, type AdminMenuItem } from '$lib/theme/ryans-jewels/admin-menu.js'
+	import { menuChildren, menuHref, menuLabel, mobileMenuView, tabletMenuView, type AdminMenuItem } from '$lib/theme/ryans-jewels/admin-menu.js'
 	import { ryansJewelsNavContent as ryanNav } from '$lib/theme/ryans-jewels/nav-content.js'
 
 	const wishlistState = getWishlistState()
@@ -59,6 +59,16 @@
 		navModule.openSidebar = false
 		if (replaceSidebarEntry) window.location.replace(href)
 		else window.location.assign(href)
+	}
+
+	function closeRyanSidebar(event: MouseEvent) {
+		const href = (event.currentTarget as HTMLAnchorElement).getAttribute?.('href')
+		if (!href) {
+			navModule.openSidebar = false
+			return
+		}
+		event.preventDefault()
+		navigateFromSidebar(href)
 	}
 
 	onMount(() => {
@@ -102,7 +112,7 @@
 
 	const activeThemeName = $derived(page.data?.theme?.name ?? 'default')
 	const storeData = $derived(page?.data?.store ?? {})
-	let ryanSidebarView = $state<'root' | 'lab' | 'all-diamond' | 'earrings'>('root')
+	let ryanSidebarView = $state<'root' | 'lab' | 'all-diamond' | 'earrings' | 'bracelets' | 'pendants' | 'engagement-rings'>('root')
 	const ryanServerMegaMenu = $derived((page.data as any)?.navigation?.megaMenu as AdminMenuItem[] | undefined)
 	const ryanStoreHeaderMenu = $derived(
 		((page.data as any)?.store?.menu?.find((menu: any) => menu.menuId === 'header')?.items || []) as AdminMenuItem[]
@@ -135,6 +145,15 @@
 	)
 	const ryanEarringsCategory = $derived(
 		ryanAllMenuItems.find((item) => /^earrings?$/i.test(menuLabel(item)?.trim() || '')) || null
+	)
+	const ryanBraceletsCategory = $derived(
+		ryanMegaCategories.find((item) => /^bracelets?$/i.test(menuLabel(item)?.trim() || '')) || null
+	)
+	const ryanPendantsCategory = $derived(
+		ryanMegaCategories.find((item) => /^pendants?$/i.test(menuLabel(item)?.trim() || '')) || null
+	)
+	const ryanEngagementRingsCategory = $derived(
+		ryanMegaCategories.find((item) => /^engagement rings?$/i.test(menuLabel(item)?.trim() || '')) || null
 	)
 	const ryanHomeItem = $derived(ryanAllMenuItems.find((item) => /^home$/i.test(menuLabel(item) || '')) || null)
 	const ryanOfferItem = $derived(ryanAllMenuItems.find((item) => /best offers?|offers?/i.test(menuLabel(item) || '')) || null)
@@ -332,13 +351,49 @@
 				: 'relative z-[60] flex h-full w-full max-w-[300px] flex-col overflow-hidden border-r border-gray-100 bg-white text-foreground shadow-2xl'}
 		>
 			{#if activeThemeName === 'ryans-jewels'}
-				{#if ryanSidebarView === 'lab'}
+				{#if ryanSidebarView === 'engagement-rings'}
+					{#if ryanEngagementRingsCategory}
+						<RjTabletLabMenu
+							category={ryanEngagementRingsCategory}
+							variant="engagement-rings"
+							open={navModule.openSidebar}
+							onBack={() => (ryanSidebarView = 'root')}
+							onClose={closeRyanSidebar}
+						/>
+					{:else}
+						<div class="rj-tablet-menu-loading" role="status">Loading navigation…</div>
+					{/if}
+				{:else if ryanSidebarView === 'pendants'}
+					{#if ryanPendantsCategory}
+						<RjTabletLabMenu
+							category={ryanPendantsCategory}
+							variant="pendants"
+							open={navModule.openSidebar}
+							onBack={() => (ryanSidebarView = 'root')}
+							onClose={closeRyanSidebar}
+						/>
+					{:else}
+						<div class="rj-tablet-menu-loading" role="status">Loading navigation…</div>
+					{/if}
+				{:else if ryanSidebarView === 'bracelets'}
+					{#if ryanBraceletsCategory}
+						<RjTabletLabMenu
+							category={ryanBraceletsCategory}
+							variant="bracelets"
+							open={navModule.openSidebar}
+							onBack={() => (ryanSidebarView = 'root')}
+							onClose={closeRyanSidebar}
+						/>
+					{:else}
+						<div class="rj-tablet-menu-loading" role="status">Loading navigation…</div>
+					{/if}
+				{:else if ryanSidebarView === 'lab'}
 					{#if ryanLabCategory}
 						<RjTabletLabMenu
 							category={ryanLabCategory}
 							open={navModule.openSidebar}
 							onBack={() => (ryanSidebarView = 'root')}
-							onClose={() => (navModule.openSidebar = false)}
+							onClose={closeRyanSidebar}
 						/>
 					{:else}
 						<div class="rj-tablet-menu-loading" role="status">Loading navigation…</div>
@@ -351,7 +406,7 @@
 							variant="all-diamond"
 							open={navModule.openSidebar}
 							onBack={() => (ryanSidebarView = 'root')}
-							onClose={() => (navModule.openSidebar = false)}
+							onClose={closeRyanSidebar}
 						/>
 					{:else}
 						<div class="rj-tablet-menu-loading" role="status">Loading navigation…</div>
@@ -363,7 +418,7 @@
 							variant="earrings"
 							open={navModule.openSidebar}
 							onBack={() => (ryanSidebarView = 'root')}
-							onClose={() => (navModule.openSidebar = false)}
+							onClose={closeRyanSidebar}
 						/>
 					{:else}
 						<div class="rj-tablet-menu-loading" role="status">Loading navigation…</div>
@@ -400,7 +455,17 @@
 										<img src="/ryans-jewels/navigation/tablet-menu-arrow.svg" alt="" aria-hidden="true" />
 									</button>
 								{:else}
-									<a class="rj-tablet-menu-item" href={item.href} onclick={() => (navModule.openSidebar = false)}>
+									<a
+										class="rj-tablet-menu-item"
+										href={item.href}
+										onclick={(event) => {
+											const submenu = window.matchMedia('(max-width: 639px)').matches && mobileMenuView(item.label)
+											if (submenu) {
+												event.preventDefault()
+												ryanSidebarView = submenu
+											} else navModule.openSidebar = false
+										}}
+									>
 										<span>{item.label}</span>
 										{#if item.arrow}<img src="/ryans-jewels/navigation/tablet-menu-arrow.svg" alt="" aria-hidden="true" />{/if}
 									</a>
@@ -923,6 +988,17 @@
 	.rj-tablet-menu-item:hover,
 	.rj-tablet-menu-item:focus-visible {
 		color: #cca646;
+	}
+
+	@media (max-width: 639px) {
+		.rj-tablet-menu--lab {
+			width: min(350px, 100vw);
+		}
+
+		.rj-tablet-menu-item,
+		.rj-tablet-menu-offer {
+			font-size: 16px;
+		}
 	}
 
 	.rj-tablet-menu button:focus-visible,
