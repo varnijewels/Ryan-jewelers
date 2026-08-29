@@ -38,7 +38,7 @@
 					width="1440"
 					height="745"
 					fetchpriority="high"
-					decoding="async"
+					decoding="sync"
 				/>
 			</picture>
 			<video class="rj-hero-video" autoplay muted loop playsinline preload="none" aria-hidden="true">
