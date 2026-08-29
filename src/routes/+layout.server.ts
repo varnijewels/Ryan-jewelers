@@ -6,7 +6,8 @@ export async function load(event: any) {
 	const data = await layoutServer(event)
 	let user = null
 	const theme = resolveStorefrontTheme(data?.store)
-	let megaMenu: any[] = []
+	const isMobileRequest = event.request.headers.get('sec-ch-ua-mobile') === '?1' || /Android|iPhone|Mobile/i.test(event.request.headers.get('user-agent') || '')
+	let megaMenu: any[] | undefined
 
 	const sid = event.cookies.get('connect.sid')
 	if (sid && sid !== 'dev-session') {
@@ -17,7 +18,7 @@ export async function load(event: any) {
 		}
 	}
 
-	if (theme.name === 'ryans-jewels') {
+	if (theme.name === 'ryans-jewels' && !isMobileRequest) {
 		try {
 			// Connector types this endpoint as paginated, but the API returns the menu array directly.
 			megaMenu = (await new CategoryService(event.fetch).getMegamenu()) as unknown as any[]
@@ -30,6 +31,6 @@ export async function load(event: any) {
 		...data,
 		user,
 		theme,
-		navigation: { megaMenu }
+		navigation: { megaMenu, isMobileRequest }
 	}
 }

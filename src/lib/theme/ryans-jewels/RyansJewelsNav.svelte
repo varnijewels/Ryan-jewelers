@@ -33,6 +33,7 @@
 
 	const isLoggedIn = $derived(!!userState?.user?.role)
 	const displayName = $derived(userState?.user?.firstName || userState?.user?.name || 'My Account')
+	const isMobileRequest = $derived((page.data as any)?.navigation?.isMobileRequest === true)
 	const serverMegaMenu = $derived((page.data as any)?.navigation?.megaMenu as any[] | undefined)
 	const resolvedMenu = $derived(
 		resolveAdminMenu(navModule.megaMenu.length ? navModule.megaMenu : serverMegaMenu, navModule.navMenu, nav.home, serverMegaMenu === undefined ? nav.menu : [])
@@ -407,6 +408,7 @@
 		</div>
 
 		<!-- Row 2 -->
+		{#if !isMobileRequest}
 		<div class="rj-row-menu">
 			<nav class="rj-menu" aria-label="Main navigation">
 				<a class="rj-menu-home" href={homeHref} aria-current={pathname === homeHref ? 'page' : undefined} onmouseenter={() => (openMega = null)}>
@@ -463,6 +465,7 @@
 				</svg>
 			</a>
 		</div>
+		{/if}
 	</div>
 </header>
 
