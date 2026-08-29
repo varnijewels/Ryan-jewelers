@@ -37,6 +37,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		url.pathname === '/' && (isLocalOrIP || url.hostname === 'ryan.varnijewels.com' || env.PUBLIC_STOREFRONT_THEME === 'ryans-jewels')
 	const isRyansStorefront = url.hostname === 'ryan.varnijewels.com'
 	const isStoreDetailsCacheRequest = url.pathname === '/store-details.json'
+	const hasSession = !!event.cookies.get('connect.sid')
 	const isMobileRequest =
 		event.request.headers.get('sec-ch-ua-mobile') === '?1' || /Android|iPhone|Mobile/i.test(event.request.headers.get('user-agent') || '')
 	// ponytail: UA only selects the preload hint; <picture> remains the responsive source of truth.
@@ -75,17 +76,26 @@ export const handle: Handle = async ({ event, resolve }) => {
 		if (storeIdFromCookie !== storeDetails.id) event.cookies.set('litekart_store_id', storeDetails.id, { path: '/' })
 	}
 
+	const storeCookieScript = isRyansHomepage && isRyansStorefront && !hasSession && storeId
+		? `<script>document.cookie=${JSON.stringify(`litekart_store_id=${encodeURIComponent(storeId)}; Max-Age=31536000; Path=/; SameSite=Lax; Secure`)};</script>`
+		: ''
 	const response = await resolve(event, {
 		filterSerializedResponseHeaders: (name) => name === 'content-type',
 		// ponytail: preload route nodes only; restore chunk preloads if slow-network hydration becomes noticeable.
 		preload: ({ type, path }) => !isRyansHomepage || type !== 'js' || path.includes('/nodes/'),
 		transformPageChunk: ({ html }) =>
-			isRyansHomepage ? html.replace('<head>', `<head><link rel="preload" as="image" type="image/webp" href="${heroImage}" fetchpriority="high">`) : html
+			isRyansHomepage ? html.replace('<head>', `<head>${storeCookieScript}<link rel="preload" as="image" type="image/webp" href="${heroImage}" fetchpriority="high">`) : html
 	})
 	if (isRyansHomepage) {
 		const existingLinks = response.headers.get('Link')
 		const heroLink = `<${heroImage}>; rel=preload; as=image; type=image/webp; fetchpriority=high`
 		response.headers.set('Link', existingLinks ? `${heroLink}, ${existingLinks}` : heroLink)
+		if (isRyansStorefront && !hasSession) {
+			response.headers.delete('Set-Cookie')
+			response.headers.set('Cache-Control', 'private, max-age=0, must-revalidate')
+			response.headers.set('Vercel-CDN-Cache-Control', 'public, s-maxage=300, stale-while-revalidate=60')
+			response.headers.append('Vary', 'Cookie')
+		}
 	}
 	if (noindexPrefixes.some((prefix) => url.pathname === prefix || url.pathname.startsWith(`${prefix}/`))) {
 		response.headers.set('X-Robots-Tag', 'noindex, follow')
