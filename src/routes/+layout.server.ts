@@ -6,11 +6,12 @@ export async function load(event: any) {
 	const data = await layoutServer(event)
 	let user = null
 	const theme = resolveStorefrontTheme(data?.store)
+	const isPublicHomepage = theme.name === 'ryans-jewels' && event.url.pathname === '/'
 	const isMobileRequest = event.request.headers.get('sec-ch-ua-mobile') === '?1' || /Android|iPhone|Mobile/i.test(event.request.headers.get('user-agent') || '')
 	let megaMenu: any[] | undefined
 
 	const sid = event.cookies.get('connect.sid')
-	if (sid && sid !== 'dev-session') {
+	if (!isPublicHomepage && sid && sid !== 'dev-session') {
 		try {
 			user = await new UserService(event.fetch).getMe()
 		} catch {
@@ -30,6 +31,7 @@ export async function load(event: any) {
 	return {
 		...data,
 		user,
+		isPublicHomepage,
 		theme,
 		navigation: { megaMenu, isMobileRequest }
 	}

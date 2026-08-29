@@ -21,6 +21,7 @@
 			available: string[]
 		}
 		user?: any
+		isPublicHomepage?: boolean
 		timestamp: number
 		error?: string
 	}
@@ -31,7 +32,7 @@
 		const user = data?.user ?? null
 		let active = true
 		userState.hasLoaded.catch(() => undefined).then(() => {
-			if (active) userState.user = user
+			if (active && (!data?.isPublicHomepage || user)) userState.user = user
 		})
 		return () => {
 			active = false

@@ -35,11 +35,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const isLocalOrIP = isLocalOrIpAddress(url.hostname)
 	const isRyansHomepage =
 		url.pathname === '/' && (isLocalOrIP || url.hostname === 'ryan.varnijewels.com' || env.PUBLIC_STOREFRONT_THEME === 'ryans-jewels')
-	const isRyansStorefront = url.hostname === 'ryan.varnijewels.com'
-	const isStoreDetailsCacheRequest = url.pathname === '/store-details.json'
-	const edgeCache = isRyansStorefront && typeof caches !== 'undefined'
-		? (caches as CacheStorage & { default?: Cache }).default
-		: undefined
 	const isMobileRequest =
 		event.request.headers.get('sec-ch-ua-mobile') === '?1' || /Android|iPhone|Mobile/i.test(event.request.headers.get('user-agent') || '')
 	// ponytail: UA only selects the preload hint; <picture> remains the responsive source of truth.
@@ -51,10 +46,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	const storeId = env.PUBLIC_LITEKART_STORE_ID
 	const storeIdFromCookie = event.cookies.get('litekart_store_id')
-	if (!isStoreDetailsCacheRequest && storeId && storeIdFromCookie !== storeId) {
+	if (!isRyansHomepage && storeId && storeIdFromCookie !== storeId) {
 		event.cookies.set('litekart_store_id', storeId, { path: '/' })
 	}
-	if (!url.pathname.startsWith('/api') && !isStoreDetailsCacheRequest) {
+	if (!url.pathname.startsWith('/api')) {
 		const domain = env.PUBLIC_LITEKART_DOMAIN || url.hostname
 		const requestedStoreId = storeId || storeIdFromCookie
 		const cacheKey = requestedStoreId || domain
@@ -62,42 +57,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 			? storeDetailsCache.value
 			: null
 		let storeDetails = cachedStore
-		const edgeCacheRequest = edgeCache ? new Request(`${url.origin}/store-details.json`) : null
-		let edgeCacheHit = false
-		if (!storeDetails && edgeCache && edgeCacheRequest) {
-			try {
-				const response = await edgeCache.match(edgeCacheRequest)
-				if (response?.ok) {
-					storeDetails = await response.json()
-					edgeCacheHit = true
-				}
-			} catch {
-				// Cache availability must never block storefront rendering.
-			}
-		}
-		if (!storeDetails && isRyansStorefront) {
-			try {
-				const response = await fetch(`${url.origin}/store-details.json`)
-				if (response.ok) storeDetails = await response.json()
-			} catch {
-				// Fall through to the connector when the CDN cache route is unavailable.
-			}
-		}
 		storeDetails ||= await new StoreService(event.fetch).getStoreByIdOrDomain({ storeId: requestedStoreId, domain })
 		if (!storeDetails?.id) throw new Error('Hooks: Store not found.')
-		if (!cachedStore && !edgeCacheHit && edgeCache && edgeCacheRequest) {
-			try {
-				await edgeCache.put(edgeCacheRequest, Response.json(storeDetails, {
-					headers: { 'cache-control': 'public, max-age=3600' }
-				}))
-			} catch {
-				// Continue with the fetched value when edge storage is unavailable.
-			}
-		}
-		// ponytail: process-local hot path; shared edge storage covers Cloudflare isolates.
+		// ponytail: process-local cache; public homepage ISR handles cross-instance caching.
 		if (!cachedStore) storeDetailsCache = { key: cacheKey, expiresAt: Date.now() + STORE_CACHE_TTL_MS, value: storeDetails }
 		event.locals.storeDetails = storeDetails
-		if (storeIdFromCookie !== storeDetails.id) event.cookies.set('litekart_store_id', storeDetails.id, { path: '/' })
+		if (!isRyansHomepage && storeIdFromCookie !== storeDetails.id) event.cookies.set('litekart_store_id', storeDetails.id, { path: '/' })
 	}
 
 	const response = await resolve(event, {

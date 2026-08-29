@@ -32,11 +32,27 @@ describe('Ryan account auth guard', () => {
 			cookies: { get: (name: string) => (name === 'connect.sid' ? 'valid-session' : undefined) },
 			fetch,
 			locals: { storeDetails: { id: 'store-1' } },
-			request: { headers: new Headers() }
+			request: { headers: new Headers() },
+			url: new URL('https://shop.test/my')
 		} as any)
 
 		expect(fetch).toHaveBeenCalledWith('/api/users/me', undefined)
 		expect(result.user).toEqual(user)
+	})
+
+	it('keeps the cacheable homepage free of session-specific user data', async () => {
+		const fetch = vi.fn()
+		const result = await loadRoot({
+			cookies: { get: (name: string) => (name === 'connect.sid' ? 'valid-session' : undefined) },
+			fetch,
+			locals: { storeDetails: { id: 'store-1' } },
+			request: { headers: new Headers() },
+			url: new URL('https://shop.test/')
+		} as any)
+
+		expect(fetch).not.toHaveBeenCalled()
+		expect(result.user).toBeNull()
+		expect(result.isPublicHomepage).toBe(true)
 	})
 
 	it('rejects a stale session and keeps the requested account return URL', async () => {
