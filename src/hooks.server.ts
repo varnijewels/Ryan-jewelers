@@ -68,10 +68,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 		// ponytail: preload route nodes only; restore chunk preloads if slow-network hydration becomes noticeable.
 		preload: ({ type, path }) => !isRyansHomepage || type !== 'js' || path.includes('/nodes/'),
 		transformPageChunk: ({ html }) =>
-			isRyansHomepage ? html.replace('<head>', `<head><link rel="preload" as="image" href="${heroImage}" fetchpriority="high">`) : html
+			isRyansHomepage ? html.replace('<head>', `<head><link rel="preload" as="image" type="image/webp" href="${heroImage}" fetchpriority="high">`) : html
 	})
 	if (isRyansHomepage) {
-		response.headers.append('Link', `<${heroImage}>; rel=preload; as=image; fetchpriority=high`)
+		const existingLinks = response.headers.get('Link')
+		const heroLink = `<${heroImage}>; rel=preload; as=image; type=image/webp; fetchpriority=high`
+		response.headers.set('Link', existingLinks ? `${heroLink}, ${existingLinks}` : heroLink)
 	}
 	if (noindexPrefixes.some((prefix) => url.pathname === prefix || url.pathname.startsWith(`${prefix}/`))) {
 		response.headers.set('X-Robots-Tag', 'noindex, follow')

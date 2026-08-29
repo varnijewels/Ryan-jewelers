@@ -13,6 +13,7 @@
 	<link
 		rel="preload"
 		as="image"
+		type="image/webp"
 		href={hero.mobileImage}
 		media="(max-width: 639px)"
 		fetchpriority="high"
@@ -20,6 +21,7 @@
 	<link
 		rel="preload"
 		as="image"
+		type="image/webp"
 		href={hero.image}
 		media="(min-width: 640px)"
 		fetchpriority="high"
