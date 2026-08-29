@@ -30,13 +30,13 @@
 	<a class="rj-hero-link" href={hero.href} aria-label={hero.imageAlt}>
 		<div class="rj-hero-media">
 			<picture class="rj-hero-picture">
-				<source media="(max-width: 639px)" srcset={hero.mobileImage} />
+				<source media="(min-width: 640px)" srcset={hero.image} />
 				<img
 					class="rj-hero-img"
-					src={hero.image}
+					src={hero.mobileImage}
 					alt=""
-					width="1440"
-					height="745"
+					width="824"
+					height="580"
 					fetchpriority="high"
 					decoding="sync"
 				/>
