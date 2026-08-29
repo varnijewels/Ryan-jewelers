@@ -59,7 +59,7 @@
 
 		<div class="rj-passion-media">
 			<figure class="rj-passion-card">
-				<img class="rj-passion-photo" src={image} alt={imageAlt} loading="lazy" decoding="async" />
+				<img class="rj-passion-photo" src={image} alt={imageAlt} loading="lazy" decoding="async" fetchpriority="low" />
 				<span class="rj-passion-frame" aria-hidden="true"></span>
 			</figure>
 			<div class="rj-passion-badge">

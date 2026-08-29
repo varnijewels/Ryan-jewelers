@@ -44,7 +44,7 @@
 		<article class="rj-tile rj-tile--{size}" data-testid="product-card-{product?.id}">
 			<a class="rj-tile-media" {href} aria-label={title || 'View product'}>
 				{#if image}
-					<img class="rj-tile-photo" src={listingImage(image)} alt={title} loading="lazy" decoding="async" />
+					<img class="rj-tile-photo" src={listingImage(image)} alt={title} loading="lazy" decoding="async" fetchpriority="low" />
 				{:else}
 					<span class="rj-tile-photo rj-tile-photo--empty" aria-hidden="true"></span>
 				{/if}

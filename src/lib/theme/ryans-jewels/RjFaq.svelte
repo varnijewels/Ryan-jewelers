@@ -24,8 +24,8 @@
 </script>
 
 <section class="rj-faq" aria-labelledby="rj-faq-heading">
-	<img class="rj-faq-side rj-faq-side--left" src={faq.sideImage} alt="" aria-hidden="true" />
-	<img class="rj-faq-side rj-faq-side--right" src={faq.sideImage} alt="" aria-hidden="true" />
+	<img class="rj-faq-side rj-faq-side--left" src={faq.sideImage} alt="" aria-hidden="true" loading="lazy" decoding="async" fetchpriority="low" />
+	<img class="rj-faq-side rj-faq-side--right" src={faq.sideImage} alt="" aria-hidden="true" loading="lazy" decoding="async" fetchpriority="low" />
 
 	<div class="rj-faq-inner">
 		<div class="rj-faq-intro">

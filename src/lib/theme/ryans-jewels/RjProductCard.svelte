@@ -56,7 +56,7 @@
 			<div class="rj-card-media">
 				<a class="rj-card-media-link" {href} aria-label={title || 'View product'}>
 					{#if image}
-						<img src={listingImage(image)} alt={title} loading="lazy" />
+						<img src={listingImage(image)} alt={title} loading="lazy" decoding="async" fetchpriority="low" />
 					{:else}
 						<span class="rj-card-media-empty" aria-hidden="true"></span>
 					{/if}

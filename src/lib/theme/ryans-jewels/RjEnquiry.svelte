@@ -73,7 +73,7 @@
 </script>
 
 <section class="rj-enq" aria-labelledby="rj-enq-heading">
-	<img class="rj-enq-plate" src={enquiry.background} alt="" aria-hidden="true" />
+	<img class="rj-enq-plate" src={enquiry.background} alt="" aria-hidden="true" loading="lazy" decoding="async" fetchpriority="low" />
 
 	<div class="rj-enq-inner">
 		<div class="rj-enq-head">
