@@ -35,6 +35,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const isLocalOrIP = isLocalOrIpAddress(url.hostname)
 	const isRyansHomepage =
 		url.pathname === '/' && (isLocalOrIP || url.hostname === 'ryan.varnijewels.com' || env.PUBLIC_STOREFRONT_THEME === 'ryans-jewels')
+	const isRyansStorefront = url.hostname === 'ryan.varnijewels.com'
+	const isStoreDetailsCacheRequest = url.pathname === '/store-details.json'
 	const isMobileRequest =
 		event.request.headers.get('sec-ch-ua-mobile') === '?1' || /Android|iPhone|Mobile/i.test(event.request.headers.get('user-agent') || '')
 	// ponytail: UA only selects the preload hint; <picture> remains the responsive source of truth.
@@ -46,19 +48,28 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	const storeId = env.PUBLIC_LITEKART_STORE_ID
 	const storeIdFromCookie = event.cookies.get('litekart_store_id')
-	if (storeId && storeIdFromCookie !== storeId) {
+	if (!isStoreDetailsCacheRequest && storeId && storeIdFromCookie !== storeId) {
 		event.cookies.set('litekart_store_id', storeId, { path: '/' })
 	}
-	if (!url.pathname.startsWith('/api')) {
+	if (!url.pathname.startsWith('/api') && !isStoreDetailsCacheRequest) {
 		const domain = env.PUBLIC_LITEKART_DOMAIN || url.hostname
 		const requestedStoreId = storeId || storeIdFromCookie
 		const cacheKey = requestedStoreId || domain
 		const cachedStore = storeDetailsCache?.key === cacheKey && storeDetailsCache.expiresAt > Date.now()
 			? storeDetailsCache.value
 			: null
-		const storeDetails = cachedStore || await new StoreService(event.fetch).getStoreByIdOrDomain({ storeId: requestedStoreId, domain })
+		let storeDetails = cachedStore
+		if (!storeDetails && isRyansStorefront) {
+			try {
+				const response = await fetch(`${url.origin}/store-details.json`)
+				if (response.ok) storeDetails = await response.json()
+			} catch {
+				// Fall through to the connector when the CDN cache route is unavailable.
+			}
+		}
+		storeDetails ||= await new StoreService(event.fetch).getStoreByIdOrDomain({ storeId: requestedStoreId, domain })
 		if (!storeDetails?.id) throw new Error('Hooks: Store not found.')
-		// ponytail: process-local cache; use shared edge storage only if multi-instance cold starts remain material.
+		// ponytail: process-local hot path; the public CDN route covers cold and multi-instance requests.
 		if (!cachedStore) storeDetailsCache = { key: cacheKey, expiresAt: Date.now() + STORE_CACHE_TTL_MS, value: storeDetails }
 		event.locals.storeDetails = storeDetails
 		if (storeIdFromCookie !== storeDetails.id) event.cookies.set('litekart_store_id', storeDetails.id, { path: '/' })
