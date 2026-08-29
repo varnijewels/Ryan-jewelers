@@ -7,22 +7,24 @@
 	import { ryansJewelsHome } from './home-content.js'
 
 	const { hero } = ryansJewelsHome
+	const desktopAvif = hero.image.replace(/\.webp$/i, '.avif')
+	const mobileAvif = hero.mobileImage.replace(/\.webp$/i, '.avif')
 </script>
 
 <svelte:head>
 	<link
 		rel="preload"
 		as="image"
-		type="image/webp"
-		href={hero.mobileImage}
+		type="image/avif"
+		href={mobileAvif}
 		media="(max-width: 639px)"
 		fetchpriority="high"
 	/>
 	<link
 		rel="preload"
 		as="image"
-		type="image/webp"
-		href={hero.image}
+		type="image/avif"
+		href={desktopAvif}
 		media="(min-width: 640px)"
 		fetchpriority="high"
 	/>
@@ -32,7 +34,9 @@
 	<a class="rj-hero-link" href={hero.href} aria-label={hero.imageAlt}>
 		<div class="rj-hero-media">
 			<picture class="rj-hero-picture">
+				<source media="(min-width: 640px)" type="image/avif" srcset={desktopAvif} />
 				<source media="(min-width: 640px)" srcset={hero.image} />
+				<source type="image/avif" srcset={mobileAvif} />
 				<img
 					class="rj-hero-img"
 					src={hero.mobileImage}
