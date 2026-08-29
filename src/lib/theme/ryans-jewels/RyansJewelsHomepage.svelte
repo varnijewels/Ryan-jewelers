@@ -129,6 +129,11 @@
 		background: #fff;
 	}
 
+	.rj-home > :global(:not(:first-child)) {
+		content-visibility: auto;
+		contain-intrinsic-block-size: auto 700px;
+	}
+
 	.rj-hero-wrap {
 		position: relative;
 		width: 100%;

@@ -447,8 +447,8 @@
 
 			<a class="rj-offers" href={nav.offers.href} onmouseenter={() => (openMega = null)}>
 				<span class="rj-offers-gift" aria-hidden="true">
-					<img class="rj-offers-gift-base" src={isLoggedIn ? '/ryans-jewels/icons/gift-box-3d-premium.png' : '/ryans-jewels/icons/gift-box-3d.png'} alt="" />
-					<img class="rj-offers-gift-top" src="/ryans-jewels/icons/gift-box-3d.png" alt="" />
+					<img class="rj-offers-gift-base" src={isLoggedIn ? '/ryans-jewels/icons/gift-box-3d-premium.webp' : '/ryans-jewels/icons/gift-box-3d.webp'} alt="" />
+					<img class="rj-offers-gift-top" src="/ryans-jewels/icons/gift-box-3d.webp" alt="" />
 				</span>
 				<span class="rj-offers-label">{nav.offers.label}</span>
 				<svg class="rj-i18" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
