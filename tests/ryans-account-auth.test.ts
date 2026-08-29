@@ -31,7 +31,8 @@ describe('Ryan account auth guard', () => {
 		const result = await loadRoot({
 			cookies: { get: (name: string) => (name === 'connect.sid' ? 'valid-session' : undefined) },
 			fetch,
-			locals: { storeDetails: { id: 'store-1' } }
+			locals: { storeDetails: { id: 'store-1' } },
+			request: { headers: new Headers() }
 		} as any)
 
 		expect(fetch).toHaveBeenCalledWith('/api/users/me', undefined)

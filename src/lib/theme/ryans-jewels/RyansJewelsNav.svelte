@@ -184,7 +184,7 @@
 			</a>
 
 			<MsSearchRenderer bind:search>
-				{#snippet content({ searchResults, showSearchResults, loading, searchPlugin, closeSearch, handleKeyDown, handleResultClick, showSearch })}
+				{#snippet content({ searchResults, showSearchResults, loading, searchPlugin, closeSearch, handleKeyDown, handleResultClick, toggleSearchResults })}
 					<div class="rj-search">
 						<input
 							class="rj-search-input"
@@ -194,7 +194,7 @@
 							aria-label={searchPlugin?.placeholder || nav.searchPlaceholder}
 							autocomplete="off"
 							enterkeyhint="search"
-							onfocus={showSearch}
+							onfocus={() => toggleSearchResults(true)}
 							onkeydown={handleKeyDown}
 						/>
 						<span class="rj-search-icon" aria-hidden="true">

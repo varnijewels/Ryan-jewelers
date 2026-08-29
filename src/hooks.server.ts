@@ -10,6 +10,8 @@ function isLocalOrIpAddress(url: string): boolean {
 }
 
 const noindexPrefixes = ['/auth', '/checkout', '/my', '/messages', '/profile', '/order-tracking', '/enquiry']
+const STORE_CACHE_TTL_MS = 5 * 60 * 1000
+let storeDetailsCache: { key: string; expiresAt: number; value: any } | null = null
 
 export const init = async () => {
 	if (env.PUBLIC_SHOPIFY_STORE_DOMAIN) {
@@ -46,21 +48,20 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const storeIdFromCookie = event.cookies.get('litekart_store_id')
 	if (storeId && storeIdFromCookie !== storeId) {
 		event.cookies.set('litekart_store_id', storeId, { path: '/' })
-	} else if (!storeIdFromCookie) {
+	}
+	if (!url.pathname.startsWith('/api')) {
 		const domain = env.PUBLIC_LITEKART_DOMAIN || url.hostname
-		if (!domain) {
-			throw new Error(`Unable to retrieve hostname from URL. ${url.hostname}`)
-		}
-		if (!url.pathname.startsWith('/api')) {
-			const storeService = new StoreService(event.fetch)
-			const storeDetails = await storeService.getStoreByIdOrDomain({ storeId, domain })
-			if (storeDetails?.id && storeIdFromCookie !== storeDetails?.id) {
-				event.cookies.set('litekart_store_id', storeDetails?.id, { path: '/' })
-				event.locals.storeDetails = storeDetails
-			} else {
-				throw new Error('Hooks: Store not found.')
-			}
-		}
+		const requestedStoreId = storeId || storeIdFromCookie
+		const cacheKey = requestedStoreId || domain
+		const cachedStore = storeDetailsCache?.key === cacheKey && storeDetailsCache.expiresAt > Date.now()
+			? storeDetailsCache.value
+			: null
+		const storeDetails = cachedStore || await new StoreService(event.fetch).getStoreByIdOrDomain({ storeId: requestedStoreId, domain })
+		if (!storeDetails?.id) throw new Error('Hooks: Store not found.')
+		// ponytail: process-local cache; use shared edge storage only if multi-instance cold starts remain material.
+		if (!cachedStore) storeDetailsCache = { key: cacheKey, expiresAt: Date.now() + STORE_CACHE_TTL_MS, value: storeDetails }
+		event.locals.storeDetails = storeDetails
+		if (storeIdFromCookie !== storeDetails.id) event.cookies.set('litekart_store_id', storeDetails.id, { path: '/' })
 	}
 
 	const response = await resolve(event, {

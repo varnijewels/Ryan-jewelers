@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { setCartState, setProductState, setUserState, setWishlistState } from '$lib/core/stores/index.js'
+	import { setCartState, setProductState, setWishlistState } from '$lib/core/stores/index.js'
 	import Nav from '$lib/components/nav/nav.svelte'
 	import Footer from '$lib/components/common/footer.svelte'
 	import { StorePlugins } from '$lib/core/components/index.js'
@@ -16,7 +16,6 @@
 
 	setCartState()
 	setProductState()
-	setUserState()
 	setWishlistState()
 
 	$effect(() => {
