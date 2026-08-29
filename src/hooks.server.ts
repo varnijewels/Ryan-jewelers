@@ -31,6 +31,8 @@ export const init = async () => {
 export const handle: Handle = async ({ event, resolve }) => {
 	const url = new URL(event.request.url)
 	const isLocalOrIP = isLocalOrIpAddress(url.hostname)
+	const isRyansHomepage =
+		url.pathname === '/' && (isLocalOrIP || url.hostname === 'ryan.varnijewels.com' || env.PUBLIC_STOREFRONT_THEME === 'ryans-jewels')
 
 	if (url.protocol === 'http:' && !isLocalOrIP) {
 		event.url.protocol = 'https:'
@@ -58,8 +60,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	const response = await resolve(event, {
-		filterSerializedResponseHeaders: (name) => name === 'content-type'
+		filterSerializedResponseHeaders: (name) => name === 'content-type',
+		// ponytail: preload route nodes only; restore chunk preloads if slow-network hydration becomes noticeable.
+		preload: ({ type, path }) => !isRyansHomepage || type !== 'js' || path.includes('/nodes/')
 	})
+	if (isRyansHomepage) {
+		response.headers.append(
+			'Link',
+			'</ryans-jewels/home/hero-mobile.webp>; rel=preload; as=image; media="(max-width: 639px)"; fetchpriority=high, </ryans-jewels/home/hero-desktop.webp>; rel=preload; as=image; media="(min-width: 640px)"; fetchpriority=high'
+		)
+	}
 	if (noindexPrefixes.some((prefix) => url.pathname === prefix || url.pathname.startsWith(`${prefix}/`))) {
 		response.headers.set('X-Robots-Tag', 'noindex, follow')
 	}
