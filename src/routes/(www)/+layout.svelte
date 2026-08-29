@@ -27,12 +27,14 @@
 		}
 	})
 
-	afterNavigate(async () => {
+	afterNavigate(async ({ type }) => {
 		if (data.theme?.name !== 'ryans-jewels') return
 		await tick()
-		pageContent.classList.remove('rj-page-enter')
-		void pageContent.offsetWidth
-		pageContent.classList.add('rj-page-enter')
+		if (type !== 'enter') {
+			pageContent.classList.remove('rj-page-enter')
+			void pageContent.offsetWidth
+			pageContent.classList.add('rj-page-enter')
+		}
 		for (const cleanup of revealCleanups) cleanup()
 		revealCleanups = Array.from(pageContent?.children || [])
 			.filter((node) => !node.classList.contains('rj-home') && !node.classList.contains('rj-products-layout'))
@@ -53,7 +55,7 @@
 
 <div class="flex min-h-screen flex-col justify-between">
 	<Nav storeData={data.store} />
-	<main bind:this={pageContent} class="inter-gap rj-page-enter flex min-h-screen flex-1 flex-col">
+	<main bind:this={pageContent} class="inter-gap flex min-h-screen flex-1 flex-col">
 		{#key page.url.pathname}{@render children()}{/key}
 	</main>
 	<Footer />
