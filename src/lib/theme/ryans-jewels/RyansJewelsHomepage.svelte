@@ -48,12 +48,14 @@
 	} = $props()
 
 	onMount(() => {
-		const cleanups = Array.from(homepage.children).map((node, index) => {
-			const element = node as HTMLElement
-			element.style.setProperty('--rj-reveal-delay', `${Math.min(index, 4) * 55}ms`)
-			const action = reveal(element)
-			return () => action.destroy?.()
-		})
+		const cleanups = Array.from(homepage.children)
+			.slice(1)
+			.map((node, index) => {
+				const element = node as HTMLElement
+				element.style.setProperty('--rj-reveal-delay', `${Math.min(index, 4) * 55}ms`)
+				const action = reveal(element)
+				return () => action.destroy?.()
+			})
 		return () => cleanups.forEach((cleanup) => cleanup())
 	})
 </script>
