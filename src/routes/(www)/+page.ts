@@ -9,7 +9,13 @@ export const load = async (event: any) => {
 				headers: { 'x-litekart-store': parent.store?.id || '' }
 			})
 			const catalog = response.ok ? await response.json() : {}
-			return { storefrontProducts: withoutDemoProducts(catalog.data || []) }
+			const products = withoutDemoProducts(catalog.data || [])
+			return {
+				storefrontProducts: products.map((product: any) => ({
+					...product,
+					attributes: (product.attributes || []).map(({ name, value }: any) => ({ name, value }))
+				}))
+			}
 		} catch {
 			return { storefrontProducts: [] }
 		}

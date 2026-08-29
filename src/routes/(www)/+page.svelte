@@ -54,7 +54,7 @@
 	const featuredProducts = $derived(activeTheme === 'ryans-jewels' ? storefrontProducts : homepageModule?.featuredProducts || [])
 	const trendingProducts = $derived(activeTheme === 'ryans-jewels' ? storefrontProducts : homepageModule?.trendingProducts || [])
 	const structuredProducts = $derived(activeTheme === 'ryans-jewels'
-		? storefrontProducts.map((product: any) => ({
+		? storefrontProducts.slice(0, 5).map((product: any) => ({
 			url: `${sveltePage.url.origin}${canonicalProductPath(product)}`,
 			name: product.title,
 			image: product.thumbnail ? [product.thumbnail] : [],
