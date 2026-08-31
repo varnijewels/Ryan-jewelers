@@ -3,6 +3,7 @@
 	import { Toaster } from '@misiki/kitcommerce-core'
 	import { getThemeFontsUrl } from '$lib/theme/index.js'
 	import { setUserState } from '$lib/core/stores/index.js'
+	import { UserService } from '$lib/core/services/index.js'
 	import { GoogleAnalytics } from '$lib/core/components/index.js'
 	import { navigating } from '$app/stores'
 	import { page } from '$app/state'
@@ -31,8 +32,18 @@
 	$effect(() => {
 		const user = data?.user ?? null
 		let active = true
-		userState.hasLoaded.catch(() => undefined).then(() => {
-			if (active && (!data?.isPublicHomepage || user)) userState.user = user
+		userState.hasLoaded.catch(() => undefined).then(async () => {
+			if (!active) return
+			if (data?.isPublicHomepage && !user) {
+				try {
+					const restoredUser = await new UserService(fetch).getMe()
+					if (active) userState.user = restoredUser
+				} catch {
+					if (active) userState.user = null
+				}
+				return
+			}
+			userState.user = user
 		})
 		return () => {
 			active = false

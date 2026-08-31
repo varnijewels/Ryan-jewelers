@@ -1,7 +1,15 @@
 const SUPPORTED_GATEWAYS = new Set(['STRIPE', 'CASHFREE', 'RAZORPAY', 'COD'])
 
 export function hasVerifiedCheckoutOrders(data: any) {
-	return Boolean(data?.orders?.data?.length)
+	const orders = data?.orders?.data
+	return Boolean(
+		orders?.length &&
+			orders.every((order: any) => {
+				const method = String(order?.paymentMethod || order?.paymentGateway || '').toUpperCase()
+				if (method === 'COD') return String(order?.status || '').toUpperCase() === 'PLACED'
+				return String(order?.paymentStatus || '').toUpperCase() === 'PAID'
+			})
+	)
 }
 
 export function isValidCheckoutCallback(url: URL) {

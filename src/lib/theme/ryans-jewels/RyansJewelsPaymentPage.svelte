@@ -42,16 +42,21 @@
 	)
 	const orderDate = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' }).format(new Date())
 	const providers = [
-		{ label: 'AffirmPay', className: 'affirm', keywords: ['AFFIRMPAY', 'AFFIRM'], images: [] },
 		{ label: 'Stripe', className: 'stripe', keywords: ['STRIPE'], images: [] },
 		{ label: 'PayPal', className: 'paypal', keywords: ['PAYPAL'], images: ['paypal-mark.png', 'paypal-wordmark.png'] }
 	]
-	const paymentMethods = $derived(paymentModule.listOfPaymentMethods || [])
+	// Keep Affirm unavailable until its sandbox success, cancel, and failure paths are certified.
+	const paymentMethods = $derived(
+		(paymentModule.listOfPaymentMethods || []).filter(
+			(method: any) => String(method?.code || '').toUpperCase().replace(/[^A-Z]/g, '') !== 'AFFIRMPAY'
+		)
+	)
 	const cardPaymentMethod = $derived.by(() => paymentMethods.find((method: any) => /STRIPE|RAZORPAY|CASHFREE|CARD/.test(`${method?.code || ''} ${method?.name || ''}`.toUpperCase())))
 	const otherPaymentMethods = $derived(paymentMethods.filter((method: any) => method?.code !== cardPaymentMethod?.code))
 
 	$effect(() => {
 		if (!couponCode && cartState.cart?.couponCode) couponCode = cartState.cart.couponCode
+		if (String(paymentModule.SELECTED_PG_CODE || '').toUpperCase().replace(/[^A-Z]/g, '') === 'AFFIRMPAY') paymentModule.SELECTED_PG_CODE = ''
 	})
 
 	function itemDescription(item: any) {

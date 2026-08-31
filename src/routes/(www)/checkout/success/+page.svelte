@@ -17,6 +17,11 @@
 	const firstOrder = $derived(orders[0])
 	const useremail = $derived(firstOrder?.userEmail || firstOrder?.shippingAddress?.email)
 	const orderNo = $derived(page.url.searchParams.get('order_no') || firstOrder?.orderNo)
+	const orderAmount = $derived(orders.reduce((sum: number, order: any) => sum + Number(order?.total || 0), 0))
+	const paymentMethod = $derived(firstOrder?.paymentMethod || firstOrder?.paymentGateway || 'Not available')
+	const paymentStatus = $derived(
+		String(paymentMethod).toUpperCase() === 'COD' ? firstOrder?.status : firstOrder?.paymentStatus
+	)
 
 	const estimatedDeliveryDateMachine = $derived.by(() => {
 		if (!firstOrder) return ''
@@ -85,12 +90,13 @@
 				</div>
 				<h1 class="mb-3 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">Thank you for your order</h1>
 				<p class="mx-auto max-w-lg text-lg text-gray-500 text-sm">We've received your order and we'll notify you as soon as it's on its way.</p>
+			</div>
 
-				<!--{#if orderNo}
-					<div class="mt-6 inline-flex items-center rounded-full border border-gray-100 bg-gray-50 px-4 py-1.5 text-sm font-medium text-gray-600">
-						Order #{orderNo}
-					</div>
-				{/if}-->
+			<div class="grid gap-px border-b border-gray-100 bg-gray-100 sm:grid-cols-2 lg:grid-cols-4">
+				<div class="bg-white p-4"><p class="text-xs text-gray-500">Order ID</p><p class="mt-1 font-semibold text-gray-900">{orderNo || 'Not available'}</p></div>
+				<div class="bg-white p-4"><p class="text-xs text-gray-500">Order amount</p><p class="mt-1 font-semibold text-gray-900">{formatPrice(orderAmount, page?.data?.store?.currency?.code)}</p></div>
+				<div class="bg-white p-4"><p class="text-xs text-gray-500">Payment method</p><p class="mt-1 font-semibold text-gray-900">{paymentMethod}</p></div>
+				<div class="bg-white p-4"><p class="text-xs text-gray-500">Payment status</p><p class="mt-1 font-semibold uppercase text-green-700">{paymentStatus || 'Not available'}</p></div>
 			</div>
 
 			<!-- Order Progress -->

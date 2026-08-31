@@ -53,7 +53,7 @@
 			})
 			if (!user) return
 			userState.user = user
-			await loginModule.cartState?.updateEmail({ email: loginModule.identifier })
+			void loginModule.cartState?.updateEmail({ email: loginModule.identifier }).catch(() => undefined)
 			loginModule.wishlistState.setState()
 			await finishLogin()
 		} catch (error: any) {

@@ -35,8 +35,11 @@ describe('checkout payment callback validation', () => {
 		)
 	})
 
-	it('shows success only when a verified order was loaded', () => {
-		expect(hasVerifiedCheckoutOrders({ orders: { data: [{ orderNo: 'o1' }] } })).toBe(true)
+	it('shows success only for paid online orders or placed COD orders', () => {
+		expect(hasVerifiedCheckoutOrders({ orders: { data: [{ orderNo: 'o1', paymentMethod: 'stripe', paymentStatus: 'paid' }] } })).toBe(true)
+		expect(hasVerifiedCheckoutOrders({ orders: { data: [{ orderNo: 'o2', paymentMethod: 'COD', status: 'placed' }] } })).toBe(true)
+		expect(hasVerifiedCheckoutOrders({ orders: { data: [{ orderNo: 'o3', paymentMethod: 'paypal', paymentStatus: 'pending' }] } })).toBe(false)
+		expect(hasVerifiedCheckoutOrders({ orders: { data: [{ orderNo: 'o4', paymentMethod: 'COD', status: 'pending' }] } })).toBe(false)
 		expect(hasVerifiedCheckoutOrders({ orders: { data: [] } })).toBe(false)
 		expect(hasVerifiedCheckoutOrders(undefined)).toBe(false)
 	})
