@@ -32,6 +32,7 @@
 	const cartState = getCartState()
 
 	const isLoggedIn = $derived(!!userState?.user?.role)
+	const isAuthPending = $derived(!isLoggedIn && !!userState?.loading)
 	const displayName = $derived(userState?.user?.firstName || userState?.user?.name || 'My Account')
 	const isMobileRequest = $derived((page.data as any)?.navigation?.isMobileRequest === true)
 	const serverMegaMenu = $derived((page.data as any)?.navigation?.megaMenu as any[] | undefined)
@@ -350,7 +351,7 @@
 					</ProfileDropdown>
 				{:else}
 					<DropdownMenu.Root>
-						<DropdownMenu.Trigger aria-label="Open account menu" class="rj-guest-trigger">
+						<DropdownMenu.Trigger aria-label={isAuthPending ? 'Checking account' : 'Open account menu'} aria-busy={isAuthPending} disabled={isAuthPending} class="rj-guest-trigger">
 							<span class="rj-account">
 							<span class="rj-account-icon" aria-hidden="true">
 								<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -363,11 +364,15 @@
 							<span class="rj-account-text rj-account-text--guest">
 								<span class="rj-account-greeting">{nav.account.greeting}</span>
 								<span class="rj-account-line">
-									<span class="rj-account-auth">
-										<span class="rj-account-link">{nav.account.signIn}</span><span class="rj-account-or">{nav.account.divider}</span><span
-											class="rj-account-link">{nav.account.register}</span
-										>
-									</span>
+									{#if isAuthPending}
+										<span class="rj-account-loading" aria-hidden="true"></span>
+									{:else}
+										<span class="rj-account-auth">
+											<span class="rj-account-link">{nav.account.signIn}</span><span class="rj-account-or">{nav.account.divider}</span><span
+												class="rj-account-link">{nav.account.register}</span
+											>
+										</span>
+									{/if}
 									<svg class="rj-i14" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
 										<path
 											d="M11.62 5.22083L7.81667 9.02417C7.3675 9.47333 6.6325 9.47333 6.18333 9.02417L2.38 5.22083"
@@ -958,6 +963,14 @@
 		display: flex;
 		align-items: center;
 		gap: 5px;
+	}
+
+	.rj-account-loading {
+		display: block;
+		width: 92px;
+		height: 10px;
+		border-radius: 999px;
+		background: #ece9e2;
 	}
 
 	.rj-account-auth {

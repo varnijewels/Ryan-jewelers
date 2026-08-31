@@ -28,6 +28,11 @@
 	}
 	let { children, data }: { children: Snippet; data: LayoutData } = $props()
 	const userState = setUserState()
+	function seedAuthState() {
+		if (data?.user) userState.user = data.user
+		if (data?.isPublicHomepage && !data?.user) userState.loading = true
+	}
+	seedAuthState()
 
 	$effect(() => {
 		const user = data?.user ?? null
@@ -35,11 +40,14 @@
 		userState.hasLoaded.catch(() => undefined).then(async () => {
 			if (!active) return
 			if (data?.isPublicHomepage && !user) {
+				userState.loading = true
 				try {
 					const restoredUser = await new UserService(fetch).getMe()
 					if (active) userState.user = restoredUser
 				} catch {
 					if (active) userState.user = null
+				} finally {
+					if (active) userState.loading = false
 				}
 				return
 			}
