@@ -40,7 +40,9 @@
 	})
 
 	const categoryName = $derived(
-		data.products?.categoryHierarchy?.at(-1)?.name || data.products?.category?.name || 'Wedding Rings'
+		page.url.searchParams.get('uiShape')
+			? `${page.url.searchParams.get('uiShape')} Shape`
+			: data.products?.categoryHierarchy?.at(-1)?.name || data.products?.category?.name || 'Wedding Rings'
 	)
 	const categories = $derived(filterState.categories || [])
 	const visibleCategories = $derived(showAllCategories ? categories : categories.slice(0, 6))
