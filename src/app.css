@@ -294,7 +294,7 @@
 	}
 
 	body:has([data-theme='ryans-jewels']) {
-		background-color: #a80d39;
+		background-color: #cca646;
 	}
 
 	[data-theme] {

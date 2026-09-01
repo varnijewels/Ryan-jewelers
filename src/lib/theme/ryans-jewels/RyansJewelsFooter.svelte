@@ -536,7 +536,7 @@
 	.rj-foot-legal {
 		width: 100%;
 		padding: 12px 61px;
-		background: #a80d39;
+		background: var(--rj-gold, #cca646);
 	}
 
 	.rj-foot-legal-inner {
