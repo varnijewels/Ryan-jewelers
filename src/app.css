@@ -293,6 +293,10 @@
 		-webkit-font-smoothing: antialiased;
 	}
 
+	body:has([data-theme='ryans-jewels']) {
+		background-color: #a80d39;
+	}
+
 	[data-theme] {
 		font-family: var(--font-body);
 	}
