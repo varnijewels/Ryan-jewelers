@@ -6,7 +6,7 @@
 	import { getDesktopFilterState } from '$lib/core/composables/index.js'
 	import ListingGrid from '$lib/components/product-catalogue/listing-grid.svelte'
 	import RjInstagram from './RjInstagram.svelte'
-	import { facetOptions } from './product-filters.js'
+	import { facetOptions, isRyanCategoryVisible } from './product-filters.js'
 
 	const sortOptions = [
 		['select', 'Select one'],
@@ -40,11 +40,11 @@
 	})
 
 	const categoryName = $derived(
-		page.url.searchParams.get('uiShape')
+		page.url.searchParams.get('catalog') || (page.url.searchParams.get('uiShape')
 			? `${page.url.searchParams.get('uiShape')} Shape`
-			: data.products?.categoryHierarchy?.at(-1)?.name || data.products?.category?.name || 'Wedding Rings'
+			: data.products?.categoryHierarchy?.at(-1)?.name || data.products?.category?.name || 'All Jewellery')
 	)
-	const categories = $derived(filterState.categories || [])
+	const categories = $derived((filterState.categories || []).filter(isRyanCategoryVisible))
 	const visibleCategories = $derived(showAllCategories ? categories : categories.slice(0, 6))
 	const statuses = ['In Stock', 'Out of stock', 'Best seller', 'Top Rated', 'Featured products']
 	const materials = $derived(facetOptions(filterState.allFilters, ['attributes.Metal_Type', 'attributes.Metal_Color', 'options.Material', 'options.Metal_Type', 'options.Metal_Color'], /gold|silver|platinum|metal/i))
@@ -154,7 +154,7 @@
 	<div class="rj-plp-width rj-category-inner">
 		<div class="rj-category-copy">
 			<h1 id="rj-listing-title">{categoryName}</h1>
-			<p>Home / Categories / Ring’s / {categoryName} - {data.products?.count || 265} Design</p>
+			<p>Home / Categories / {categoryName} - {data.products?.count ?? data.products?.data?.length ?? 0} Designs</p>
 		</div>
 		<div class="rj-category-model" aria-hidden="true">
 			<img src="/ryans-jewels/listing/category-model.png" alt="" />

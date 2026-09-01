@@ -56,8 +56,13 @@
 
 {#if !data.products?.data?.length}
 	<div class="intra-gap flex h-96 flex-col items-center justify-center">
-		<p class="text-md uppercase text-gray-500">No products found</p>
-		<a href="/products" class="text-sm font-bold uppercase tracking-widest text-primary underline underline-offset-4">Clear all filters</a>
+		{#if isRyan && page.url.searchParams.has('catalog')}
+			<p class="text-md uppercase text-gray-500">Coming Soon</p>
+			<p class="mt-2 text-center text-sm text-gray-500">New designs are being prepared for this category.</p>
+		{:else}
+			<p class="text-md uppercase text-gray-500">No products found</p>
+			<a href="/products" class="text-sm font-bold uppercase tracking-widest text-primary underline underline-offset-4">Clear all filters</a>
+		{/if}
 	</div>
 {:else}
 	<div class="intra-gap grid auto-rows-auto grid-cols-2 lg:grid-cols-3" class:rj-listing-grid={isRyan} class:rj-listing-list={isRyan && ryanLayout === 'list'}>

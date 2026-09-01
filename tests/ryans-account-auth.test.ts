@@ -31,13 +31,14 @@ describe('Ryan account auth guard', () => {
 		const result = await loadRoot({
 			cookies: { get: (name: string) => (name === 'connect.sid' ? 'valid-session' : undefined) },
 			fetch,
-			locals: { storeDetails: { id: 'store-1' } },
+			locals: { storeDetails: { id: 'store-1', countries: ['US'] } },
 			request: { headers: new Headers() },
 			url: new URL('https://shop.test/my')
 		} as any)
 
 		expect(fetch).toHaveBeenCalledWith('/api/users/me', undefined)
 		expect(result.user).toEqual(user)
+		expect(result.store.countries).toEqual(['US'])
 	})
 
 	it('keeps the cacheable homepage free of session-specific user data', async () => {
@@ -45,7 +46,7 @@ describe('Ryan account auth guard', () => {
 		const result = await loadRoot({
 			cookies: { get: (name: string) => (name === 'connect.sid' ? 'valid-session' : undefined) },
 			fetch,
-			locals: { storeDetails: { id: 'store-1' } },
+			locals: { storeDetails: { id: 'store-1', countries: ['US'] } },
 			request: { headers: new Headers() },
 			url: new URL('https://shop.test/')
 		} as any)
@@ -53,6 +54,7 @@ describe('Ryan account auth guard', () => {
 		expect(fetch).not.toHaveBeenCalled()
 		expect(result.user).toBeNull()
 		expect(result.isPublicHomepage).toBe(true)
+		expect(result.store).toMatchObject({ id: 'store-1', countries: [] })
 	})
 
 	it('rejects a stale session and keeps the requested account return URL', async () => {

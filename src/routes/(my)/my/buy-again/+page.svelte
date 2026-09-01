@@ -1,174 +1,83 @@
-<script>
-	import LazyImg from '$lib/core/components/image/lazy-img.svelte'
-	import Button from '$lib/components/ui/button/button.svelte'
-	import { getCartState } from '$lib/core/stores/index.js'
-	import { formatPrice } from '$lib/core/utils'
-	const cartState = getCartState()
-
-	let data = $state([])
-
+<script lang="ts">
 	import { onMount } from 'svelte'
-	import { Plus } from '@lucide/svelte'
 	import { page } from '$app/state'
+	import { Plus } from '@lucide/svelte'
+	import { toast } from 'svelte-sonner'
+	import Button from '$lib/components/ui/button/button.svelte'
+	import LazyImg from '$lib/core/components/image/lazy-img.svelte'
 	import { orderService } from '$lib/core/services/index.js'
+	import { getCartState } from '$lib/core/stores/index.js'
+	import { formatPrice } from '$lib/core/utils/index.js'
+	import { buyAgainItems, sameVariant } from '$lib/theme/ryans-jewels/commerce-flow.js'
+
+	const cartState = getCartState()!
+	let items = $state<any[]>([])
+	let loading = $state(true)
+	let error = $state('')
+	let adding = $state('')
+
+	const itemKey = (item: any) => `${item.productId}-${item.variantId}`
+	const itemInCart = (item: any) => cartState.cart?.lineItems?.some((line: any) => sameVariant(line, item))
 
 	onMount(async () => {
-		data = await orderService.buyAgain()
+		try {
+			const response: any = await orderService.buyAgain()
+			items = buyAgainItems(response)
+			await cartState.hasLoaded
+		} catch (cause: any) {
+			error = cause?.message || 'Unable to load previously ordered items.'
+		} finally {
+			loading = false
+		}
 	})
+
+	async function addToCart(item: any) {
+		const key = itemKey(item)
+		if (adding || !item?.productId || !item?.variantId) return
+		adding = key
+		const previousQty = Number(cartState.cart?.lineItems?.find((line: any) => itemKey(line) === key)?.qty || 0)
+		try {
+			await cartState.addOrUpdate({ productId: item.productId, variantId: item.variantId, qty: Number(item.qty || 1) })
+		} finally {
+			adding = ''
+		}
+		const nextQty = Number(cartState.cart?.lineItems?.find((line: any) => itemKey(line) === key)?.qty || 0)
+		if (nextQty <= previousQty) return toast.error('Unable to add this item to your bag')
+		toast.success('Item added to bag')
+	}
 </script>
 
-<svelte:head>
-	<title>Buy Again</title>
-</svelte:head>
-<section class="flex flex-col gap-10">
-	<h3 class="capitalize">Orders</h3>
-	<div class="grid grid-cols-1 divide-y lg:grid-cols-2 lg:divide-x lg:divide-y-0">
-		<div class="col-span-2 flex flex-col divide-y">
-			{#if data.length > 0}
-				{#each data as item}
-					<!-- Desktop View -->
-					<div class="hidden gap-2 p-5 md:flex lg:gap-5">
-						<a href={`/product/${item.slug}?variant_id=${item.variantId || ''}`} aria-label="Click to view the product details" class="shrink-0">
-							<LazyImg src={item.img} alt={item.title} width="56" class="h-auto w-14 object-contain object-top" />
-						</a>
+<svelte:head><title>Buy Again | Ryan Jewelers</title></svelte:head>
 
-						<div class="ml-4 flex w-full flex-1 flex-col gap-0.5 pl-4 pr-4">
-							<div class="flex justify-between gap-2 sm:gap-4">
-								<a
-									href={`/product/${item.slug}?variant_id=${item.variantId || ''}`}
-									aria-label="Click to view the product details"
-									class="flex-1 hover:underline"
-								>
-									<p>
-										{item.title}
-									</p>
-								</a>
-							</div>
-
-							{#if item.qty}
-								<span>
-									Qty :
-
-									<span class="font-semibold">
-										{item.qty}
-									</span>
-								</span>
-							{/if}
-
-							<div class="flex flex-wrap items-center gap-1">
-								Total :
-
-								<span class="text-primary-700 whitespace-nowrap font-bold">
-									{formatPrice(item.price, page?.data?.store?.currency?.code)}
-								</span>
-							</div>
-
-							<div
-								class="relative z-10 flex w-full items-center justify-center p-0 opacity-100 duration-300 laptop:absolute laptop:bottom-0 laptop:translate-y-full laptop:transform laptop:opacity-0 laptop:transition-all laptop:group-hover:translate-y-0 laptop:group-hover:opacity-100"
-							>
-								{#if cartState.cart?.lineItems?.some((item1) => item1.productId === item.productId)}
-									<div>Item already in cart</div>
-								{:else}
-									<Button
-										disabled={!!cartState.isUpdatingCart}
-										variant="outline"
-										class="w-full"
-										onclick={() => {
-											cartState.add({
-												qty: item.qty,
-												productId: item.productId,
-												variantId: item.variantId
-											})
-										}}
-									>
-										<Plus class="mr-2 max-h-4 max-w-4" />
-										Add to cart
-									</Button>
-								{/if}
-							</div>
-						</div>
-
-						<!-- Mobile View -->
-						<div class="block gap-2 p-5 md:hidden lg:gap-5">
-							<div class="flex items-center justify-between">
-								<div>
-									<a
-										href={`/product/${item.slug}?variant_id=${item.variantId || ''}`}
-										aria-label="Click to view the product details"
-										class="shrink-0"
-									>
-										<LazyImg src={item.img} alt={item.title} width="56" class="h-auto w-14 object-contain object-top" />
-									</a>
-								</div>
-								<div class="mt-2 flex w-full flex-1 flex-col items-center justify-between gap-0.5 pt-1 xl:pl-4 xl:pr-4">
-									<div class="flex justify-between gap-2 sm:gap-4">
-										<a
-											href={`/product/${item.slug}?variant_id=${item.variantId || ''}`}
-											aria-label="Click to view the product details"
-											class="flex-1 hover:underline"
-										>
-											<p>
-												{item.title}
-											</p>
-										</a>
-									</div>
-
-									{#if item.qty}
-										<span>
-											Qty :
-
-											<span class="font-semibold">
-												{item.qty}
-											</span>
-										</span>
-									{/if}
-
-									<div class="flex flex-wrap items-center gap-1">
-										Total :
-
-										<span class="text-primary-700 whitespace-nowrap font-bold">
-											{formatPrice(item.price, page?.data?.store?.currency?.code)}
-										</span>
-									</div>
-
-									<div
-										class="relative z-10 flex w-full items-center justify-center p-0 opacity-100 duration-300 laptop:absolute laptop:bottom-0 laptop:translate-y-full laptop:transform laptop:opacity-0 laptop:transition-all laptop:group-hover:translate-y-0 laptop:group-hover:opacity-100"
-									>
-										{#if cartState.cart?.lineItems?.some((item1) => item1.productId === item.productId)}
-											<div>Item already in cart</div>
-										{:else}
-											<Button
-												disabled={!!cartState.isUpdatingCart}
-												variant="outline"
-												class="w-full"
-												onclick={() => {
-													cartState.add({
-														qty: item.qty,
-														productId: item.productId,
-														variantId: item.variantId
-													})
-												}}
-											>
-												<Plus class="mr-2 max-h-4 max-w-4" />
-												Add to cart
-											</Button>
-										{/if}
-									</div>
-								</div>
-							</div>
-						</div>
+<section class="flex flex-col gap-6" aria-labelledby="buy-again-title">
+	<h1 id="buy-again-title" class="text-xl font-semibold">Buy Again</h1>
+	{#if loading}
+		<p role="status">Loading previously ordered items…</p>
+	{:else if error}
+		<p class="text-red-600" role="alert">{error}</p>
+	{:else if items.length}
+		<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+			{#each items as item (itemKey(item))}
+				<article class="flex gap-4 rounded-md border p-4">
+					<a href={`/products/${item.slug}?variant_id=${item.variantId || ''}`} aria-label={`View ${item.title || 'product'}`} class="shrink-0">
+						<LazyImg src={item.img || item.thumbnail} alt={item.title || 'Previously ordered jewelry'} width="88" class="h-24 w-20 object-contain" />
+					</a>
+					<div class="flex min-w-0 flex-1 flex-col gap-2">
+						<a href={`/products/${item.slug}?variant_id=${item.variantId || ''}`} class="font-medium hover:underline">{item.title}</a>
+						{#if item.qty}<span class="text-sm text-muted-foreground">Qty: {item.qty}</span>{/if}
+						<strong>{formatPrice(item.price, page.data?.store?.currency?.code)}</strong>
+						{#if itemInCart(item)}
+							<p class="mt-auto text-sm text-muted-foreground">Item already in cart</p>
+						{:else}
+							<Button class="mt-auto w-full" variant="outline" disabled={Boolean(adding)} onclick={() => addToCart(item)}>
+								<Plus class="mr-2 h-4 w-4" />{adding === itemKey(item) ? 'Adding…' : 'Add to cart'}
+							</Button>
+						{/if}
 					</div>
-				{/each}
-			{:else}
-				<p>No orders found</p>
-			{/if}
+				</article>
+			{/each}
 		</div>
-	</div>
+	{:else}
+		<p>No previously ordered items found.</p>
+	{/if}
 </section>
-
-<style>
-	.track {
-		border-radius: 25px;
-		font-size: 11px;
-	}
-</style>

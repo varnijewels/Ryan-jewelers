@@ -15,7 +15,7 @@
 		<div class="rj-type rj-type--diamond">
 			<h2><img src="/ryans-jewels/mega-menu/all-category.svg" alt="" /><span>Diamond Jewellery</span></h2>
 			<div class="rj-arrow-list">
-				<a href="/categories/rings"><span>Diamond Ring’s</span><img src="/ryans-jewels/mega-menu/all-arrow.svg" alt="" /></a>
+				<a href="/categories/rings"><span>Diamond Rings</span><img src="/ryans-jewels/mega-menu/all-arrow.svg" alt="" /></a>
 				<a href="/categories/bracelets"><span>Diamond Bracelet</span><img src="/ryans-jewels/mega-menu/all-arrow.svg" alt="" /></a>
 			</div>
 		</div>
@@ -27,10 +27,6 @@
 			</div>
 		</div>
 
-		<div class="rj-type rj-type--kids">
-			<h2><img src="/ryans-jewels/mega-menu/all-category.svg" alt="" /><span>Kid’s Jewellery</span></h2>
-			<a class="rj-single-link" href="/categories/kids-jewellery">Round Diamond</a>
-		</div>
 	</section>
 
 	<section class="rj-all-metals" aria-labelledby="rj-all-metals-title">
@@ -59,7 +55,7 @@
 			<h2><img src="/ryans-jewels/mega-menu/all-categories.png" alt="" /><span>Female Jewellery</span></h2>
 			<div class="rj-arrow-list">
 				{#each female as item}
-					<a href="/products?category={item.toLowerCase().replace(' ', '-')}"><span>{item}</span><img src="/ryans-jewels/mega-menu/all-arrow.svg" alt="" /></a>
+					<a href="/categories/{item.toLowerCase().replaceAll(' ', '-')}"><span>{item}</span><img src="/ryans-jewels/mega-menu/all-arrow.svg" alt="" /></a>
 				{/each}
 			</div>
 		</div>
@@ -67,7 +63,7 @@
 		<div class="rj-audience rj-audience--male">
 			<h2><img src="/ryans-jewels/mega-menu/all-categories.png" alt="" /><span>Male Jewellery</span></h2>
 			<div class="rj-arrow-list">
-				<a href="/categories/rings"><span>Wedding Rings</span><img src="/ryans-jewels/mega-menu/all-arrow.svg" alt="" /></a>
+				<a href="/categories/mens-rings"><span>Men’s Rings</span><img src="/ryans-jewels/mega-menu/all-arrow.svg" alt="" /></a>
 			</div>
 		</div>
 	</section>
@@ -137,7 +133,6 @@
 	.rj-audience { position: absolute; left: 0; }
 	.rj-type--diamond { top: 22px; width: 182px; }
 	.rj-type--silver { top: 158px; width: 182px; }
-	.rj-type--kids { top: 288px; width: 154px; }
 	.rj-audience--female { top: 22px; width: 177px; }
 	.rj-audience--male { top: 246px; width: 177px; }
 

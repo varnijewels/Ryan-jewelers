@@ -398,9 +398,10 @@
 
 	async function processCheckout() {
 		error = ''
+		const serverUser = (page.data as any)?.user
 		const gate = checkoutGate({
 			hasAddress: Boolean(cartState.cart?.shippingAddress),
-			userId: addressModule.userState?.user?.userId,
+			userId: addressModule.userState?.user?.userId || addressModule.userState?.user?.id || serverUser?.userId || serverUser?.id,
 			email,
 			password,
 			guestCheckout: guestCheckoutEnabled
@@ -424,7 +425,7 @@
 			}
 		}
 
-		const currentUser = addressModule.userState?.user
+		const currentUser = addressModule.userState?.user?.email ? addressModule.userState.user : serverUser
 		addressModule.email = email.trim() || currentUser?.email || ''
 		addressModule.phone = cartState.cart?.phone || currentUser?.phone || ''
 		await cartState.updateEmail({ email: addressModule.email, phone: addressModule.phone })
@@ -599,17 +600,17 @@
 								</div>
 							</div>
 							{#if showSavedAddressList}
-								<button class="rj-shipping-process" type="button" disabled={processing || addressModule.loadingForCheckout || addressModule.loadingForSaveToCart} onclick={processSavedAddress}>{processing ? 'PROCESSING…' : 'PROCESS TO CHECKOUT'}</button>
+								<button class="rj-shipping-process" type="button" disabled={processing || addressModule.loadingForCheckout || addressModule.loadingForSaveToCart} onclick={processSavedAddress}>{processing ? 'PROCESSING…' : 'PROCEED TO CHECKOUT'}</button>
 							{:else}
-								<button class="rj-shipping-process" type="submit" form="rj-shipping-address-form" disabled={processing || addressModule.loadingForCheckout || addressModule.loadingForSaveToCart}>{processing ? 'PROCESSING…' : 'PROCESS TO CHECKOUT'}</button>
+								<button class="rj-shipping-process" type="submit" form="rj-shipping-address-form" disabled={processing || addressModule.loadingForCheckout || addressModule.loadingForSaveToCart}>{processing ? 'PROCESSING…' : 'PROCEED TO CHECKOUT'}</button>
 							{/if}
 						</aside>
 
 						<div class="rj-order-assurance">
 							<div class="rj-assurance-row">
-								<div><img src="/ryans-jewels/checkout/shipping/free-shipping.svg" alt="" /><span><b>Free Shipping</b><small>Free Shipping All order</small></span></div>
-								<div><img src="/ryans-jewels/checkout/shipping/support.svg" alt="" /><span><b>24/7 Support</b><small>Free Shipping All order</small></span></div>
-								<div><img src="/ryans-jewels/checkout/shipping/security.svg" alt="" /><span><b>Payment Security</b><small>Free Shipping All order</small></span></div>
+								<div><img src="/ryans-jewels/checkout/shipping/free-shipping.svg" alt="" /><span><b>Free Shipping</b><small>Free delivery on eligible orders</small></span></div>
+								<div><img src="/ryans-jewels/checkout/shipping/support.svg" alt="" /><span><b>24/7 Support</b><small>Help whenever you need it</small></span></div>
+								<div><img src="/ryans-jewels/checkout/shipping/security.svg" alt="" /><span><b>Payment Security</b><small>Secure and encrypted checkout</small></span></div>
 							</div>
 							<div class="rj-payment-brands">
 								<div><img src="/ryans-jewels/checkout/shipping/mastercard.png" alt="Mastercard" /><img src="/ryans-jewels/checkout/shipping/paypal.png" alt="PayPal" /><img src="/ryans-jewels/checkout/shipping/visa.png" alt="Visa" /><img src="/ryans-jewels/checkout/shipping/amex.png" alt="American Express" /><img src="/ryans-jewels/checkout/shipping/apple-pay.png" alt="Apple Pay" /><img src="/ryans-jewels/checkout/shipping/discover.png" alt="Discover" /></div>
@@ -669,7 +670,7 @@
 					<div class="rj-discount">
 						<div class="rj-discount-copy">
 							<span class="rj-discount-icon"><img src="/ryans-jewels/checkout/coupon-polygon.svg" alt="" /><img src="/ryans-jewels/checkout/coupon-wallet.svg" alt="" /></span>
-							<span><b>Discount Code</b><small>Save 20% withe code</small></span>
+						<span><b>Discount Code</b><small>Save with an eligible coupon code</small></span>
 						</div>
 						<button type="button" onclick={addCoupon}><img src="/ryans-jewels/checkout/coupon-ticket.svg" alt="" />Add Code</button>
 					</div>
@@ -715,7 +716,7 @@
 					</div>
 
 					{#if error}<p class="rj-checkout-error" role="alert">{error}</p>{/if}
-					<button class="rj-process" type="button" disabled={processing || addressModule.loadingForCheckout || cartState.isUpdatingCart} onclick={processCheckout}>{processing ? 'PROCESSING…' : 'PROCESS TO CHECKOUT'}</button>
+					<button class="rj-process" type="button" disabled={processing || addressModule.loadingForCheckout || cartState.isUpdatingCart} onclick={processCheckout}>{processing ? 'PROCESSING…' : 'PROCEED TO CHECKOUT'}</button>
 				</aside>
 			</div>
 			{/if}
@@ -763,6 +764,7 @@
 <style>
 	:global(.theme-ryans-jewels main.inter-gap:has(> .rj-checkout-overview)) { min-height: auto; }
 	.rj-checkout-overview { min-height: 708px; background: #fff; color: #202020; font-family: 'Lato', sans-serif; }
+	.rj-checkout-overview :is(button, a, input, select):focus-visible { outline: 2px solid #8b670f; outline-offset: 3px; }
 	.rj-checkout-overview :is(input, select):autofill,
 	.rj-checkout-overview :is(input, select):-webkit-autofill,
 	.rj-checkout-overview :is(input, select):-webkit-autofill:hover,
@@ -1043,7 +1045,10 @@
 		.rj-checkout-copy strong { font-size: 13px; }
 		.rj-checkout-copy p { font-size: 11px; line-height: 16px; }
 		.rj-checkout-links { gap: 9px; }
-		.rj-checkout-links button { font-size: 0; }
+		.rj-checkout-quantity { min-height: 44px; gap: 5px; padding: 0 5px; }
+		.rj-checkout-quantity button { width: 44px; height: 44px; }
+		.rj-checkout-links button { min-height: 44px; font-size: 0; }
+		.rj-login-fields button, .rj-address-types button, .rj-saved-address-group > header button, .rj-saved-address-card > footer button, .rj-shipping-coupon button { min-width: 44px; min-height: 44px; justify-content: center; }
 		.rj-checkout-links button::after { font-size: 11px; }
 		.rj-checkout-links button:first-child::after { content: 'Wishlist'; }
 		.rj-checkout-links .remove::after { content: 'Remove'; }

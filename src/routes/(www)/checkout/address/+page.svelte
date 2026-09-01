@@ -17,8 +17,6 @@
 	import { appendOneTimeCartId } from '$lib/core/utils/index.js'
 	import CheckoutButton from '$lib/components/buttons/checkout-button.svelte'
 	import RyansJewelsCheckoutOverview from '$lib/theme/ryans-jewels/RyansJewelsCheckoutOverview.svelte'
-	import { isCustomerSignedIn } from '$lib/theme/ryans-jewels/auth-gate.logic.js'
-	import { onMount } from 'svelte'
 
 	const addressModule = new AddressModule()
 	const cartState = addressModule.cartState
@@ -27,15 +25,6 @@
 	const isEmailOk = $derived(addressModule.isEmailOk)
 	const isPhoneOk = $derived(addressModule.isPhoneOk)
 	const isRyansJewels = $derived(page.data?.theme?.name === 'ryans-jewels')
-
-	onMount(async () => {
-		if (!isRyansJewels) return
-		await userState.hasLoaded.catch(() => undefined)
-		if (isCustomerSignedIn(userState.user)) return
-		const returnTo = page.url.pathname + page.url.search
-		sessionStorage.setItem('rj-auth-return-to', returnTo)
-		showAuthModal('login', { redirect: returnTo })
-	})
 </script>
 
 <svelte:head>

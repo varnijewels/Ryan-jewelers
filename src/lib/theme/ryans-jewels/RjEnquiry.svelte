@@ -19,7 +19,6 @@
 	import { goto } from '$app/navigation'
 	import { toast } from 'svelte-sonner'
 	import { enquiryService } from '$lib/core/services'
-	import RjDiamondCluster from './RjDiamondCluster.svelte'
 	import { enquiry } from './home-content.js'
 
 	let name = $state('')
@@ -79,9 +78,6 @@
 		<div class="rj-enq-head">
 			<span class="rj-enq-mark" aria-hidden="true">
 				<img src={enquiry.logo} alt="" />
-			</span>
-			<span class="rj-enq-cluster">
-				<RjDiamondCluster color="var(--rj-gold, #cca646)" width={43.5} />
 			</span>
 			<div class="rj-enq-head-text">
 				<h2 class="rj-enq-title" id="rj-enq-heading">{enquiry.title}</h2>
@@ -229,10 +225,6 @@
 		max-width: none;
 	}
 
-	.rj-enq-cluster {
-		display: none;
-	}
-
 	.rj-enq-head-text {
 		display: flex;
 		flex-direction: column;
@@ -254,7 +246,7 @@
 		font-family: 'Sarala', var(--font-body, sans-serif);
 		font-size: 16px;
 		line-height: 27px;
-		color: var(--rj-gold, #cca646);
+		color: #404040;
 	}
 
 	/* ---- form ----------------------------------------------------------- */
@@ -477,13 +469,9 @@
 			margin-bottom: 25px;
 		}
 
-		/* the gold cluster replaces the logo mark below 1024 (63:40745) */
 		.rj-enq-mark {
-			display: none;
-		}
-
-		.rj-enq-cluster {
-			display: block;
+			width: 43.5px;
+			height: 55.35px;
 		}
 
 		.rj-enq-title {

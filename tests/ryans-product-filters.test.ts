@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { applyClientFilters, facetOptions, filterProductsByCategory, productRating, realCatalogUrl, withoutDemoProducts } from '../src/lib/theme/ryans-jewels/product-filters.js'
+import {
+	applyClientFilters,
+	facetOptions,
+	filterProductsByCategory,
+	isRyanCategoryVisible,
+	productRating,
+	realCatalogUrl,
+	withoutDemoProducts
+} from '../src/lib/theme/ryans-jewels/product-filters.js'
 import { diamondShapes } from '../src/lib/theme/ryans-jewels/home-content.js'
 
 const products = [
@@ -45,7 +53,19 @@ describe('Ryan product filters', () => {
 			{ sku: 'OTHER-2', variants: [{ img: 'https://media.jewelwesell.com/dummy/grid/ring.webp' }] }
 		]
 		expect(withoutDemoProducts(productsWithDemo)).toEqual([real])
-		expect(realCatalogUrl(new URL('https://shop.test/products?uiShape=Round')).searchParams.get('tags')).toBe('JewelWeSell')
+		const url = realCatalogUrl(new URL('https://shop.test/products?uiShape=Round&catalog=Round%20Rings'))
+		expect(url.searchParams.get('tags')).toBe('JewelWeSell')
+		expect(url.searchParams.has('catalog')).toBe(false)
+	})
+
+	it('removes kids and saree without hiding valid jewelry categories', () => {
+		expect(['Kids Jewellery', 'kid-jewellery', 'Sarees', 'saree'].map((name) => isRyanCategoryVisible({ name }))).toEqual([
+			false,
+			false,
+			false,
+			false
+		])
+		expect(['Rings', 'Men’s Rings', 'Earrings'].every((name) => isRyanCategoryVisible({ name }))).toBe(true)
 	})
 
 	it('filters the homepage row by jewellery category without matching earring as ring', () => {

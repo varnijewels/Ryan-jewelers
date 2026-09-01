@@ -2,7 +2,7 @@
 	import { page } from '$app/state'
 	import productNonVeg from '$lib/assets/product/non-veg.png'
 	import productVeg from '$lib/assets/product/veg.png'
-	import { date, formatPrice } from '$lib/core/utils'
+	import { date, formatPrice } from '$lib/core/utils/index.js'
 	import LazyImg from '$lib/core/components/image/lazy-img.svelte'
 	import Button from '$lib/components/ui/button/button.svelte'
 	import OrderListSkeleton from '../../(my)/my/orders/_OrderListSkeleton.svelte'
@@ -10,6 +10,7 @@
 	import StatusCell from '$lib/components/common/status-cell.svelte'
 	import { OrderTrackingModule } from '$lib/core/composables/index.js'
 	import { CheckCircle } from '@lucide/svelte'
+	import { productReviewHref } from '$lib/theme/ryans-jewels/commerce-flow.js'
 
 	const orderTrackingModule = new OrderTrackingModule()
 </script>
@@ -37,9 +38,9 @@
 				<!-- Order detail  -->
 				<div class="flex flex-col lg:grid lg:grid-cols-2 lg:divide-x">
 					<div class="order-1 flex flex-col divide-y lg:order-none">
-						{#if orderTrackingModule.order?.lineItems}
+						{#if (orderTrackingModule.order as any)?.lineItems}
 							<div class="divide-y divide-dashed text-xs text-zinc-500">
-								{#each orderTrackingModule.order?.lineItems as item}
+								{#each (orderTrackingModule.order as any)?.lineItems as item}
 									{#if item}
 										<div class="flex gap-2 p-5 lg:gap-5">
 											<a href={`/products/${item.slug}`} aria-label="Click to view the product details" class="shrink-0">
@@ -180,7 +181,7 @@
 												{#if item?.status === 'delivered'}
 													<div class="mt-2 xl:mt-0 xl:w-1/3">
 														<a
-															href="/my/reviews/create?pid={item?.pid}&oid={item?.orderItemId}&ref=/product/{item?.slug}"
+															href={productReviewHref(item)}
 															aria-label="Click to visit rate & review product"
 															class="max-w-max whitespace-nowrap font-semibold text-indigo-500 hover:underline focus:outline-none"
 														>
@@ -334,8 +335,8 @@
 			</div>
 
 			<!-- Order Timeline -->
-			{#if orderTrackingModule.order.tracking?.length}
-				<OrderTimeline timeline={orderTrackingModule.order.tracking} />
+			{#if (orderTrackingModule.order as any).tracking?.length}
+				<OrderTimeline timeline={(orderTrackingModule.order as any).tracking} />
 			{/if}
 		</section>
 	{:else}

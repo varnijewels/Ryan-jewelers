@@ -1,6 +1,7 @@
 import { env } from '$env/dynamic/public'
+import { ryansBlogPosts } from '$lib/theme/ryans-jewels/blog-content.js'
 import { canonicalProductPaths } from '$lib/theme/ryans-jewels/seo.js'
-import type { RequestHandler } from './$types'
+import type { RequestHandler } from './$types.js'
 
 export const GET: RequestHandler = async ({ fetch, url }) => {
 	const paths = new Set([
@@ -15,7 +16,8 @@ export const GET: RequestHandler = async ({ fetch, url }) => {
 		'/shipping-policy',
 		'/refund-policy',
 		'/privacy-policy',
-		'/terms-and-conditions'
+		'/terms-and-conditions',
+		...ryansBlogPosts.map((post) => `/blog/${post.slug}`)
 	])
 	try {
 		const headers = { 'x-litekart-store': env.PUBLIC_LITEKART_STORE_ID }

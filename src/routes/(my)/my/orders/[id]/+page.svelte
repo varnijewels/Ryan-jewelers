@@ -22,8 +22,9 @@
 		ReceiptText
 	} from '@lucide/svelte'
 	import { page } from '$app/state'
-	import { date, formatPrice } from '$lib/core/utils'
+	import { date, formatPrice } from '$lib/core/utils/index.js'
 	import { MyOrdersIdRenderer } from '$lib/core/composables/index.js'
+	import { productReviewHref } from '$lib/theme/ryans-jewels/commerce-flow.js'
 
 	let { class: klass = '', data, ...rest } = $props()
 </script>
@@ -90,7 +91,7 @@
 											<span class="font-bold uppercase tracking-tight">
 												{order?.shippingRate?.estimatedMaxDays
 													? date(order.createdAt + order?.shippingRate?.estimatedMaxDays * 86400000)
-													: date(new Date(Date.now() + 7 * 86400000).getTime())}
+																: date(new Date(Date.now() + 7 * 86400000).toISOString())}
 											</span>
 										</div>
 									</div>
@@ -164,7 +165,7 @@
 																<Button
 																	variant="ghost"
 																	size="sm"
-																	href="/my/reviews/create?pid={item?.pid}&oid={item?.orderItemId}&ref=/product/{item?.slug}"
+																	href={productReviewHref(item)}
 																	class="h-8 gap-2 text-xs font-bold"
 																>
 																	Rate & Review

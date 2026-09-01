@@ -53,7 +53,7 @@
 							onclick={() => toggle(item.id)}
 						>
 							<span class="rj-faq-question">{item.question}</span>
-							<span class="rj-faq-toggle" aria-hidden="true"></span>
+							<img class="rj-faq-toggle" src="/ryans-jewels/home/faq-add.svg" alt="" aria-hidden="true" />
 						</button>
 					</h3>
 					<div class="rj-faq-panel" id="rj-faq-panel-{item.id}" hidden={open !== item.id}>
@@ -215,29 +215,11 @@
 	/* 1:6448 — the 40px vuesax "add" glyph, drawn as two rules so it can
 	   rotate into a close icon when the row opens. */
 	.rj-faq-toggle {
-		position: relative;
 		display: block;
 		width: 40px;
 		height: 40px;
 		flex-shrink: 0;
 		transition: transform 0.25s var(--rj-ease, ease);
-	}
-
-	.rj-faq-toggle::before,
-	.rj-faq-toggle::after {
-		content: '';
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		width: 30px;
-		height: 2.5px;
-		border-radius: 1.25px;
-		background: #505050;
-		transform: translate(-50%, -50%);
-	}
-
-	.rj-faq-toggle::after {
-		transform: translate(-50%, -50%) rotate(90deg);
 	}
 
 	.rj-faq-item.is-open .rj-faq-toggle {
@@ -457,8 +439,21 @@
 			margin: 0;
 		}
 
+		.rj-faq-trigger {
+			gap: 0;
+			height: auto;
+			min-height: 56px;
+			padding: 13px 20px;
+		}
+
 		.rj-faq-question {
 			font-size: 16px;
+			line-height: 21px;
+		}
+
+		.rj-faq-toggle {
+			width: 26px;
+			height: 26px;
 		}
 	}
 </style>

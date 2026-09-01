@@ -203,11 +203,11 @@ export interface MarqueeShape {
 
 export const marqueeShapes: MarqueeShape[] = [
 	{ key: 'emerald', label: 'Emerald Jewellery', hd: 40, hm: 26.667 },
-	{ key: 'oval', label: 'Ovel Jewellery', hd: 40.069, hm: 27.634 },
+	{ key: 'oval', label: 'Oval Jewellery', hd: 40.069, hm: 27.634 },
 	{ key: 'radiant', label: 'Radiant Jewellery', hd: 40, hm: 26.856 },
 	{ key: 'pear', label: 'Pear Jewellery', hd: 40, hm: 33.019, rot: 180 },
 	{ key: 'cushion', label: 'Cushion Jewellery', hd: 36.94, hm: 26.102 },
-	{ key: 'princess', label: 'Princes Jewellery', hd: 34.49, hm: 25.49 },
+	{ key: 'princess', label: 'Princess Jewellery', hd: 34.49, hm: 25.49 },
 	{ key: 'asscher', label: 'Asscher Jewellery', hd: 35.818, hm: 26.818, rot: -90 },
 	{ key: 'heart', label: 'Heart Jewellery', hd: 33.203, hm: 23.335 }
 ]

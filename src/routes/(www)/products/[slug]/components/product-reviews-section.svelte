@@ -4,7 +4,7 @@
 	import { date } from '$lib/core/utils/index.js'
 	import * as Tabs from '$lib/components/ui/tabs/index.js'
 	import { page } from '$app/state'
-	import { invalidateAll } from '$app/navigation'
+	import { goto, invalidateAll } from '$app/navigation'
 	import { useProductState } from '$lib/core/composables/index.js'
 	import { productService } from '$lib/core/services/index.js'
 	import Button from '$lib/components/ui/button/button.svelte'
@@ -34,6 +34,12 @@
 	async function submitReview() {
 		const review = productState.reviewMessage?.trim()
 		if (reviewSubmitting || productState.select === null || !review || !page.data?.product?.id || !productState.selectedVariant?.id) return
+		if (!page.data?.user?.id) {
+			const returnTo = `${page.url.pathname}${page.url.search}${page.url.hash}`
+			sessionStorage.setItem('rj-auth-return-to', returnTo)
+			await goto(`/auth/login?redirect=${encodeURIComponent(returnTo)}`)
+			return
+		}
 		reviewSubmitting = true
 		try {
 			await productService.addReview({
@@ -190,7 +196,7 @@
 										</div>
 										<div class="flex w-fit items-center gap-0.5 rounded-full bg-muted/20 px-2.5 py-1 ring-1 ring-border sm:px-3 sm:py-1.5">
 											{#each { length: 5 } as _, i}
-												<StarIcon class="h-3 w-3 {i <= rating.rating ? 'fill-primary text-primary' : 'text-muted-foreground'} sm:h-3.5 sm:w-3.5" />
+												<StarIcon class="h-3 w-3 {i < rating.rating ? 'fill-primary text-primary' : 'text-muted-foreground'} sm:h-3.5 sm:w-3.5" />
 											{/each}
 										</div>
 									</div>
@@ -255,7 +261,7 @@
 										</div>
 										<div class="flex w-fit items-center gap-0.5 rounded-full bg-muted/20 px-2.5 py-1 ring-1 ring-border sm:px-3 sm:py-1.5">
 											{#each { length: 5 } as _, i}
-												<StarIcon class="h-3 w-3 {i <= rating.rating ? 'fill-primary text-primary' : 'text-muted-foreground'} sm:h-3.5 sm:w-3.5" />
+												<StarIcon class="h-3 w-3 {i < rating.rating ? 'fill-primary text-primary' : 'text-muted-foreground'} sm:h-3.5 sm:w-3.5" />
 											{/each}
 										</div>
 									</div>

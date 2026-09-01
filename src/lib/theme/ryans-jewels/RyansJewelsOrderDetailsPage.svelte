@@ -5,6 +5,7 @@
 	import { getCartState } from '$lib/core/stores/index.js'
 	import { formatPrice } from '$lib/core/utils/index.js'
 	import { toast } from 'svelte-sonner'
+	import { productReviewHref } from './commerce-flow.js'
 
 	const cartState = getCartState()
 	const hasPublicTracking = Boolean(page.url.searchParams.get('otp') && page.url.searchParams.get('email'))
@@ -129,6 +130,7 @@
 					<div><span>Order Id:</span><strong>{order?.orderNo || order?.parentOrderNo || '—'}</strong></div>
 					<nav>
 						<button type="button" disabled={buyingAgain} onclick={() => buyAgain(item)}><img src="/ryans-jewels/account/order-buy-again.svg" alt="" />{buyingAgain ? 'Adding…' : 'Buy Again'}</button><i></i>
+						{#if String(order?.status || '').toLowerCase() === 'delivered' && item?.slug}<a href={productReviewHref(item)}><img src="/ryans-jewels/product/review-brush.svg" alt="" />Rate &amp; Review</a><i></i>{/if}
 						{#if order?.invoiceLink || order?.invoiceUrl}<a href={order.invoiceLink || order.invoiceUrl} target="_blank"><img src="/ryans-jewels/account/track-invoice.svg" alt="" />Invoice PDF</a>{:else}<span><img src="/ryans-jewels/account/track-invoice.svg" alt="" />Invoice PDF</span>{/if}<i></i>
 						<em class={String(order?.status || '').toLowerCase()}><b></b>{titleCase(order?.status || 'Pending')}</em>
 					</nav>

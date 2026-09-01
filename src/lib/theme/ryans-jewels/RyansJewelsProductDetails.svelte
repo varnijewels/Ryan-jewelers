@@ -13,6 +13,7 @@
 	import RjProductCard from './RjProductCard.svelte'
 	import { productRating, withoutDemoProducts } from './product-filters.js'
 	import RjInstagram from './RjInstagram.svelte'
+	import { instagramStrip } from './footer-content.js'
 	import RjWideBanner from './RjWideBanner.svelte'
 	import { adjacentProductImage, customizationOptions, diamondImageForShape, discountPercent, groupedProductForAttribute, groupedProductForSelections, groupedValuesForAttribute, metalColorImage, metalColorTone, productAttributeValue, productDetailParagraphs, productImages, toggleStoredId, variantForOption, variantForSelections } from './product-details.logic.js'
 
@@ -48,19 +49,29 @@
 	let activeTab = $state<'details' | 'reviews'>('details')
 	let visibleReviewCount = $state(2)
 	let customizationRequest = 0
+	let reviewLinkHandled = false
 
 	$effect(() => {
 		const slug = data?.product?.slug || ''
 		if (slug === pageProductSlug) return
 		pageProductSlug = slug
 		selectedProduct = null
+		reviewLinkHandled = false
 	})
 
 	$effect(() => {
 		if (!selectedVariant || !variants.some((variant: any) => variant.id === selectedVariant.id)) {
-			selectedVariant = variants.find((variant: any) => variant.stock > 0) || variants[0] || product
+			const requestedVariant = variants.find((variant: any) => variant.id === page.url.searchParams.get('variant_id'))
+			selectedVariant = requestedVariant || variants.find((variant: any) => variant.stock > 0) || variants[0] || product
 		}
 		productState.selectedVariant = selectedVariant || {}
+	})
+
+	$effect(() => {
+		if (!product?.id || reviewLinkHandled || page.url.searchParams.get('review') !== '1') return
+		reviewLinkHandled = true
+		activeTab = 'reviews'
+		productState.showReviewForm = true
 	})
 
 	const images = $derived(productImages(product, selectedVariant))
@@ -140,7 +151,7 @@
 	const wishlistKey = $derived(`${product?.id}-${selectedVariant?.id || variants[0]?.id || ''}`)
 	const wishlisted = $derived(Boolean(productState.wishlistState?.isWishlisted?.[wishlistKey]))
 	const dazzlingProducts = $derived(relatedProducts.slice(4, 8))
-	const instagramHref = $derived(data?.store?.plugins?.socialSharingButtons?.instagram || 'https://www.instagram.com/')
+	const instagramHref = $derived(data?.store?.plugins?.socialSharingButtons?.instagram || instagramStrip.href)
 
 	function selectedValue(option: any) {
 		if (!option) return ''

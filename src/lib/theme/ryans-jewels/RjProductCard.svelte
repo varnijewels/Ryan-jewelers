@@ -32,6 +32,8 @@
 
 	const currencyCode = $derived(page?.data?.store?.currency?.code || '')
 	let selectedMetal = $state('')
+	let loadedMetalProducts = $state<Record<string, any>>({})
+	let productDetailsPromise: Promise<any> | undefined
 
 	const title = $derived(product?.title || product?.name || '')
 	const metalChoices = $derived(metalVariantChoices(product))
@@ -41,14 +43,39 @@
 		metalChoices.find((choice) => choice.key === 'silver') || { value: 'White Gold', key: 'silver', variant: null, product: null }
 	])
 	const selectedChoice = $derived(swatches.find((choice) => choice.value === selectedMetal))
-	const selectedProduct = $derived(selectedChoice?.product || product)
+	const loadedMetalProduct = $derived(selectedChoice ? loadedMetalProducts[selectedChoice.key] : null)
+	const selectedProduct = $derived(loadedMetalProduct || selectedChoice?.product || product)
 	const href = $derived(selectedProduct?.slug ? `/products/${selectedProduct.slug}` : product?.slug ? `/products/${product.slug}` : '/products')
 	const image = $derived(
-		imageOverride || selectedChoice?.variant?.thumbnail || selectedChoice?.variant?.img || selectedChoice?.product?.thumbnail || (selectedMetal ? metalColorImage(product?.thumbnail || product?.img || product?.image || product?.image_url || '', selectedMetal) : product?.thumbnail || product?.img || product?.image || product?.image_url || '')
+		imageOverride || loadedMetalProduct?.thumbnail || loadedMetalProduct?.img || selectedChoice?.variant?.thumbnail || selectedChoice?.variant?.img || selectedChoice?.product?.thumbnail || (selectedMetal ? metalColorImage(product?.thumbnail || product?.img || product?.image || product?.image_url || '', selectedMetal) : product?.thumbnail || product?.img || product?.image || product?.image_url || '')
 	)
 	const category = $derived(product?.category?.name || product?.categoryName || product?.collection?.name || '')
 	const price = $derived(selectedChoice?.variant?.price ?? selectedProduct?.price ?? product?.price)
 	const rating = $derived(productRating(product))
+
+	async function loadProduct(slug: string) {
+		try {
+			const response = await fetch(`/api/products/${slug}`, {
+				headers: { 'x-litekart-store': page?.data?.store?.id || '' }
+			})
+			return response.ok ? await response.json() : null
+		} catch {
+			return null
+		}
+	}
+
+	async function selectMetal(choice: (typeof swatches)[number]) {
+		selectedMetal = choice.value
+		if (loadedMetalProducts[choice.key] || !product?.slug) return
+
+		const details = product?.pg?.length ? product : await (productDetailsPromise ||= loadProduct(product.slug))
+		const detailedChoice = metalVariantChoices(details).find((item) => item.key === choice.key)
+		const targetSlug = detailedChoice?.product?.slug
+		if (!targetSlug) return
+
+		const selectedProductDetails = targetSlug === details.slug ? details : await loadProduct(targetSlug)
+		if (selectedProductDetails) loadedMetalProducts = { ...loadedMetalProducts, [choice.key]: selectedProductDetails }
+	}
 
 </script>
 
@@ -71,7 +98,7 @@
 				<ul class="rj-card-swatches">
 					{#each swatches as choice (choice.key)}
 						<li>
-							<button class="rj-card-swatch" class:selected={choice.value === selectedMetal} type="button" title={choice.value} aria-label="Select {choice.value}" aria-pressed={choice.value === selectedMetal} onclick={() => selectedMetal = choice.value} style="background-image: {metalSwatchFills[choice.key]};"></button>
+							<button class="rj-card-swatch" class:selected={choice.value === selectedMetal} type="button" title={choice.value} aria-label="Select {choice.value}" aria-pressed={choice.value === selectedMetal} onclick={() => selectMetal(choice)} style="background-image: {metalSwatchFills[choice.key]};"></button>
 						</li>
 					{/each}
 				</ul>
@@ -405,7 +432,7 @@
 			height: auto;
 		}
 
-		.rj-card-swatch {
+		.rj-card .rj-card-swatch {
 			width: 20px;
 			height: 20px;
 			border-radius: 6px;

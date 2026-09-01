@@ -31,9 +31,10 @@
 	let openMega = $state<string | null>(null)
 	const cartState = getCartState()
 
-	const isLoggedIn = $derived(!!userState?.user?.role)
+	const activeUser = $derived(userState?.user?.role ? userState.user : (page.data as any)?.user)
+	const isLoggedIn = $derived(!!activeUser?.role)
 	const isAuthPending = $derived(!isLoggedIn && !!userState?.loading)
-	const displayName = $derived(userState?.user?.firstName || userState?.user?.name || 'My Account')
+	const displayName = $derived(activeUser?.firstName || activeUser?.name || 'My Account')
 	const isMobileRequest = $derived((page.data as any)?.navigation?.isMobileRequest === true)
 	const serverMegaMenu = $derived((page.data as any)?.navigation?.megaMenu as any[] | undefined)
 	const resolvedMenu = $derived(

@@ -22,7 +22,7 @@
 	import { applyClientFilters, productRating } from './product-filters.js'
 	import { canonicalProductPath } from './seo.js'
 
-	const { background, panel, eyebrow, title, ctaLabel, ctaHref, cards } = namePlate
+	const { panel, eyebrow, title, ctaLabel, ctaHref, cards } = namePlate
 	let { products = [] }: { products?: any[] } = $props()
 	let track = $state<HTMLUListElement | null>(null)
 	const ratingSort = new URL('https://ryans.local/products?uiSort=rating%3Adesc')
@@ -53,11 +53,7 @@
 	}
 </script>
 
-<section
-	class="rj-plate"
-	style="background-image: url({background})"
-	aria-labelledby="rj-plate-heading"
->
+<section class="rj-plate" aria-labelledby="rj-plate-heading">
 	<div class="rj-plate-inner">
 		<div class="rj-plate-panel" style="background-image: url({panel.background})">
 			<div class="rj-plate-panel-body">
@@ -102,10 +98,7 @@
 	/* ---- shell ---------------------------------------------------------- */
 	.rj-plate {
 		width: 100%;
-		background-color: #fafafa;
-		background-size: cover;
-		background-position: center;
-		background-repeat: no-repeat;
+		background: #fff;
 	}
 
 	.rj-plate-inner {

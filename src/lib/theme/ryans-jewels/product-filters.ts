@@ -3,8 +3,14 @@ export const clientSorts = new Set(['rating:desc', 'title:asc', 'title:desc'])
 
 export function realCatalogUrl(url: URL) {
 	const filteredUrl = new URL(url)
+	filteredUrl.searchParams.delete('catalog')
 	filteredUrl.searchParams.set('tags', 'JewelWeSell')
 	return filteredUrl
+}
+
+export function isRyanCategoryVisible(category: { name?: string; label?: string; slug?: string | null } = {}) {
+	const value = `${category.name || category.label || ''} ${category.slug || ''}`.toLowerCase().replace(/[’']/g, '')
+	return !/(^|[\s-])(kids?|sarees?)([\s-]|$)/.test(value)
 }
 
 export function withoutDemoProducts<T extends Record<string, any>>(products: T[] = []) {
@@ -27,15 +33,23 @@ export function withoutDemoProducts<T extends Record<string, any>>(products: T[]
 
 export function filterProductsByCategory<T>(products: T[] = [], category = 'All') {
 	const pattern = ({ Rings: /\brings?\b/i, Pendants: /\bpendants?\b/i, Earrings: /\bearrings?\b/i } as Record<string, RegExp>)[category]
-	return pattern ? products.filter((product: any) => pattern.test([
-		product?.title,
-		product?.name,
-		product?.category?.name,
-		product?.categoryName,
-		product?.collection?.name,
-		...(product?.categoryHierarchy || []).map((item: any) => item?.name),
-		...(product?.tags || []).map((item: any) => item?.name ?? item)
-	].filter(Boolean).join(' '))) : products
+	return pattern
+		? products.filter((product: any) =>
+				pattern.test(
+					[
+						product?.title,
+						product?.name,
+						product?.category?.name,
+						product?.categoryName,
+						product?.collection?.name,
+						...(product?.categoryHierarchy || []).map((item: any) => item?.name),
+						...(product?.tags || []).map((item: any) => item?.name ?? item)
+					]
+						.filter(Boolean)
+						.join(' ')
+				)
+			)
+		: products
 }
 
 export function facetOptions(allFilters: Record<string, Record<string, number>> | undefined, keys: string[], fallback?: RegExp) {
@@ -71,9 +85,10 @@ function normalized(value: unknown) {
 }
 
 export function productRating(product: any) {
-	const raw = Array.isArray(product?.ratings) && product.ratings.length
-		? product.ratings.reduce((sum: number, item: any) => sum + Number(item.rating || 0), 0) / product.ratings.length
-		: Number(product?.averageRating || product?.rating || 0)
+	const raw =
+		Array.isArray(product?.ratings) && product.ratings.length
+			? product.ratings.reduce((sum: number, item: any) => sum + Number(item.rating || 0), 0) / product.ratings.length
+			: Number(product?.averageRating || product?.rating || 0)
 	return Number.isFinite(raw) ? Math.min(5, Math.max(0, Math.round(raw * 10) / 10)) : 0
 }
 

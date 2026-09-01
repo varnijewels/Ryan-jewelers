@@ -180,7 +180,7 @@
 		flex-direction: column;
 		gap: 40px;
 		margin: 0 auto;
-		padding: 28px 59px;
+		padding: 28px 59px 32px;
 	}
 
 	/* ---- USP strip ------------------------------------------------------ */
@@ -288,7 +288,7 @@
 	.rj-foot-left {
 		display: flex;
 		align-items: flex-start;
-		gap: 55px;
+		gap: 45px;
 	}
 
 	.rj-foot-brand {
@@ -336,7 +336,7 @@
 	.rj-foot-brand-text {
 		margin: 0;
 		font-family: 'Sarala', var(--font-body, sans-serif);
-		font-size: 18px;
+		font-size: 16px;
 		line-height: normal;
 		color: #505050;
 	}
@@ -371,7 +371,7 @@
 
 	.rj-foot-link {
 		font-family: 'Sarala', var(--font-body, sans-serif);
-		font-size: 18px;
+		font-size: 16px;
 		line-height: normal;
 		color: #505050;
 		text-decoration: none;
@@ -584,7 +584,7 @@
 
 	@media (max-width: 1279px) {
 		.rj-foot-inner {
-			padding: 28px 40px;
+			padding: 28px 40px 32px;
 		}
 
 		.rj-foot-left {
@@ -668,11 +668,14 @@
 		}
 
 		.rj-foot-left {
+			display: grid;
 			width: 100%;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
 			gap: 25px;
 		}
 
 		.rj-foot-brand {
+			grid-column: 1 / -1;
 			width: 293px;
 		}
 
@@ -681,15 +684,15 @@
 		}
 
 		.rj-foot-brand-text {
-			font-size: 15px;
-		}
-
-		.rj-foot-link {
 			font-size: 14px;
 		}
 
+		.rj-foot-link {
+			font-size: 12px;
+		}
+
 		.rj-foot-nav {
-			width: 176.5px;
+			width: auto;
 		}
 
 		.rj-foot-nav-title {
@@ -821,11 +824,11 @@
 			width: 100%;
 		}
 
-		/* 77:107758 — the two link columns sit side by side. */
+		/* Link columns sit side by side below the full-width brand block. */
 		.rj-foot-left {
 			display: grid;
-			grid-template-columns: 1fr 126px 25px 113px 1fr;
-			column-gap: 0;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			column-gap: 10px;
 			row-gap: 20px;
 		}
 
@@ -835,11 +838,15 @@
 		}
 
 		.rj-foot-nav:nth-of-type(1) {
-			grid-column: 2;
+			grid-column: 1;
 		}
 
 		.rj-foot-nav:nth-of-type(2) {
-			grid-column: 4;
+			grid-column: 2;
+		}
+
+		.rj-foot-nav:nth-of-type(3) {
+			grid-column: 3;
 		}
 
 		.rj-foot-mark {
@@ -874,6 +881,7 @@
 
 		.rj-foot-link {
 			font-size: 12px;
+			white-space: normal;
 		}
 
 		.rj-foot-news-title {

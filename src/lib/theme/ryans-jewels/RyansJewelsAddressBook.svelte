@@ -123,7 +123,7 @@
 						<button type="button" onclick={closeForm} aria-label="Back to address book"><img src="/ryans-jewels/account/address-back.svg" alt="" /></button>
 						<h1>{editingAddress ? 'Edit Address' : 'Add New Address'}</h1>
 					</div>
-					<p>Complete address would assist better us in serving you.</p>
+					<p>A complete address helps us deliver your order accurately.</p>
 				</div>
 				<button class="rj-save-address" type="submit" disabled={saving}>{saving ? 'SAVING…' : 'SAVE ADDRESS'}</button>
 			</header>
@@ -134,8 +134,6 @@
 				<div class="rj-type-field">
 					<span>Select address type</span>
 					<div class="rj-type-controls" role="group" aria-label="Address type">
-						<button class="rj-type-add" type="button" aria-label="Add custom address type"><img src="/ryans-jewels/account/address-type-add.svg" alt="" /></button>
-						<i></i>
 						{#each [
 							['Home', '/ryans-jewels/account/address-home-outline.svg'],
 							['Office', '/ryans-jewels/account/address-office-outline.svg'],
@@ -168,7 +166,7 @@
 	<section class="rj-address-book">
 		<header class="rj-address-heading">
 			<h1>Address Book</h1>
-			<p>Enter a your address don’t worry information will be safe</p>
+			<p>Add or manage your saved delivery addresses securely.</p>
 		</header>
 
 		<div class="rj-address-holder">
@@ -216,6 +214,7 @@
 <style>
 	:global(body) { background: #fff; }
 	.rj-address-book, .rj-address-form-page { width: 100%; color: #202020; font-family: 'Lato', sans-serif; }
+	.rj-address-book :is(button, summary):focus-visible, .rj-address-form-page :is(button, input, textarea):focus-visible { outline: 2px solid #8b670f; outline-offset: 3px; }
 	.rj-address-heading { box-sizing: border-box; height: 56px; padding-left: 6px; }
 	.rj-address-heading h1 { margin: 0; font: 600 22px/22px 'Lato', sans-serif; }
 	.rj-address-heading p { margin: 12px 0 0; color: #606060; font: 400 19px/22px 'Lato', sans-serif; }
@@ -270,8 +269,6 @@
 	.rj-type-controls button { display: flex; height: 36px; box-sizing: border-box; gap: 6px; align-items: center; padding: 7px 10px; border: 1px solid #c2c2c2; border-radius: 6px; background: #fff; color: #606060; font: 500 15px/20px 'Lato', sans-serif; cursor: pointer; }
 	.rj-type-controls button.active { border-color: #cca646; background: #fffaf0; color: #202020; }
 	.rj-type-controls button img { width: 22px; height: 22px; }
-	.rj-type-controls .rj-type-add { width: 36px; padding: 7px; border-radius: 5px; }
-	.rj-type-controls i { width: 1px; height: 36px; background: #d9d9d9; }
 	.rj-address-fields { display: flex; width: 100%; flex-direction: column; gap: 20px; }
 	.rj-fields-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px; }
 	.rj-address-fields label { display: flex; min-width: 0; flex-direction: column; gap: 8px; color: #606060; font: 400 14px/normal 'Sarala', sans-serif; }
@@ -313,7 +310,7 @@
 		.rj-save-address { width: 100%; }
 		.rj-form-body { width: 100%; }
 		.rj-type-controls { gap: 8px; }
-		.rj-type-controls button { padding-inline: 8px; font-size: 14px; }
+		.rj-type-controls button, .rj-form-title button, .rj-address-menu summary { min-width: 44px; min-height: 44px; padding-inline: 8px; font-size: 14px; }
 		.rj-address-fields .rj-zip { width: 100%; }
 	}
 

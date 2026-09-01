@@ -1,7 +1,7 @@
 import { wwwLoad, wwwProductsLoad } from '$lib/core/load-functions/index.js'
 import { realCatalogUrl } from '$lib/theme/ryans-jewels/product-filters.js'
 
-// The homepage contains no account data; cache its rendered shell while checkout/account routes remain dynamic.
+// The homepage contains no account data; account and checkout routes remain dynamic.
 export const config = { runtime: 'nodejs20.x', isr: { expiration: 300, allowQuery: [] } }
 
 export const load = async (event: any) => {

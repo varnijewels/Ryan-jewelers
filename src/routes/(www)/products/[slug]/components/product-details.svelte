@@ -22,7 +22,7 @@
 	import { page } from '$app/state'
 	import { Button } from '$lib/components/ui/button/index.js'
 	import RyansJewelsProductDetails from '$lib/theme/ryans-jewels/RyansJewelsProductDetails.svelte'
-	import { canonicalProductPath, ryansSeoText } from '$lib/theme/ryans-jewels/seo.js'
+	import { canonicalProductPath, productStructuredData, ryansSeoText } from '$lib/theme/ryans-jewels/seo.js'
 	//import { PUBLIC_LITEKART_DOMAIN } from '$env/static/public'
 	const PUBLIC_LITEKART_DOMAIN = $derived(page.url.origin)
 
@@ -31,7 +31,9 @@
 	const showPincodeCheck = $derived(productState.wareHousePluginEnabled && productState.isIndianPincodesPluginEnabled)
 	const activeTheme = $derived(page.data?.theme?.name ?? 'default')
 	const canonicalUrl = $derived(`${page.url.origin}${canonicalProductPath(data?.product)}`)
-	const structuredProduct = $derived({ ...productState.structuredData, url: canonicalUrl })
+	const structuredProduct = $derived(
+		productStructuredData(data?.product, data?.store, canonicalUrl, page.url.searchParams.get('variant_id') || '')
+	)
 </script>
 
 <SeoHeader
@@ -48,10 +50,13 @@
 <GoogleStructuredDataProduct product={structuredProduct} />
 
 <GoogleStructuredDataBreadcrumb
-  breadcrumbs={data?.product?.categoryHierarchy?.map((item: any, index: number) => ({
-  name: item.name,
-  item: index === data?.product?.categoryHierarchy?.length - 1 ? undefined : `${PUBLIC_LITEKART_DOMAIN}${item.slug}`
-  })) || []}
+  breadcrumbs={data?.product?.categoryHierarchy?.map((item: any, index: number) => {
+		const slug = String(item.slug || '').replace(/^\/?(?:categories\/)?/, '')
+		return {
+			name: item.name,
+			item: index === data?.product?.categoryHierarchy?.length - 1 ? undefined : new URL(`/categories/${slug}`, PUBLIC_LITEKART_DOMAIN).href
+		}
+	}) || []}
 />
 
 {#if activeTheme === 'ryans-jewels'}

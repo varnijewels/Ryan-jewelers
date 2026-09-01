@@ -43,7 +43,7 @@
 <FormTextboxRenderer {error} {schema} {validityChange} {initialType} {validateOnChange}>
 	{#snippet content({ showPassword, type, touched, validationError, isValid, handleInput, togglePassword })}
 		<div class="mb-3 space-y-2">
-			<Label class="block text-sm font-medium">
+			<Label for={props.id} class="block text-sm font-medium">
 				{label}
 				{#if optional}<span class="text-xs text-muted-foreground">(Optional)</span>{/if}
 			</Label>

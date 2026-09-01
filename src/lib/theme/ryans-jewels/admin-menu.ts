@@ -1,3 +1,5 @@
+import { isRyanCategoryVisible } from './product-filters.js'
+
 export type AdminMenuItem = {
 	id?: string
 	name?: string
@@ -14,14 +16,14 @@ export type AdminMenuItem = {
 export const menuLabel = (item: AdminMenuItem) => item.name || item.label
 export const menuHref = (item: AdminMenuItem) => {
 	const href = item.link || item.href
-	if (href && !href.startsWith('/categories/')) return href
+	if (href) return href
 	if (item.slug === 'home') return '/'
+	if (item.slug) return `/categories/${item.slug}`
 	const label = menuLabel(item)?.trim() || item.slug?.replaceAll('-', ' ')
 	if (!label) return '/products'
-	if (/^(?:all )?(?:engagement )?rings?$/i.test(label)) return '/products?categories=engagement'
-	return `/products?search=${encodeURIComponent(/^all diamond jewel(?:lery|ry)$/i.test(label) ? 'diamond' : label)}`
+	return `/products?search=${encodeURIComponent(/^all diamond jewel(?:lery|ry)$/i.test(label) ? 'diamond' : label)}&catalog=${encodeURIComponent(label)}`
 }
-export const menuChildren = (item: AdminMenuItem) => item.children || item.items || []
+export const menuChildren = (item: AdminMenuItem) => (item.children || item.items || []).filter(isRyanCategoryVisible)
 export const tabletMenuView = (label = '') =>
 	/lab grown diamond/i.test(label)
 		? 'lab'
@@ -55,5 +57,5 @@ export function resolveAdminMenu(
 	if (!managedItems.length) return { home: fallbackHome, items: fallbackItems }
 
 	const home = managedItems.find((item) => item.slug === 'home' || item.name?.toLowerCase() === 'home')
-	return { home: home || fallbackHome, items: managedItems.filter((item) => item !== home) }
+	return { home: home || fallbackHome, items: managedItems.filter((item) => item !== home && isRyanCategoryVisible(item)) }
 }

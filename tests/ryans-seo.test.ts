@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { canonicalProductPath, canonicalProductPaths, canonicalProductSlug, isMissingCatalogPage, robotsSitemapUrl, ryansSeoText } from '$lib/theme/ryans-jewels/seo.js'
+import {
+	canonicalProductPath,
+	canonicalProductPaths,
+	canonicalProductSlug,
+	isMissingCatalogPage,
+	productStructuredData,
+	robotsSitemapUrl,
+	ryansSeoText
+} from '$lib/theme/ryans-jewels/seo.js'
+import { ryansBlogPosts } from '$lib/theme/ryans-jewels/blog-content.js'
+import { instagramStrip } from '$lib/theme/ryans-jewels/footer-content.js'
 
 describe('Ryan Jewelers SEO helpers', () => {
 	it('replaces legacy storefront brands in API metadata', () => {
@@ -35,5 +45,39 @@ describe('Ryan Jewelers SEO helpers', () => {
 		expect(canonicalProductPaths([{ slug: 'diamond-ring-20', groupedSku: 'RING-1' }, { slug: 'diamond-ring-19', groupedSku: 'RING-1' }])).toEqual([
 			'/products/diamond-ring'
 		])
+	})
+
+	it('emits complete product pricing and availability for search engines', () => {
+		const schema = productStructuredData(
+			{
+				title: 'Diamond Ring',
+				description: '<p>Made by JewelWeSell.</p>',
+				sku: 'RING-1',
+				price: 995.99,
+				stock: 2,
+				manageInventory: true,
+				thumbnail: 'https://cdn.example.com/ring.jpg'
+			},
+			{ name: 'RyansJewelers', currency: { code: 'USD' } },
+			'https://ryan.varnijewels.com/products/diamond-ring'
+		)
+
+		expect(schema).toMatchObject({
+			name: 'Diamond Ring',
+			image: ['https://cdn.example.com/ring.jpg'],
+			sku: 'RING-1',
+			brandName: 'Ryan Jewelers',
+			priceCurrency: 'USD',
+			price: 995.99,
+			availability: 'https://schema.org/InStock'
+		})
+		expect(schema.description).toContain('Ryan Jewelers')
+	})
+
+	it('ships indexable blog fallbacks and the real Instagram profile', () => {
+		expect(ryansBlogPosts).toHaveLength(3)
+		expect(new Set(ryansBlogPosts.map((post) => post.slug)).size).toBe(ryansBlogPosts.length)
+		expect(ryansBlogPosts.every((post) => post.title && post.excerpt && post.content && post.imageUrl)).toBe(true)
+		expect(instagramStrip.href).toBe('https://www.instagram.com/varnijewels/')
 	})
 })

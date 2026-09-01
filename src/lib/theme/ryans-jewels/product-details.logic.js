@@ -100,10 +100,20 @@ export function metalVariantChoices(product) {
 	if (!values.length && option?.id) variants.forEach((variant) => values.push(...(variant.options || []).filter((/** @type {any} */ item) => item.optionId === option.id).map((/** @type {any} */ item) => item.value)))
 
 	const currentGrouped = groupedProducts.find((item) => item.id === product.id || item.slug === product.slug)
+	const fixedAttributes = Object.keys(currentGrouped || {}).filter((key) => !['id', 'slug', 'variantId', aggregationKey].includes(key))
+	const matchScore = (candidate) => fixedAttributes.reduce((score, key) => {
+		if (candidate[key] === currentGrouped[key]) return score + 100
+		const currentNumber = Number.parseFloat(String(currentGrouped[key]))
+		const candidateNumber = Number.parseFloat(String(candidate[key]))
+		return Number.isNaN(currentNumber) || Number.isNaN(candidateNumber) ? score : score - Math.abs(currentNumber - candidateNumber)
+	}, 0)
 	const choices = values.map((value) => {
 		const tone = metalColorTone(value)
 		const variant = variants.find((item) => (item.options || []).some((/** @type {any} */ variantOption) => variantOption.optionId === option?.id && variantOption.value === value))
-		const groupedProduct = aggregationKey ? groupedProductForAttribute(groupedProducts, currentGrouped, aggregationKey, value) : null
+		const groupedProduct = aggregationKey
+			? groupedProductForAttribute(groupedProducts, currentGrouped, aggregationKey, value)
+				|| groupedProducts.filter((item) => item[aggregationKey] === value).sort((a, b) => matchScore(b) - matchScore(a))[0]
+			: null
 		return { value, key: tone === 'rose' ? 'rose' : tone === 'white' ? 'silver' : 'gold', variant, product: groupedProduct }
 	})
 	return choices.filter((choice, index) => choices.findIndex((item) => item.key === choice.key) === index)

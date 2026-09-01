@@ -1,66 +1,83 @@
 <script lang="ts">
-	import { fade } from 'svelte/transition'
-	import { BlogRenderer } from '$lib/core/composables/index.js'
+	import { onMount } from 'svelte'
+	import { page } from '$app/state'
+	import { blogService } from '$lib/core/services/index.js'
 	import { SeoHeader } from '$lib/core/components/index.js'
+	import { ryansBlogPosts, type RyanBlogPost } from '$lib/theme/ryans-jewels/blog-content.js'
+
+	let posts = $state<RyanBlogPost[]>(ryansBlogPosts)
+
+	const formatDate = (date: string) =>
+		new Date(date).toLocaleDateString('en-US', {
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric'
+		})
+
+	onMount(async () => {
+		try {
+			const response = await blogService.list({ page: 1 })
+			if (response?.data?.length) posts = response.data as unknown as RyanBlogPost[]
+		} catch {
+			// The published Ryan guides remain available when the optional blog API is offline.
+		}
+	})
 </script>
 
-<SeoHeader metaTitle="Jewelry Blog | Ryan Jewelers" metaDescription="Explore Ryan Jewelers guides, stories and insights about lab grown diamonds and fine jewelry." />
+<SeoHeader
+	metaTitle="Jewelry Guides & Diamond Education | Ryan Jewelers"
+	metaDescription="Explore practical Ryan Jewelers guides about lab-grown diamonds, ring sizing, diamond shapes and choosing fine jewelry with confidence."
+	canonicalUrl={`${page.url.origin}/blog`}
+/>
 
-<BlogRenderer>
-	{#snippet content({ loading, error, posts, formatDate, loadBlogPosts })}
-		<div class="mx-auto max-w-4xl px-4 py-8">
-			<h1 class="mb-8 text-center text-4xl font-bold text-gray-900">Blog</h1>
+<main class="rj-blog">
+	<header class="rj-blog-hero">
+		<p>Ryan Jewelers Journal</p>
+		<h1>Jewelry guides for every meaningful choice.</h1>
+		<span>Clear advice on diamonds, rings, personal style and caring for the pieces you love.</span>
+	</header>
 
-			{#if loading}
-				<div class="flex flex-col gap-8" transition:fade>
-					{#each Array(2) as _}
-						<div class="animate-pulse">
-							<div class="mb-4 h-64 rounded-lg bg-gray-100"></div>
-							<div class="mb-2 h-8 w-3/4 rounded bg-gray-100"></div>
-							<div class="h-4 w-1/2 rounded bg-gray-100"></div>
-						</div>
-					{/each}
+	<section class="rj-blog-grid" aria-label="Latest jewelry guides">
+		{#each posts as post (post.id)}
+			<article>
+				<a class="rj-blog-image" href={`/blog/${post.slug || post.id}`}>
+					<img src={post.imageUrl} alt={post.title} loading="lazy" />
+				</a>
+				<div class="rj-blog-copy">
+					<div class="rj-blog-meta">
+						<time datetime={post.publishedAt || post.createdAt}>{formatDate(post.publishedAt || post.createdAt)}</time>
+						<span aria-hidden="true">•</span>
+						<span>{post.tags?.[0] || 'Jewelry Guide'}</span>
+					</div>
+					<h2><a href={`/blog/${post.slug || post.id}`}>{post.title}</a></h2>
+					<p>{post.excerpt}</p>
+					<a class="rj-blog-read" href={`/blog/${post.slug || post.id}`}>Read guide <span aria-hidden="true">→</span></a>
 				</div>
-			{:else if error}
-				<div class="py-8 text-center text-red-600" transition:fade>
-					<p>{error}</p>
-					<button class="mt-4 rounded-lg bg-gray-100 px-4 py-2 transition-colors hover:bg-gray-200" onclick={loadBlogPosts}> Try Again </button>
-				</div>
-			{:else if posts.data.length}
-				<div class="grid gap-8 md:grid-cols-2">
-					{#each posts.data as post (post.id)}
-						<article class="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md">
-							{#if post.imageUrl}
-								<img src={post.imageUrl} alt={post.title} class="h-48 w-full object-cover" />
-							{/if}
-							<div class="p-6">
-								<div class="mb-3 flex items-center gap-2 text-sm text-gray-600">
-									<span>{post.author}</span>
-									<span>•</span>
-									<time datetime={post.createdAt}>{formatDate(post.createdAt)}</time>
-								</div>
-								<h2 class="mb-2 text-xl font-semibold text-gray-900">
-									<a href={`/blog/${post.id}`} class="transition-colors hover:text-blue-600">
-										{post.title}
-									</a>
-								</h2>
-								<p class="mb-4 text-gray-600">{post.excerpt}</p>
-								<div class="flex gap-2">
-									{#each post.tags as tag}
-										<span class="rounded-full bg-gray-100 px-2 py-1 text-sm text-gray-600">
-											{tag}
-										</span>
-									{/each}
-								</div>
-							</div>
-						</article>
-					{/each}
-				</div>
-			{:else}
-				<div class="py-8 text-center text-gray-500" transition:fade>
-					<p>No blog posts available at the moment.</p>
-				</div>
-			{/if}
-		</div>
-	{/snippet}
-</BlogRenderer>
+			</article>
+		{/each}
+	</section>
+</main>
+
+<style>
+	.rj-blog { min-height: 70vh; background: #fafafa; color: #404040; font-family: 'Sarala', var(--font-body, sans-serif); }
+	.rj-blog-hero { padding: 72px clamp(24px, 6vw, 88px); border-bottom: 1px solid #e1d6be; background: linear-gradient(120deg, #f7f3e9, #fff); text-align: center; }
+	.rj-blog-hero p { margin: 0; color: #9b7a28; font-size: 13px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; }
+	.rj-blog-hero h1 { max-width: 760px; margin: 12px auto 0; color: #202020; font: 400 clamp(42px, 5vw, 68px)/1.05 'Rozha One', var(--font-heading, serif); }
+	.rj-blog-hero span { display: block; max-width: 670px; margin: 18px auto 0; font-size: 17px; line-height: 28px; }
+	.rj-blog-grid { display: grid; max-width: 1320px; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 34px; margin: 0 auto; padding: 72px clamp(24px, 5vw, 64px) 96px; }
+	.rj-blog-grid article { overflow: hidden; border: 1px solid #e8e0cf; background: #fff; }
+	.rj-blog-image { display: block; aspect-ratio: 4 / 3; overflow: hidden; }
+	.rj-blog-image img { width: 100%; height: 100%; object-fit: cover; transition: transform .25s ease; }
+	.rj-blog-image:hover img { transform: scale(1.03); }
+	.rj-blog-copy { padding: 25px; }
+	.rj-blog-meta { display: flex; flex-wrap: wrap; gap: 8px; color: #8f7a46; font-size: 12px; letter-spacing: .7px; text-transform: uppercase; }
+	.rj-blog-copy h2 { margin: 13px 0 8px; color: #202020; font: 400 30px/1.12 'Rozha One', var(--font-heading, serif); }
+	.rj-blog-copy h2 a, .rj-blog-read { color: inherit; text-decoration: none; }
+	.rj-blog-copy > p { margin: 0; font-size: 15px; line-height: 24px; }
+	.rj-blog-read { display: inline-flex; gap: 10px; margin-top: 20px; color: #8c6d21; font-size: 14px; font-weight: 700; }
+	@media (max-width: 900px) { .rj-blog-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+	@media (max-width: 639px) {
+		.rj-blog-hero { padding: 52px 20px; }
+		.rj-blog-grid { grid-template-columns: 1fr; padding: 38px 20px 64px; }
+	}
+</style>

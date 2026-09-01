@@ -10,18 +10,17 @@
 		['Marquise Diamond', 'marquise'],
 		['Cushion Diamond', 'cushion'],
 		['Emerald Diamond', 'emerald'],
-		['Ovel Diamond', 'oval']
+		['Oval Diamond', 'oval']
 	]
 
 	const categories = [
-		['Men’s Jewelery', 'mens-jewellery'],
-		['Kid’s Jewelery', 'kids-jewellery'],
-		['Female Jewelery', 'womens-jewellery'],
-		['Platinum Jewelery', 'platinum-jewellery'],
-		['Diamond Jewelery', 'diamond-jewellery'],
-		['Pearl Jewelery', 'pearl-jewellery'],
-		['Gold Jewelery', 'gold-jewellery'],
-		['Gemstone Jewelery', 'gemstone-jewellery']
+		['Men’s Jewelry', 'mens-jewellery'],
+		['Women’s Jewelry', 'womens-jewellery'],
+		['Platinum Jewelry', 'platinum-jewellery'],
+		['Diamond Jewelry', 'diamond-jewellery'],
+		['Pearl Jewelry', 'pearl-jewellery'],
+		['Gold Jewelry', 'gold-jewellery'],
+		['Gemstone Jewelry', 'gemstone-jewellery']
 	]
 
 	const prices = [
@@ -59,7 +58,7 @@
 		<div class="rj-mega-categories-inner">
 			<h2 class="rj-mega-heading" id="rj-mega-categories-title">
 				<img class="rj-mega-category-icon" src="/ryans-jewels/mega-menu/all-categories.png" alt="" aria-hidden="true" />
-				<span>All Jewelery Categories</span>
+				<span>All Jewelry Categories</span>
 			</h2>
 			<div class="rj-mega-link-list">
 				{#each categories as item}
@@ -84,7 +83,7 @@
 	<section class="rj-mega-collections" aria-labelledby="rj-mega-collections-title">
 		<div class="rj-mega-collections-inner">
 			<div class="rj-mega-collections-head">
-				<h2 id="rj-mega-collections-title">Brows By Collection</h2>
+				<h2 id="rj-mega-collections-title">Browse By Collection</h2>
 				<a href="/collections">
 					<span>View More</span>
 					<span class="rj-mega-more-arrows" aria-hidden="true">
@@ -386,6 +385,7 @@
 		overflow: hidden;
 		-webkit-box-orient: vertical;
 		-webkit-line-clamp: 2;
+		line-clamp: 2;
 		font-family: 'Lato', sans-serif;
 		font-size: 11px;
 		line-height: 13px;

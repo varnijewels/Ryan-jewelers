@@ -180,6 +180,7 @@
 
 		.rj-cust-cta {
 			color: #a80139;
+			font-size: 14px;
 		}
 	}
 </style>

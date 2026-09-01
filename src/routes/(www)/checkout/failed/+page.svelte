@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getCartState, getProductState } from '$lib/core/stores/index.js'
+	import { getCartState } from '$lib/core/stores/index.js'
 	import { SeoHeader } from '$lib/core/components/index.js'
 	import { Button } from '$lib/components/ui/button/index.js'
 	import { formatPrice } from '$lib/core/utils/index.js'
@@ -8,6 +8,8 @@
 
 	let loadingPayment = $state(false)
 	const cartState = getCartState()
+	const cart = $derived(cartState?.cart)
+	const lineItems = $derived((cart?.lineItems || []) as any[])
 	let { data } = $props()
 
 	function handleRetry() {
@@ -47,13 +49,13 @@
 			</Button>
 		</div>
 
-		{#if cartState.cart?.lineItems?.length}
+		{#if lineItems.length}
 			<div class="order-summary">
 				<h2>Order Summary</h2>
 				<div class="items-list">
-					{#each cartState.cart?.lineItems as { thumbnail, title, qty, price, variant, slug }}
+					{#each lineItems as { thumbnail, title, qty, price, variant, slug }}
 						<div class="item">
-							<a href={`/products/${slug}?variant_id=${variant.id}`} class="item-image">
+							<a href={`/products/${slug}${variant?.id ? `?variant_id=${variant.id}` : ''}`} class="item-image">
 								<img src={thumbnail || '/images/placeholder.png'} alt={title} />
 							</a>
 							<div class="item-details">
@@ -74,7 +76,7 @@
 				<div class="price-summary">
 					<div class="price-row">
 						<span>Subtotal</span>
-						<span>{formatPrice(cartState.cart?.subtotal, page?.data?.store?.currency?.code)}</span>
+						<span>{formatPrice(Number(cart?.subtotal || 0), page?.data?.store?.currency?.code)}</span>
 					</div>
 
 					<!-- Uncomment if shipping is available -->
@@ -85,7 +87,7 @@
 
 					<div class="price-row total">
 						<span>Total</span>
-						<span>{formatPrice(cartState.cart?.total, page?.data?.store?.currency?.code)}</span>
+						<span>{formatPrice(Number(cart?.total || 0), page?.data?.store?.currency?.code)}</span>
 					</div>
 				</div>
 			</div>
@@ -183,18 +185,6 @@
 		flex: 1;
 	}
 
-	.item-name {
-		font-weight: 500;
-		color: #1f2937;
-		margin-bottom: 0.25rem;
-	}
-
-	.item-variant {
-		font-size: 0.875rem;
-		color: #6b7280;
-		margin-bottom: 0.5rem;
-	}
-
 	.item-price-qty {
 		display: flex;
 		gap: 0.5rem;
@@ -238,17 +228,17 @@
 			justify-content: space-between;
 		}
 
-		.back-button,
-		.retry-button {
+		:global(.back-button),
+		:global(.retry-button) {
 			min-width: 180px;
 		}
 	}
 
-	.retry-button {
+	:global(.retry-button) {
 		background-color: #10b981;
 	}
 
-	.retry-button:hover {
+	:global(.retry-button:hover) {
 		background-color: #059669;
 	}
 </style>

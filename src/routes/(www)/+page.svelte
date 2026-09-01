@@ -19,6 +19,7 @@
 	import Blocks from '$lib/components/page-blocks/blocks.svelte'
 	import { canonicalProductPath } from '$lib/theme/ryans-jewels/seo.js'
 	import { withoutDemoProducts } from '$lib/theme/ryans-jewels/product-filters.js'
+	import { instagramStrip } from '$lib/theme/ryans-jewels/footer-content.js'
 
 	let { data } = $props()
 
@@ -47,6 +48,12 @@
 	const themeContent = $derived(getThemeHomepageContent(activeTheme))
 	const brandName = $derived(themeContent.brandName || data?.store?.name || 'Store')
 	const themeDescription = $derived(themeContent.description || page?.metaDescription || '')
+	const socialProfiles = $derived.by(() => {
+		const links = Object.values(data?.store?.socialSharing || {}).filter(
+			(link): link is string => typeof link === 'string' && link.startsWith('http')
+		)
+		return links.length ? links : activeTheme === 'ryans-jewels' ? [instagramStrip.href] : []
+	})
 
 	const featuredCategories = $derived(homepageModule?.featuredCategories || [])
 	let storefrontProducts = $state(data?.storefrontProducts || [])
@@ -101,11 +108,7 @@
 	url={PUBLIC_LITEKART_DOMAIN}
 	logo={data?.store?.logo}
 	description={themeDescription}
-	sameAs={data?.store?.socialSharing?.active
-		? (Object.values(data?.store?.socialSharing || {}).filter(
-				(link: any) => typeof link === 'string' && link.startsWith('http')
-			) as string[])
-		: []}
+	sameAs={socialProfiles}
 	address={data?.store?.address
 		? {
 				streetAddress: data?.store?.address?.street,

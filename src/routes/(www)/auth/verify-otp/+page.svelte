@@ -4,10 +4,10 @@
 	import { toast } from 'svelte-sonner'
 	import { goto } from '$app/navigation'
 	import { userService } from '$lib/core/services/index.js'
-	let otp: any = ''
+	let otp: any = $state('')
 	const handleSubmit = () => {
 		toast.info('OTP Verification Success')
-		goto('/reset-password')
+		goto('/auth/reset-password')
 	}
 
 	const mount = async () => {
@@ -44,7 +44,7 @@
 				/>
 			</div>
 			<br />
-			<a href="/verify-otp">Resend OTP</a>
+			<a href="/auth/login">Return to sign in to resend OTP</a>
 		</form>
 		<Button
 			onclick={handleSubmit}

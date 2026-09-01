@@ -35,11 +35,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const isLocalOrIP = isLocalOrIpAddress(url.hostname)
 	const isRyansHomepage =
 		url.pathname === '/' && (isLocalOrIP || url.hostname === 'ryan.varnijewels.com' || env.PUBLIC_STOREFRONT_THEME === 'ryans-jewels')
-	const isMobileRequest =
-		event.request.headers.get('sec-ch-ua-mobile') === '?1' || /Android|iPhone|Mobile/i.test(event.request.headers.get('user-agent') || '')
-	// ponytail: UA only selects the preload hint; <picture> remains the responsive source of truth.
-	const heroImage = isMobileRequest ? '/ryans-jewels/home/hero-mobile.avif' : '/ryans-jewels/home/hero-desktop.avif'
-
 	if (url.protocol === 'http:' && !isLocalOrIP) {
 		event.url.protocol = 'https:'
 	}
@@ -68,15 +63,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const response = await resolve(event, {
 		filterSerializedResponseHeaders: (name) => name === 'content-type',
 		// ponytail: preload route nodes only; restore chunk preloads if slow-network hydration becomes noticeable.
-		preload: ({ type, path }) => !isRyansHomepage || type !== 'js' || path.includes('/nodes/'),
-		transformPageChunk: ({ html }) =>
-			isRyansHomepage ? html.replace('<head>', `<head><link rel="preload" as="image" type="image/avif" href="${heroImage}" fetchpriority="high">`) : html
+		preload: ({ type, path }) => !isRyansHomepage || type !== 'js' || path.includes('/nodes/')
 	})
-	if (isRyansHomepage) {
-		const existingLinks = response.headers.get('Link')
-		const heroLink = `<${heroImage}>; rel=preload; as=image; type=image/avif; fetchpriority=high`
-		response.headers.set('Link', existingLinks ? `${heroLink}, ${existingLinks}` : heroLink)
-	}
 	if (noindexPrefixes.some((prefix) => url.pathname === prefix || url.pathname.startsWith(`${prefix}/`))) {
 		response.headers.set('X-Robots-Tag', 'noindex, follow')
 	}

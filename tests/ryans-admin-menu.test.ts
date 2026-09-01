@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { isCollectionGroup, menuChildren, menuGroups, menuHref, mobileMenuView, resolveAdminMenu, tabletMenuView } from '../src/lib/theme/ryans-jewels/admin-menu.js'
+import {
+	isCollectionGroup,
+	menuChildren,
+	menuGroups,
+	menuHref,
+	mobileMenuView,
+	resolveAdminMenu,
+	tabletMenuView
+} from '../src/lib/theme/ryans-jewels/admin-menu.js'
 
 describe('Ryan admin menu', () => {
 	it('prefers admin categories and uses header links only as fallback', () => {
@@ -21,21 +29,22 @@ describe('Ryan admin menu', () => {
 	})
 
 	it('routes admin categories to the working product catalogue', () => {
-		expect(menuHref({ name: 'Rings', slug: 'rings' })).toBe('/products?categories=engagement')
-		expect(menuHref({ name: 'Bracelets', link: '/categories/bracelets' })).toBe('/products?search=Bracelets')
-		expect(menuHref({ name: 'Popular Earring Types', link: '/categories/popular-earring-types' })).toBe('/products?search=Popular%20Earring%20Types')
-		expect(menuHref({ name: 'All Diamond Jewellery', slug: 'all-diamond-jewellery' })).toBe('/products?search=diamond')
+		expect(menuHref({ name: 'Rings', slug: 'rings' })).toBe('/categories/rings')
+		expect(menuHref({ name: 'Bracelets', link: '/categories/bracelets' })).toBe('/categories/bracelets')
+		expect(menuHref({ name: 'Popular Earring Types', link: '/categories/popular-earring-types' })).toBe('/categories/popular-earring-types')
+		expect(menuHref({ name: 'All Diamond Jewellery' })).toBe('/products?search=diamond&catalog=All%20Diamond%20Jewellery')
 		expect(menuHref({ name: 'Home', slug: 'home' })).toBe('/')
 		expect(menuHref({ name: 'Rings', slug: 'rings', link: '/custom' })).toBe('/custom')
 	})
 
+	it('removes kids and saree categories at every admin-menu level', () => {
+		const parent = { children: [{ name: 'Rings' }, { name: 'Kids Jewellery' }, { name: 'Saree', slug: 'saree' }] }
+		expect(menuChildren(parent).map(({ name }) => name)).toEqual(['Rings'])
+		expect(resolveAdminMenu(parent.children, [], { label: 'Home', href: '/' }, []).items.map(({ name }) => name)).toEqual(['Rings'])
+	})
+
 	it('selects the matching tablet submenu', () => {
-		expect(['Lab Grown Diamond', 'All Diamond Jewellery', 'Earrings', 'Rings'].map(tabletMenuView)).toEqual([
-			'lab',
-			'all-diamond',
-			'earrings',
-			null
-		])
+		expect(['Lab Grown Diamond', 'All Diamond Jewellery', 'Earrings', 'Rings'].map(tabletMenuView)).toEqual(['lab', 'all-diamond', 'earrings', null])
 	})
 
 	it('selects the category submenus only for mobile', () => {
@@ -46,11 +55,9 @@ describe('Ryan admin menu', () => {
 	})
 
 	it('keeps Browse By Collection last in every mega menu', () => {
-		expect(menuGroups({ children: [{ name: 'Shapes' }, { name: 'Browser By Collection' }, { name: 'Popular Types' }] }).map(({ name }) => name)).toEqual([
-			'Shapes',
-			'Popular Types',
-			'Browser By Collection'
-		])
+		expect(
+			menuGroups({ children: [{ name: 'Shapes' }, { name: 'Browser By Collection' }, { name: 'Popular Types' }] }).map(({ name }) => name)
+		).toEqual(['Shapes', 'Popular Types', 'Browser By Collection'])
 		expect(menuGroups({ children: [{ name: 'New Category' }] }).map(({ name }) => name)).toEqual(['New Category', 'Browser By Collection'])
 	})
 })

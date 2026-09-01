@@ -1,12 +1,14 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button'
+	import { Button } from '$lib/components/ui/button/index.js'
 	import { formatPrice } from '$lib/core/utils/index.js'
 	import { CheckCircle2, MapPin, Package, Truck, ArrowRight, ShoppingBag, Mail, Calendar } from '@lucide/svelte'
 	import LazyImg from '$lib/core/components/image/lazy-img.svelte'
 	import { getUserState, getCartState } from '$lib/core/stores/index.js'
+	import { fireGTagEvent } from '$lib/core/utils/index.js'
 	import { onMount } from 'svelte'
 	import { page } from '$app/state'
 	import { fade, fly } from 'svelte/transition'
+	import { checkoutPurchaseData, successfulCartAction } from '$lib/theme/ryans-jewels/checkout-process.js'
 
 	const userState = getUserState()
 	const cartState = getCartState()
@@ -43,21 +45,18 @@
 		}).format(date)
 	})
 	onMount(async () => {
+		await fireGTagEvent('purchase', checkoutPurchaseData(orders, userState.user))
+		if (!cartState) return
 		const prevCartId = localStorage.getItem('prev_cart_id')
-		if (prevCartId) {
+		if (successfulCartAction(prevCartId) === 'restore') {
 			if (typeof cartState.restorePrevCart === 'function') {
 				await cartState.restorePrevCart()
 			} else if (typeof cartState.resetSingleItemCheckoutSession === 'function') {
 				await cartState.resetSingleItemCheckoutSession()
 			}
 			await cartState.refershCart()
-		} else {
-			await cartState.refershCart()
-			if (!cartState.cart?.lineItems?.length) {
-				if (typeof cartState.clear === 'function') {
-					await cartState.clear()
-				}
-			}
+		} else if (typeof cartState.clear === 'function') {
+			await cartState.clear()
 		}
 	})
 
@@ -240,7 +239,7 @@
 	</div>
 </div>
 
-{#if data?.store?.plugins?.googleReviewsOptIn?.active}
+{#if data?.store?.plugins?.googleReviewsOptIn?.active && data.store.plugins.googleReviewsOptIn.merchantId && orderNo && useremail}
 	<!-- Split the tag name so Vite does not scan this generated embed as component JavaScript. -->
 	{@html `<${'script'} src="https://apis.google.com/js/platform.js?onload=renderOptIn" async defer></${'script'}>
   <${'script'}>
@@ -251,7 +250,7 @@
             // REQUIRED FIELDS
             "merchant_id": ${data?.store?.plugins?.googleReviewsOptIn?.merchantId},
             "order_id": "${orderNo}",
-            "email": "${cartState?.cart?.email}",
+			"email": "${useremail}",
             "delivery_country": "${firstOrder?.shippingAddress?.countryCode}",
             "estimated_delivery_date": "${estimatedDeliveryDateMachine}",
 

@@ -5,6 +5,7 @@
 	import { toast } from 'svelte-sonner'
 	import { LoginModule } from '$lib/core/composables/index.js'
 	import { authService } from '$lib/core/services/index.js'
+	import { normalizePhone } from '$lib/theme/ryans-jewels/auth-flow.js'
 	import RyansJewelsAuthShell from '$lib/theme/ryans-jewels/RyansJewelsAuthShell.svelte'
 
 	const loginModule = new LoginModule()
@@ -36,10 +37,19 @@
 
 	async function handleLogin(event: SubmitEvent) {
 		if (loginModule.isPhoneNumber) {
-			let phone = loginModule.identifier.replace(/\s+/g, '')
-			if (phone && !phone.startsWith('+')) phone = (page.data.store?.storeCountry?.dialCode || '+91') + phone
+			event.preventDefault()
+			const phone = normalizePhone(loginModule.identifier, page.data.store?.storeCountry?.dialCode || '+91')
+			if (!/^\+[1-9]\d{7,14}$/.test(phone)) return toast.error('Please enter a valid phone number')
 			loginModule.identifier = phone
-			await loginModule.handleSubmit(event)
+			loginModule.isLoading = true
+			try {
+				await authService.getOtp({ phone })
+				loginModule.step = 2
+			} catch (error: any) {
+				toast.error(error?.message || 'Unable to send the verification code')
+			} finally {
+				loginModule.isLoading = false
+			}
 			return
 		}
 
@@ -65,8 +75,19 @@
 
 	async function verifyOtp(event: SubmitEvent) {
 		event.preventDefault()
-		await loginModule.handleVerifyOtp()
-		await finishLogin()
+		if (loginModule.isLoading) return
+		loginModule.isLoading = true
+		try {
+			const user = await authService.verifyOtp({ phone: loginModule.identifier, otp: loginModule.otp })
+			if (!user) return
+			userState.user = user
+			loginModule.wishlistState.setState()
+			await finishLogin()
+		} catch (error: any) {
+			toast.error(error?.message || 'The verification code is invalid or expired')
+		} finally {
+			loginModule.isLoading = false
+		}
 	}
 
 	async function resendOtp() {

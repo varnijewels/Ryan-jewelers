@@ -9,7 +9,9 @@
 </script>
 
 <svelte:head>
-	<title>Forgot Password</title>
+	<title>Forgot Password | Ryan Jewelers</title>
+	<meta name="description" content="Reset your Ryan Jewelers account password securely using your registered email address." />
+	<meta name="robots" content="noindex, follow" />
 </svelte:head>
 <div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
 	<div class="-mt-24 flex w-full items-center justify-center gap-8 p-4">
@@ -64,18 +66,19 @@
 		<!-- Right side - Form -->
 		<div class="w-full max-w-md transform space-y-6 rounded-lg border bg-white/80 p-8 backdrop-blur-sm transition-all dark:bg-gray-800/90">
 			<div class="space-y-2 text-center">
-				<h2 class="text-2xl font-bold text-gray-900 dark:text-white">Forgot Password?</h2>
+				<h1 class="text-2xl font-bold text-gray-900 dark:text-white">Forgot Password?</h1>
 				<p class="text-gray-500 dark:text-gray-400">Enter your email to receive reset instructions</p>
 			</div>
 
 			<form class="space-y-4" onsubmit={(e) => forgotPasswordModule.handleSubmit(e, true)}>
 				<Textbox
+					id="forgot-password-email"
 					name="email"
 					type="email"
 					bind:value={forgotPasswordModule.email}
-					placeholder="swadesh@litekrat.in"
+					placeholder="you@example.com"
 					schema={schemas.email}
-					label="Email"
+					label="Email address"
 					required
 				/>
 

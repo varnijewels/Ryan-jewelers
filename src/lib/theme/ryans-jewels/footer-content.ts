@@ -45,7 +45,7 @@ export const footerUsps: FooterUsp[] = [
 		iconHeight: 30,
 		iconGap: 9,
 		title: 'Discount',
-		text: 'Affordable  for everyone. Shop your favorites at prices you’ll love!',
+		text: 'Affordable for everyone. Shop your favorites at prices you’ll love!',
 		width: 215,
 		titleWidth: 74
 	},
@@ -57,7 +57,7 @@ export const footerUsps: FooterUsp[] = [
 		iconHeight: 33,
 		iconGap: 6,
 		title: 'Fast Shipping',
-		text: 'Earn rewards as you shop and unlock exclusive benefits.',
+		text: 'Carefully packed and dispatched quickly for a secure delivery.',
 		width: 192,
 		titleWidth: 114
 	},
@@ -98,12 +98,8 @@ export const ryansJewelsFooter = {
 			links: [
 				{ label: 'Rings', href: '/products' },
 				{ label: 'Earrings', href: '/products' },
-				{ label: 'Customise', href: '/products' },
-				{ label: 'About us', href: '/about-us' },
 				{ label: 'Services', href: '/services' },
-				{ label: 'My Cart', href: '/checkout/cart' },
-				{ label: 'FAQ', href: '/faqs' },
-				{ label: 'Contact', href: '/contact-us' }
+				{ label: 'My Cart', href: '/checkout/cart' }
 			]
 		},
 		{
@@ -116,6 +112,18 @@ export const ryansJewelsFooter = {
 				{ label: 'Disclaimer', href: '/terms-and-conditions' },
 				{ label: 'Shipping & Returns', href: '/shipping-policy' },
 				{ label: 'Refund policy', href: '/refund-policy' }
+			]
+		},
+		{
+			title: 'Support',
+			width: 150,
+			gap: 12,
+			links: [
+				{ label: 'About Us', href: '/about-us' },
+				{ label: 'FAQ', href: '/faqs' },
+				{ label: 'Blog', href: '/blog' },
+				{ label: 'Customise Design', href: '/products' },
+				{ label: 'Contact Us', href: '/contact-us' }
 			]
 		}
 	],
@@ -131,7 +139,7 @@ export const ryansJewelsFooter = {
 	legal: {
 		/** The source prints a literal "your company" placeholder — the brand name
 		 *  is substituted at render time from the theme's `brandName`. */
-		year: '2025',
+		year: String(new Date().getFullYear()),
 		/* The mock reads "All Rights revered."; corrected to "reserved" here. */
 		rights: 'All Rights Reserved.',
 		links: [
@@ -146,8 +154,7 @@ export const ryansJewelsFooter = {
 export const instagramStrip = {
 	eyebrow: 'Follow us on Instagram!',
 	heading: 'Explore the Instagram Universe!',
-	/** TODO: replace with the store's real Instagram profile. */
-	href: 'https://www.instagram.com/',
+	href: 'https://www.instagram.com/varnijewels/',
 	tiles: [
 		{ src: '/ryans-jewels/instagram/figma-1.png', alt: 'Model wearing diamond jewellery' },
 		{ src: '/ryans-jewels/instagram/figma-2.png', alt: 'Model wearing statement rings' },

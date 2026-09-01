@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Page } from '$lib/core/types'
+	import type { Page } from '$lib/core/types/index.js'
 	import { SeoHeader } from '$lib/core/components/index.js'
 	import Blocks from '$lib/components/page-blocks/blocks.svelte'
 	import { reveal } from '$lib/core/actions/reveal.js'
@@ -15,6 +15,8 @@
 
 	const { data }: Props = $props()
 	const isRyans = $derived(data?.theme?.name === 'ryans-jewels')
+	const ryanDescription =
+		'Discover the Ryan Jewelers story, our thoughtful craftsmanship and the values behind our lab-grown diamond jewelry.'
 
 	const stats = [
 		{ value: '15+', label: 'Years of experience' },
@@ -61,7 +63,7 @@
 
 <SeoHeader
 	metaTitle={ryansSeoText(data?.page?.metaTitle, 'About Ryan Jewelers')}
-	metaDescription={ryansSeoText(data?.page?.metaDescription, 'Discover the story, craftsmanship and values behind Ryan Jewelers lab grown diamond jewelry.')}
+	metaDescription={isRyans ? ryanDescription : ryansSeoText(data?.page?.metaDescription, ryanDescription)}
 />
 
 {#if isRyans}

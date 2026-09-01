@@ -144,9 +144,9 @@
 			<div class="text-center text-xs text-gray-500">
 				<p>By creating a store, you agree to our</p>
 				<div class="space-x-1">
-					<a href="/terms" class="text-gray-600 hover:text-gray-900 dark:hover:text-gray-300">Terms of Service</a>
+					<a href="/terms-and-conditions" class="text-gray-600 hover:text-gray-900 dark:hover:text-gray-300">Terms of Service</a>
 					<span>and</span>
-					<a href="/privacy" class="text-gray-600 hover:text-gray-900 dark:hover:text-gray-300">Privacy Policy</a>
+					<a href="/privacy-policy" class="text-gray-600 hover:text-gray-900 dark:hover:text-gray-300">Privacy Policy</a>
 				</div>
 			</div>
 		</div>

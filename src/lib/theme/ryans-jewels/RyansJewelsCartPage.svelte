@@ -5,6 +5,7 @@
 	import { formatPrice } from '$lib/core/utils/index.js'
 	import { showAuthModal } from '$lib/core/components/index.js'
 	import { getUserState } from '$lib/core/stores/index.js'
+	import { fireGTagEvent } from '$lib/core/utils/index.js'
 	import { isCustomerSignedIn } from './auth-gate.logic.js'
 
 	let { cartModule, cartState }: { cartModule: any; cartState: any } = $props()
@@ -74,12 +75,13 @@
 
 	async function handleCheckout() {
 		await userState.hasLoaded.catch(() => undefined)
-		if (!isCustomerSignedIn(userState.user)) {
+		if (!isCustomerSignedIn(userState.user) && !isCustomerSignedIn((page.data as any)?.user)) {
 			const returnTo = '/checkout/address'
 			sessionStorage.setItem('rj-auth-return-to', returnTo)
 			showAuthModal('login', { redirect: returnTo })
 			return
 		}
+		await fireGTagEvent('begin_checkout', { total, items })
 		await cartModule.gotoCheckout()
 	}
 </script>
@@ -129,9 +131,9 @@
 					</div>
 
 					<div class="rj-cart-services">
-						<div><img src="/ryans-jewels/cart/shipping.svg" alt="" /><span><b>Free Shipping</b><small>Free Shipping All order</small></span></div>
-						<div><img src="/ryans-jewels/cart/support.svg" alt="" /><span><b>24/7 Support</b><small>Free Shipping All order</small></span></div>
-						<div><img src="/ryans-jewels/cart/security.svg" alt="" /><span><b>Payment Security</b><small>Free Shipping All order</small></span></div>
+						<div><img src="/ryans-jewels/cart/shipping.svg" alt="" /><span><b>Free Shipping</b><small>Free delivery on eligible orders</small></span></div>
+						<div><img src="/ryans-jewels/cart/support.svg" alt="" /><span><b>24/7 Support</b><small>Help whenever you need it</small></span></div>
+						<div><img src="/ryans-jewels/cart/security.svg" alt="" /><span><b>Payment Security</b><small>Secure and encrypted checkout</small></span></div>
 					</div>
 				</div>
 
@@ -171,6 +173,7 @@
 <style>
 	:global(.theme-ryans-jewels main.inter-gap:has(> .rj-cart-page)) { min-height: auto; }
 	.rj-cart-page { min-height: 717px; color: #202020; background: #fff; font-family: 'Lato', sans-serif; }
+	.rj-cart-page :is(button, a, input):focus-visible { outline: 2px solid #8b670f; outline-offset: 3px; }
 	.rj-cart-cutoff { display: flex; height: 50px; gap: 6px; align-items: center; justify-content: center; background: rgb(255 234 183 / 40%); font: 18px/normal 'Sarala', sans-serif; text-transform: capitalize; }
 	.rj-cart-cutoff img { width: 23px; height: 23px; }
 	.rj-cart-cutoff b { color: #cca646; font-weight: 400; }
@@ -268,9 +271,10 @@
 		.rj-cart-copy strong { font-size: 13px; }
 		.rj-cart-copy p { font-size: 11px; line-height: 16px; }
 		.rj-cart-actions { gap: 8px; }
-		.rj-cart-quantity { height: 30px; gap: 9px; padding: 5px 7px; font-size: 12px; }
+		.rj-cart-quantity { min-height: 44px; gap: 5px; padding: 0 5px; font-size: 12px; }
+		.rj-cart-quantity button { width: 44px; height: 44px; }
 		.rj-cart-item-links { gap: 10px; }
-		.rj-cart-item-links button { gap: 4px; font-size: 0; }
+		.rj-cart-item-links button { min-height: 44px; gap: 4px; font-size: 0; }
 		.rj-cart-item-links button::after { font-size: 11px; }
 		.rj-cart-item-links button:first-child::after { content: 'Wishlist'; }
 		.rj-cart-item-links .remove::after { content: 'Remove'; }

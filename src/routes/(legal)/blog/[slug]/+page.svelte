@@ -1,101 +1,98 @@
 <script lang="ts">
-	import { page } from '$app/state'
 	import { onMount } from 'svelte'
-	import { fade } from 'svelte/transition'
-	import { blogService } from '$lib/core/services'
-	import type { BlogPost } from '$lib/core/types'
-	import { SeoHeader } from '$lib/core/components/index.js'
+	import { page } from '$app/state'
+	import { blogService } from '$lib/core/services/index.js'
+	import { SeoHeader, StructuredData } from '$lib/core/components/index.js'
+	import { findRyansBlogPost, type RyanBlogPost } from '$lib/theme/ryans-jewels/blog-content.js'
 
 	let loading = $state(false)
 	let error = $state('')
-	let post = $state<BlogPost | null>(null)
+	let post = $state<RyanBlogPost | null>(findRyansBlogPost(page.params.slug || ''))
 
-	function formatDate(dateString: string): string {
-		return new Date(dateString).toLocaleDateString('en-US', {
+	const canonicalUrl = $derived(`${page.url.origin}/blog/${page.params.slug}`)
+	const articleSchema = $derived(
+		post
+			? JSON.stringify({
+					'@context': 'https://schema.org',
+					'@type': 'Article',
+					headline: post.title,
+					description: post.excerpt,
+					image: [new URL(post.imageUrl, page.url.origin).href],
+					datePublished: post.publishedAt,
+					dateModified: post.publishedAt,
+					mainEntityOfPage: canonicalUrl,
+					author: { '@type': 'Organization', name: 'Ryan Jewelers' },
+					publisher: { '@type': 'Organization', name: 'Ryan Jewelers' }
+				})
+			: ''
+	)
+
+	const formatDate = (date: string) =>
+		new Date(date).toLocaleDateString('en-US', {
 			year: 'numeric',
 			month: 'long',
 			day: 'numeric'
 		})
-	}
 
-	async function loadBlogPost(slug: string) {
+	async function loadBlogPost() {
+		if (post) return
 		try {
 			loading = true
-			error = ''
-			post = await blogService.getOne(slug)
-		} catch (err) {
-			console.error(err)
-			error = 'Failed to load blog post. Please try again later.'
+			post = (await blogService.getOne(page.params.slug || '')) as unknown as RyanBlogPost
+		} catch {
+			error = 'This guide could not be found.'
 		} finally {
 			loading = false
 		}
 	}
 
-	$effect(() => {
-		if (page.params.slug) {
-			loadBlogPost(page.params.slug)
-		}
-	})
+	onMount(loadBlogPost)
 </script>
 
-<SeoHeader metaTitle={post?.title ? `${post.title} | Ryan Jewelers` : 'Jewelry Blog | Ryan Jewelers'} />
+<SeoHeader
+	metaTitle={post?.title ? `${post.title} | Ryan Jewelers` : 'Jewelry Guide | Ryan Jewelers'}
+	metaDescription={post?.excerpt || 'Read practical Ryan Jewelers guides about diamonds, rings and fine jewelry.'}
+	image={post?.imageUrl}
+	{canonicalUrl}
+/>
+{#if articleSchema}<StructuredData schema={articleSchema} />{/if}
 
-<div class="mx-auto max-w-4xl px-4 py-8">
+<main class="rj-article">
 	{#if loading}
-		<div class="animate-pulse" transition:fade>
-			<div class="mb-8 h-64 rounded-lg bg-gray-100"></div>
-			<div class="mb-4 h-8 w-3/4 rounded bg-gray-100"></div>
-			<div class="mb-8 h-4 w-1/2 rounded bg-gray-100"></div>
-			<div class="space-y-4">
-				{#each Array(4) as _}
-					<div class="h-4 w-full rounded bg-gray-100"></div>
-				{/each}
-			</div>
-		</div>
-	{:else if error}
-		<div class="py-8 text-center text-red-600" transition:fade>
+		<div class="rj-article-status">Loading guide…</div>
+	{:else if error || !post}
+		<div class="rj-article-status">
+			<h1>Guide not found</h1>
 			<p>{error}</p>
-			<button class="mt-4 rounded-lg bg-gray-100 px-4 py-2 transition-colors hover:bg-gray-200" onclick={() => loadBlogPost($page.params.slug)}>
-				Try Again
-			</button>
-		</div>
-	{:else if post}
-		<article class="prose prose-lg max-w-none" transition:fade>
-			{#if post.imageUrl}
-				<img src={post.imageUrl} alt={post.title} class="mb-8 h-64 w-full rounded-lg object-cover" />
-			{/if}
-
-			<header class="mb-8">
-				<h1 class="mb-4 text-4xl font-bold text-gray-900">{post.title}</h1>
-				<div class="flex items-center gap-4 text-gray-600">
-					<div class="flex items-center gap-2">
-						<span class="font-medium">{post.author}</span>
-					</div>
-					<span>•</span>
-					<time datetime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
-				</div>
-			</header>
-
-			<div class="mb-8">
-				{#each post.tags as tag}
-					<span class="mr-2 inline-block rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
-						{tag}
-					</span>
-				{/each}
-			</div>
-
-			<div class="prose prose-lg prose-gray prose-p:my-0 prose-li:my-0">
-				{@html post.content}
-			</div>
-		</article>
-
-		<div class="mt-12 border-t pt-8">
-			<a href="/blog" class="inline-flex items-center text-blue-600 transition-colors hover:text-blue-800"> ← Back to Blog </a>
+			<a href="/blog">← Back to the journal</a>
 		</div>
 	{:else}
-		<div class="py-8 text-center text-gray-500" transition:fade>
-			<p>Blog post not found.</p>
-			<a href="/blog" class="mt-4 inline-block text-blue-600 transition-colors hover:text-blue-800"> ← Back to Blog </a>
-		</div>
+		<article>
+			<header>
+				<p>{post.tags.join(' · ')}</p>
+				<h1>{post.title}</h1>
+				<div><span>{post.author}</span><span aria-hidden="true">•</span><time datetime={post.publishedAt}>{formatDate(post.publishedAt)}</time></div>
+			</header>
+			<img class="rj-article-hero" src={post.imageUrl} alt={post.title} />
+			<div class="rj-article-body">{@html post.content}</div>
+		</article>
+		<a class="rj-article-back" href="/blog">← Back to the journal</a>
 	{/if}
-</div>
+</main>
+
+<style>
+	.rj-article { min-height: 70vh; background: #fafafa; color: #404040; font-family: 'Sarala', var(--font-body, sans-serif); padding: 70px 24px 96px; }
+	.rj-article > article, .rj-article-back, .rj-article-status { display: block; max-width: 900px; margin-right: auto; margin-left: auto; }
+	.rj-article header { margin-bottom: 35px; text-align: center; }
+	.rj-article header > p { margin: 0; color: #9b7a28; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+	.rj-article h1 { margin: 13px 0 18px; color: #202020; font: 400 clamp(42px, 6vw, 70px)/1.02 'Rozha One', var(--font-heading, serif); }
+	.rj-article header > div { display: flex; justify-content: center; gap: 10px; color: #777; font-size: 14px; }
+	.rj-article-hero { width: 100%; max-height: 520px; border: 1px solid #e8e0cf; object-fit: cover; }
+	.rj-article-body { max-width: 760px; margin: 44px auto 0; font-size: 17px; line-height: 30px; }
+	.rj-article-body :global(h2) { margin: 38px 0 10px; color: #202020; font: 400 34px/1.15 'Rozha One', var(--font-heading, serif); }
+	.rj-article-body :global(p) { margin: 0 0 20px; }
+	.rj-article-back { margin-top: 46px; padding-top: 25px; border-top: 1px solid #e1d6be; color: #8c6d21; text-decoration: none; }
+	.rj-article-status { padding: 80px 0; text-align: center; }
+	.rj-article-status a { color: #8c6d21; }
+	@media (max-width: 639px) { .rj-article { padding: 48px 20px 64px; } .rj-article-body { font-size: 16px; line-height: 27px; } }
+</style>

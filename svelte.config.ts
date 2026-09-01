@@ -11,7 +11,6 @@ const config = {
 
 	kit: {
 		adapter: adapter(),
-		inlineStyleThreshold: 100_000,
 		csrf: {
 			trustedOrigins: ['*']
 		},

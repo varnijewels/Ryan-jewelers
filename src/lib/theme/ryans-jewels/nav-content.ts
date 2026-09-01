@@ -61,10 +61,10 @@ export const ryansJewelsNavContent: RyansJewelsNavContent = {
 	},
 	home: { label: 'Home', href: '/' },
 	menu: [
-		{ label: 'Lab Grown Diamond', href: '/products?search=lab+grown+diamond', dropdown: true },
+		{ label: 'Lab Grown Diamond', href: '/categories/lab-grown-diamond', dropdown: true },
 		{ label: 'All Jewellery', href: '/products', dropdown: true },
-		{ label: 'Rings', href: '/products?categories=engagement' },
-		{ label: 'Earrings', href: '/products?search=earrings' },
+		{ label: 'Rings', href: '/categories/rings' },
+		{ label: 'Earrings', href: '/categories/earrings' },
 		{ label: 'Customise', href: '/products' },
 		{ label: 'About us', href: '/about-us' },
 		{ label: 'Contact', href: '/contact-us' }

@@ -81,6 +81,7 @@
 
 			<form class="space-y-5 max-sm:pt-2" onsubmit={(e) => forgotPasswordModule.handleSubmit(e, false)}>
 				<Textbox
+					id="forgot-password-modal-email"
 					name="email"
 					type="email"
 					bind:value={forgotPasswordModule.email}

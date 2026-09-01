@@ -8,13 +8,15 @@
 			page: Page
 			theme?: { name: string }
 		}
+		mode?: 'shipping' | 'refund'
 	}
 
-	const { data }: Props = $props()
+	const { data, mode = 'shipping' }: Props = $props()
 	const isRyans = $derived(data?.theme?.name === 'ryans-jewels')
-	let activeSection = $state('processing')
+	const isRefund = $derived(mode === 'refund')
+	let activeSection = $state(mode === 'refund' ? 'returns' : 'processing')
 
-	const sections = [
+	const allSections = [
 		{ id: 'processing', label: 'Order processing' },
 		{ id: 'shipping-methods', label: 'Shipping methods' },
 		{ id: 'tracking', label: 'Tracking & delivery' },
@@ -25,6 +27,7 @@
 		{ id: 'exceptions', label: 'Exceptions & costs' },
 		{ id: 'contact-us', label: 'Contact us' }
 	]
+	const sections = $derived(isRefund ? allSections.filter((section) => ['returns', 'return-process', 'refunds', 'exceptions', 'contact-us'].includes(section.id)) : allSections)
 
 	function scrollToSection(event: MouseEvent, id: string) {
 		event.preventDefault()
@@ -39,8 +42,10 @@
 </script>
 
 <SeoHeader
-	metaTitle="Shipping & Return Policy | Ryan Jewelers"
-	metaDescription="Review Ryan Jewelers shipping, tracking, return, refund and exchange information before placing your order."
+	metaTitle={isRefund ? 'Refund Policy | Ryan Jewelers' : 'Shipping & Return Policy | Ryan Jewelers'}
+	metaDescription={isRefund
+		? 'Review Ryan Jewelers return eligibility, refund, exchange and exception information.'
+		: 'Review Ryan Jewelers shipping, tracking, return, refund and exchange information before placing your order.'}
 />
 
 {#if isRyans}
@@ -48,21 +53,27 @@
 		<header class="rj-policy-hero">
 			<div class="rj-policy-hero-mark" aria-hidden="true">R</div>
 			<p>Ryan Jewelers</p>
-			<h1>Shipping &amp; Returns</h1>
-			<span>From our store to your door, every detail is handled with care.</span>
+			<h1>{isRefund ? 'Refund Policy' : 'Shipping & Returns'}</h1>
+			<span>{isRefund ? 'Returns and refunds, handled with clarity and care.' : 'From our store to your door, every detail is handled with care.'}</span>
 		</header>
 
 		<section class="rj-policy-intro" aria-labelledby="policy-intro-title">
 			<div>
-				<p class="rj-policy-kicker">Our Promise</p>
-				<h2 id="policy-intro-title">Carefully packed. Securely delivered.</h2>
+				<p class="rj-policy-kicker">{isRefund ? 'Our Return Promise' : 'Our Promise'}</p>
+				<h2 id="policy-intro-title">{isRefund ? 'A thoughtful process, from return to resolution.' : 'Carefully packed. Securely delivered.'}</h2>
 			</div>
 			<div class="rj-policy-intro-copy">
 				<p>
-					We want every Ryan Jewelers purchase to arrive safely and feel exactly right. Here you can find our order processing, delivery, return and exchange guidelines.
+					{isRefund
+						? 'We want every Ryan Jewelers purchase to feel exactly right. Here you can find our return eligibility, refund, exchange and exception guidelines.'
+						: 'We want every Ryan Jewelers purchase to arrive safely and feel exactly right. Here you can find our order processing, delivery, return and exchange guidelines.'}
 				</p>
 				<div class="rj-policy-assurances" aria-label="Delivery assurances">
-					<span>Secure shipping</span><span>Insured delivery</span><span>Order tracking</span>
+					{#if isRefund}
+						<span>30-day returns</span><span>Quality inspection</span><span>Original payment method</span>
+					{:else}
+						<span>Secure shipping</span><span>Insured delivery</span><span>Order tracking</span>
+					{/if}
 				</div>
 			</div>
 		</section>
@@ -85,6 +96,7 @@
 			</aside>
 
 			<article class="rj-policy-content">
+				{#if !isRefund}
 				<section id="processing">
 					<p class="rj-policy-number">01</p>
 					<h2>Order processing</h2>
@@ -116,16 +128,17 @@
 					<p>International shipping is available to select countries. Fees and delivery times vary by destination and will be presented when available.</p>
 					<p>Customs fees, taxes and import duties may apply and are the customer’s responsibility.</p>
 				</section>
+				{/if}
 
 				<section id="returns">
-					<p class="rj-policy-number">05</p>
+					<p class="rj-policy-number">{isRefund ? '01' : '05'}</p>
 					<h2>30-day return policy</h2>
 					<p>You may initiate a return within 30 days of receiving your order if you are not completely satisfied.</p>
 					<p>Returned pieces must be unworn, in their original condition and accompanied by all original packaging and documentation.</p>
 				</section>
 
 				<section id="return-process">
-					<p class="rj-policy-number">06</p>
+					<p class="rj-policy-number">{isRefund ? '02' : '06'}</p>
 					<h2>How to make a return</h2>
 					<ol>
 						<li>Contact our customer support team or use the Contact Us page to request a Return Authorization (RA) number.</li>
@@ -136,7 +149,7 @@
 				</section>
 
 				<section id="refunds">
-					<p class="rj-policy-number">07</p>
+					<p class="rj-policy-number">{isRefund ? '03' : '07'}</p>
 					<h2>Refunds &amp; exchanges</h2>
 					<p>After we receive the returned item, our quality control team will inspect it.</p>
 					<ul>
@@ -146,7 +159,7 @@
 				</section>
 
 				<section id="exceptions">
-					<p class="rj-policy-number">08</p>
+					<p class="rj-policy-number">{isRefund ? '04' : '08'}</p>
 					<h2>Exceptions &amp; shipping costs</h2>
 					<ul>
 						<li>Engraved or custom-made pieces cannot be returned unless there is a manufacturing defect or an error on our part.</li>
@@ -156,7 +169,7 @@
 
 				<section id="contact-us" class="rj-policy-contact">
 					<div>
-						<p class="rj-policy-number">09</p>
+						<p class="rj-policy-number">{isRefund ? '05' : '09'}</p>
 						<h2>Need help with an order?</h2>
 						<p>Our team is here to assist with shipping questions, returns and exchanges.</p>
 					</div>
@@ -173,7 +186,7 @@
 	<section class="mt-20 min-h-screen">
 		<div class="container mx-auto flex max-w-7xl flex-col px-4 md:px-10">
 			<div class="mx-auto flex max-w-max flex-col items-center py-5 text-center text-3xl font-bold sm:items-start sm:py-10 sm:text-4xl">
-				<h1>Shipping &amp; Delivery Policy</h1>
+				<h1>{isRefund ? 'Refund Policy' : 'Shipping & Delivery Policy'}</h1>
 				<hr class="mt-2.5 w-20 border-t-4 border-zinc-900 opacity-50" />
 			</div>
 			<div class="prose-lg prose-h2:my-4 prose-p:my-0 prose-li:my-0">{@html data?.page?.content}</div>
