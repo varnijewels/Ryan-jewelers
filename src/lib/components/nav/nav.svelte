@@ -123,7 +123,7 @@
 		)
 	}
 	const ryanMegaCategories = $derived(
-		uniqueRyanItems([...((ryanServerMegaMenu === undefined ? ryanNav.menu : ryanServerMegaMenu) || []), ...(navModule.megaMenu || [])] as AdminMenuItem[])
+		uniqueRyanItems([...(ryanServerMegaMenu || []), ...(navModule.megaMenu || [])] as AdminMenuItem[])
 	)
 	const ryanHeaderItems = $derived(
 		uniqueRyanItems([...(ryanStoreHeaderMenu || []), ...(navModule.navMenu || [])] as AdminMenuItem[])

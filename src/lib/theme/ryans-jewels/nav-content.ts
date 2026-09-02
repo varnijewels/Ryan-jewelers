@@ -34,7 +34,6 @@ export interface RyansJewelsNavContent {
 		register: string
 	}
 	home: RyansJewelsNavLink
-	menu: RyansJewelsNavLink[]
 	offers: RyansJewelsNavLink
 }
 
@@ -60,14 +59,5 @@ export const ryansJewelsNavContent: RyansJewelsNavContent = {
 		register: 'register'
 	},
 	home: { label: 'Home', href: '/' },
-	menu: [
-		{ label: 'Lab Grown Diamond', href: '/categories/lab-grown-diamond', dropdown: true },
-		{ label: 'All Jewellery', href: '/products', dropdown: true },
-		{ label: 'Rings', href: '/categories/rings' },
-		{ label: 'Earrings', href: '/categories/earrings' },
-		{ label: 'Customise', href: '/products' },
-		{ label: 'About us', href: '/about-us' },
-		{ label: 'Contact', href: '/contact-us' }
-	],
 	offers: { label: 'Best Offers', href: '/best-offers' }
 }

@@ -33,12 +33,10 @@
 
 	const activeUser = $derived(userState?.user?.role ? userState.user : (page.data as any)?.user)
 	const isLoggedIn = $derived(!!activeUser?.role)
-	const isAuthPending = $derived(!isLoggedIn && !!userState?.loading)
 	const displayName = $derived(activeUser?.firstName || activeUser?.name || 'My Account')
-	const isMobileRequest = $derived((page.data as any)?.navigation?.isMobileRequest === true)
 	const serverMegaMenu = $derived((page.data as any)?.navigation?.megaMenu as any[] | undefined)
 	const resolvedMenu = $derived(
-		resolveAdminMenu(navModule.megaMenu.length ? navModule.megaMenu : serverMegaMenu, navModule.navMenu, nav.home, serverMegaMenu === undefined ? nav.menu : [])
+		resolveAdminMenu(serverMegaMenu?.length ? serverMegaMenu : navModule.megaMenu, navModule.navMenu, nav.home, [])
 	)
 	const homeLabel = $derived(menuLabel(resolvedMenu.home))
 	const homeHref = '/'
@@ -265,7 +263,7 @@
 					</span>
 				</a>
 
-				<a class="rj-cart" class:rj-cart--empty={!cartState.cart?.qty} href="/checkout/cart" aria-label="Open cart">
+				<a class="rj-cart" href="/checkout/cart" aria-label="Open cart">
 					{#if (cartState.cart?.qty || 0) > 0}
 									<span class="rj-cart-icon rj-cart-icon--count">
 										<svg width="27" height="27" viewBox="0 0 27 27" fill="none" aria-hidden="true">
@@ -352,7 +350,7 @@
 					</ProfileDropdown>
 				{:else}
 					<DropdownMenu.Root>
-						<DropdownMenu.Trigger aria-label={isAuthPending ? 'Checking account' : 'Open account menu'} aria-busy={isAuthPending} disabled={isAuthPending} class="rj-guest-trigger">
+						<DropdownMenu.Trigger aria-label="Open account menu" class="rj-guest-trigger">
 							<span class="rj-account">
 							<span class="rj-account-icon" aria-hidden="true">
 								<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -365,15 +363,11 @@
 							<span class="rj-account-text rj-account-text--guest">
 								<span class="rj-account-greeting">{nav.account.greeting}</span>
 								<span class="rj-account-line">
-									{#if isAuthPending}
-										<span class="rj-account-loading" aria-hidden="true"></span>
-									{:else}
-										<span class="rj-account-auth">
-											<span class="rj-account-link">{nav.account.signIn}</span><span class="rj-account-or">{nav.account.divider}</span><span
-												class="rj-account-link">{nav.account.register}</span
-											>
-										</span>
-									{/if}
+									<span class="rj-account-auth">
+										<span class="rj-account-link">{nav.account.signIn}</span><span class="rj-account-or">{nav.account.divider}</span><span
+											class="rj-account-link">{nav.account.register}</span
+										>
+									</span>
 									<svg class="rj-i14" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
 										<path
 											d="M11.62 5.22083L7.81667 9.02417C7.3675 9.47333 6.6325 9.47333 6.18333 9.02417L2.38 5.22083"
@@ -414,7 +408,6 @@
 		</div>
 
 		<!-- Row 2 -->
-		{#if !isMobileRequest}
 		<div class="rj-row-menu">
 			<nav class="rj-menu" aria-label="Main navigation">
 				<a class="rj-menu-home" href={homeHref} aria-current={pathname === homeHref ? 'page' : undefined} onmouseenter={() => (openMega = null)}>
@@ -471,7 +464,6 @@
 				</svg>
 			</a>
 		</div>
-		{/if}
 	</div>
 </header>
 
@@ -886,8 +878,8 @@
 	.rj-cart-icon {
 		position: relative;
 		display: block;
-		width: 24px;
-		height: 24px;
+		width: 27px;
+		height: 27px;
 		flex-shrink: 0;
 	}
 
@@ -917,12 +909,6 @@
 		font-weight: 700;
 		color: var(--rj-ink, #404040);
 		white-space: nowrap;
-	}
-
-	/* Source: logged-out cart is w-[86px] justify-between (63:83444),
-	   logged-in collapses to gap-[4px] (63:83378). */
-	.rj-cart--empty {
-		justify-content: space-between;
 	}
 
 	.rj-account {
@@ -964,14 +950,6 @@
 		display: flex;
 		align-items: center;
 		gap: 5px;
-	}
-
-	.rj-account-loading {
-		display: block;
-		width: 92px;
-		height: 10px;
-		border-radius: 999px;
-		background: #ece9e2;
 	}
 
 	.rj-account-auth {

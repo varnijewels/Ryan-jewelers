@@ -5,6 +5,11 @@ vi.mock('$lib/core/load-functions/index.js', () => ({
 }))
 
 vi.mock('$lib/core/services/index.js', () => ({
+	CategoryService: class {
+		async getMegamenu() {
+			return [{ name: 'Bracelets', slug: 'bracelets' }]
+		}
+	},
 	UserService: class {
 		constructor(private fetch: typeof globalThis.fetch) {}
 
@@ -47,7 +52,7 @@ describe('Ryan account auth guard', () => {
 			cookies: { get: (name: string) => (name === 'connect.sid' ? 'valid-session' : undefined) },
 			fetch,
 			locals: { storeDetails: { id: 'store-1', countries: ['US'] } },
-			request: { headers: new Headers() },
+			request: { headers: new Headers({ 'user-agent': 'Mobile Safari' }) },
 			url: new URL('https://shop.test/')
 		} as any)
 
@@ -55,6 +60,7 @@ describe('Ryan account auth guard', () => {
 		expect(result.user).toBeNull()
 		expect(result.isPublicHomepage).toBe(true)
 		expect(result.store).toMatchObject({ id: 'store-1', countries: [] })
+		expect(result.navigation.megaMenu).toEqual([{ name: 'Bracelets', slug: 'bracelets' }])
 	})
 
 	it('rejects a stale session and keeps the requested account return URL', async () => {
