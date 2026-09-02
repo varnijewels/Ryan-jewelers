@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { menuChildren, menuHref, type AdminMenuItem } from './admin-menu.js'
+	import { menuChildren, menuGroups, menuHref, type AdminMenuItem } from './admin-menu.js'
 
 	let {
 		category,
@@ -14,7 +14,7 @@
 
 <div class="rj-admin-mega" id={menuId} aria-label="{category.name || 'Category'} menu">
 	<div class="rj-admin-grid">
-		{#each menuChildren(category) as group}
+		{#each menuGroups(category) as group}
 			<section class="rj-admin-group">
 				<a class="rj-admin-heading" href={menuHref(group)} onclick={onNavigate}>
 					{#if group.thumbnail}<img src={group.thumbnail} alt="" />{/if}

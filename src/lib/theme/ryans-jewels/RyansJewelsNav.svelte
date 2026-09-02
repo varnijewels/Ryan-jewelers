@@ -1092,6 +1092,8 @@
 		flex-shrink: 0;
 	}
 
+	.rj-menu-entry:hover :global(.rj-admin-mega),
+	.rj-menu-entry:focus-within :global(.rj-admin-mega),
 	.rj-menu-entry.is-open :global(.rj-lab-mega),
 	.rj-menu-entry.is-open :global(.rj-all-mega),
 	.rj-menu-entry.is-open :global(.rj-rings-mega),
@@ -1102,6 +1104,8 @@
 		transform: translateY(0);
 	}
 
+	.rj-menu-entry:hover .rj-menu-caret,
+	.rj-menu-entry:focus-within .rj-menu-caret,
 	.rj-menu-entry.is-open .rj-menu-caret {
 		transform: rotate(180deg);
 	}
@@ -1211,12 +1215,6 @@
 
 		.rj-menu-list {
 			gap: 18px;
-			overflow-x: auto;
-			scrollbar-width: none;
-		}
-
-		.rj-menu-list::-webkit-scrollbar {
-			display: none;
 		}
 	}
 
