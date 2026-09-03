@@ -12,6 +12,7 @@
 	import { appendOneTimeCartId } from '$lib/core/utils/index.js'
 	import CheckoutButton from '$lib/components/buttons/checkout-button.svelte'
 	import RyansJewelsPaymentPage from '$lib/theme/ryans-jewels/RyansJewelsPaymentPage.svelte'
+	import { StripePaymentElement } from '@misiki/kitcommerce-core/components'
 
 	// Check if phone is required based on login type
 	const isPhoneRequired = page.data?.store?.isPhoneMandatory
@@ -79,6 +80,10 @@
 								{paymentModule.errorMessage}
 							</div>
 						{/if}
+
+						<!-- Stripe Express / Payment Elements, ahead of the other payment methods. Renders nothing
+						     unless the store has Stripe configured. -->
+						<StripePaymentElement {cartState} {paymentModule} class="mb-6" />
 
 						{#if paymentModule.showPaymentMethods}
 							<div class="grid grid-cols-1 gap-4">

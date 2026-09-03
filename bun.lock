@@ -7,8 +7,8 @@
       "dependencies": {
         "@internationalized/date": "^3.7.0",
         "@lucide/svelte": "^1.8.0",
-        "@misiki/kitcommerce-core": "0.1.29",
-        "@misiki/litekart-connector": "^2.0.26",
+        "@misiki/kitcommerce-core": "^0.1.47",
+        "@misiki/litekart-connector": "^2.0.31",
         "cheerio": "^1.2.0",
         "culori": "^4.0.2",
         "fuse.js": "^7.1.0",
@@ -94,6 +94,8 @@
     "@asamuzakjp/generational-cache": ["@asamuzakjp/generational-cache@1.0.1", "", {}, "sha512-wajfB8KqzMCN2KGNFdLkReeHncd0AslUSrvHVvvYWuU8ghncRJoA50kT3zP9MVL0+9g4/67H+cdvBskj9THPzg=="],
 
     "@asamuzakjp/nwsapi": ["@asamuzakjp/nwsapi@2.3.9", "", {}, "sha512-n8GuYSrI9bF7FFZ/SjhwevlHc8xaVlb/7HmHelnc/PZXBD2ZR49NnN9sMMuDdEGPeeRQ5d0hqlSlEpgCX3Wl0Q=="],
+
+    "@ayushtripathy/tracebox": ["@ayushtripathy/tracebox@0.0.3", "", {}, "sha512-BVDDOJIgavhbbj2aLnDxouZ3/zJugmernWwOvUhS6QLTek3sdAfyWHDxb6Dfhg6a0cUsUCiixM2syjKhUELITg=="],
 
     "@babel/code-frame": ["@babel/code-frame@7.29.7", "", { "dependencies": { "@babel/helper-validator-identifier": "^7.29.7", "js-tokens": "^4.0.0", "picocolors": "^1.1.1" } }, "sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw=="],
 
@@ -285,9 +287,9 @@
 
     "@melt-ui/svelte": ["@melt-ui/svelte@0.76.2", "", { "dependencies": { "@floating-ui/core": "^1.3.1", "@floating-ui/dom": "^1.4.5", "@internationalized/date": "^3.5.0", "dequal": "^2.0.3", "focus-trap": "^7.5.2", "nanoid": "^5.0.4" }, "peerDependencies": { "svelte": ">=3 <5" } }, "sha512-7SbOa11tXUS95T3fReL+dwDs5FyJtCEqrqG3inRziDws346SYLsxOQ6HmX+4BkIsQh1R8U3XNa+EMmdMt38lMA=="],
 
-    "@misiki/kitcommerce-core": ["@misiki/kitcommerce-core@0.1.29", "", { "dependencies": { "@stripe/stripe-js": "^9.0.0", "bits-ui": "^2.16.3", "clsx": "^2.1.1", "embla-carousel-svelte": "^8.6.0", "fuse.js": "^7.1.0", "jsdom": "^29.0.2", "svelte-sonner": "^1.1.0", "tailwind-merge": "^3.5.0", "zod": "^3.24.1" }, "peerDependencies": { "@misiki/litekart-connector": "^2.0.28", "@sveltejs/kit": "^2.50.2", "svelte": "^5.0.0" } }, "sha512-lT4Dbg/t+BA5oOe0DFOlTEfXBUqWByg+IxPBnrAMPSR0/ypJ44BTpGbx+FCDyS+XvPWChgAOvt5WGbtXOBfhKA=="],
+    "@misiki/kitcommerce-core": ["@misiki/kitcommerce-core@0.1.47", "", { "dependencies": { "@ayushtripathy/tracebox": "^0.0.3", "@stripe/stripe-js": "^9.0.0", "bits-ui": "^2.16.3", "clsx": "^2.1.1", "date-fns": "^4.4.0", "embla-carousel-svelte": "^8.6.0", "fuse.js": "^7.1.0", "jsdom": "^29.0.2", "svelte-sonner": "^1.1.0", "tailwind-merge": "^3.5.0", "zod": "^3.24.1" }, "peerDependencies": { "@misiki/litekart-connector": "^2.0.31", "@sveltejs/kit": "^2.50.2", "svelte": "^5.0.0" } }, "sha512-fJ/yeF9IHSD+PPeb7wpWMjIkXAIAapFbbrBTPk2AV2ZqJzorG+hfwA8sX90NmFOLyr4sYUe2hi1fI27CDkCJTg=="],
 
-    "@misiki/litekart-connector": ["@misiki/litekart-connector@2.0.29", "", {}, "sha512-ADY5L+hvWpZndbMb5G8rkly25hA5/oCawh+V+EeoViqeAH2sgfhFh21AYjwuC4HG8M01vji3JtJu7OVE2Shr4g=="],
+    "@misiki/litekart-connector": ["@misiki/litekart-connector@2.0.31", "", {}, "sha512-YTsnt5cJKPVBUKHW9AV49zCtxS4N1Pn1HKr1YF/dPNtg37ctux4cVDO56yVe6v7n4XEgxjOSl6UgsUIQd0X7+w=="],
 
     "@napi-rs/lzma-linux-x64-gnu": ["@napi-rs/lzma-linux-x64-gnu@1.5.1", "", { "os": "linux", "cpu": "x64" }, "sha512-oTXEIha4SsuXdTA4Iyskj0kpdx2yVXdhd75c2v3xGrHFfVMsbhTPZU/nMPL4sWKo4pBHm3aucLaqGlF696dTyQ=="],
 

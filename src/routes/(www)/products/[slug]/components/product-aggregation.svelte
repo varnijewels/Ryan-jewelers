@@ -4,6 +4,16 @@
 	import { Button } from '$lib/components/ui/button/index.js'
 
 	const productState = useProductState()
+
+	// Option values arrive as strings like "0.50 ct" / "1.25 ct"; a plain .sort() orders them
+	// lexically, so 10 sorts before 2. Sort on the leading numeric instead, falling back to 0
+	// for non-numeric values so they keep a stable position rather than throwing.
+	function sortByNumericValue(arr) {
+		return arr
+			.map((x) => ({ value: x, numeric: Number(x.match(/[0-9.]+/)?.[0] || "0") || 0 }))
+			.sort((a, b) => a.numeric - b.numeric)
+			.map((x) => x.value)
+	}
 </script>
 
 {#if page.data?.product?.ag && Object.keys(page.data?.product?.ag).length}
@@ -24,7 +34,7 @@
 					</div>
 
 					<div class="flex flex-wrap items-center gap-3">
-						{#each [...values].sort() as value}
+						{#each sortByNumericValue(values) as value}
 							<Button
 								variant={productState.selectedAggregations?.[optionName] === value ? 'default' : 'plain'}
 								disabled={!productState.isAggregationAvaliable(optionName, value)}
