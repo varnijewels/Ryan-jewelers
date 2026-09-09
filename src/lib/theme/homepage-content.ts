@@ -3,7 +3,6 @@ import { sarabContent } from './sarab/homepage-content.js'
 import { organicContent } from './organic/homepage-content.js'
 import { limelightContent } from './limelight/homepage-content.js'
 import { noorContent } from './noor/homepage-content.js'
-import { borisAndTwinsContent } from './boris-and-twins/homepage-content.js'
 import { ryansJewelsContent } from './ryans-jewels/homepage-content.js'
 import type { ThemeHomepageContent } from './types.js'
 const CONTENT_BY_THEME: Record<string, ThemeHomepageContent> = {
@@ -12,7 +11,6 @@ const CONTENT_BY_THEME: Record<string, ThemeHomepageContent> = {
 	organic: organicContent,
 	limelight: limelightContent,
 	noor: noorContent,
-	'boris-and-twins': borisAndTwinsContent,
 	'ryans-jewels': ryansJewelsContent
 }
 export type { ThemeHomepageContent } from './types.js'

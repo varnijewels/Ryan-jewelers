@@ -7,7 +7,6 @@ export type StorefrontThemeName =
 	| 'organic'
 	| 'limelight'
 	| 'noor'
-	| 'boris-and-twins'
 	| 'ryans-jewels'
 	| string
 
@@ -17,7 +16,7 @@ export interface StorefrontTheme {
 	available: string[]
 }
 
-const AVAILABLE_THEMES = ['default', 'sarab', 'organic', 'limelight', 'noor', 'boris-and-twins', 'ryans-jewels']
+const AVAILABLE_THEMES = ['default', 'sarab', 'organic', 'limelight', 'noor', 'ryans-jewels']
 const DEFAULT_THEME = 'default'
 
 const THEME_FONTS: Record<string, string> = {
@@ -27,8 +26,6 @@ const THEME_FONTS: Record<string, string> = {
 		'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Nunito:wght@400;600;700;900&family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap',
 	noor:
 		'https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Montserrat:wght@400;500;600;700&display=swap',
-	'boris-and-twins':
-		'https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;0,6..96,700;1,6..96,400&family=Jost:wght@300;400;500;600&family=Chivo:wght@400;500&family=Chonburi&display=swap',
 	'ryans-jewels':
 		'https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,300;0,400;0,700;1,400&family=Afacad:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Lato:wght@400;700;900&family=Red+Rose:wght@300;400;500;600;700&family=Rozha+One&family=Sarala:wght@400;700&display=swap'
 }

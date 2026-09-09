@@ -16,7 +16,6 @@
 	import { getThemeHomepageContent } from '$lib/theme/index.js'
 	import LimelightFooter from '$lib/theme/limelight/LimelightFooter.svelte'
 	import NoorFooter from '$lib/theme/noor/NoorFooter.svelte'
-	import BorisAndTwinsFooter from '$lib/theme/boris-and-twins/BorisAndTwinsFooter.svelte'
 	import RyansJewelsFooter from '$lib/theme/ryans-jewels/RyansJewelsFooter.svelte'
 
 	let paymentMethodCards = [
@@ -64,8 +63,6 @@
 		<LimelightFooter footer={themeFooter} brandName={themeContent.brandName} />
 	{:else if activeThemeName === 'noor'}
 		<NoorFooter footer={themeFooter} description={themeContent.description} />
-	{:else if activeThemeName === 'boris-and-twins'}
-		<BorisAndTwinsFooter footer={themeFooter} description={themeContent.description} brandName={themeContent.brandName} />
 	{:else if activeThemeName === 'ryans-jewels'}
 		<RyansJewelsFooter brandName={themeContent.brandName} />
 	{:else}

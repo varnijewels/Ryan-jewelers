@@ -33,7 +33,6 @@
 	import { onDestroy, onMount } from 'svelte'
 	import NoorNav from '$lib/theme/noor/NoorNav.svelte'
 	import LimelightNav from '$lib/theme/limelight/LimelightNav.svelte'
-	import BorisAndTwinsNav from '$lib/theme/boris-and-twins/BorisAndTwinsNav.svelte'
 	import RyansJewelsNav from '$lib/theme/ryans-jewels/RyansJewelsNav.svelte'
 	import RjTabletLabMenu from '$lib/theme/ryans-jewels/RjTabletLabMenu.svelte'
 	import { menuChildren, menuHref, menuLabel, mobileMenuView, tabletMenuView, type AdminMenuItem } from '$lib/theme/ryans-jewels/admin-menu.js'
@@ -181,8 +180,6 @@
 	<LimelightNav {navModule} {wishlistPlugin} {wishlistState} {userState} {storeData} pathname={page.url.pathname} />
 {:else if activeThemeName === 'noor'}
 	<NoorNav {navModule} {wishlistPlugin} {wishlistState} {userState} {storeData} pathname={page.url.pathname} />
-{:else if activeThemeName === 'boris-and-twins'}
-	<BorisAndTwinsNav {navModule} {wishlistPlugin} {wishlistState} {userState} {storeData} pathname={page.url.pathname} />
 {:else if activeThemeName === 'ryans-jewels'}
 	<RyansJewelsNav {navModule} {wishlistPlugin} {wishlistState} {userState} {storeData} pathname={page.url.pathname} />
 {:else}
