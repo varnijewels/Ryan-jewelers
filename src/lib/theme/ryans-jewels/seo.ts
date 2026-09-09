@@ -79,7 +79,7 @@ export function productStructuredData(
 		description: ryansSeoText(product?.description),
 		sku: String(variant?.sku || product?.sku || ''),
 		brandName: ryansSeoText(store?.name, 'Ryan Jewelers'),
-		aggregateRating: { ratingValue, reviewCount },
+		aggregateRating: ratingValue > 0 && reviewCount > 0 ? { ratingValue, reviewCount } : undefined,
 		url,
 		priceCurrency: String(store?.currency?.code || 'USD'),
 		price: Number.isFinite(price) ? price : undefined,

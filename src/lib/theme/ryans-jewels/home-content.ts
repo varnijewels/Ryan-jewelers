@@ -269,7 +269,7 @@ export const passionStats: PassionStat[] = [
 export const rarePassion = {
 	eyebrow: 'About us',
 	/** Rendered with `text-transform: capitalize`, exactly as the source frame does. */
-	heading: 'Designed with zist core passion',
+	heading: 'Designed with rare passion',
 	/** Paragraph 1 is a single text node with one bold run (1:6182). */
 	leadBefore:
 		'We believe that every woman deserves the brilliance of a diamond — not just as a luxury, but as a right. We’re redefining what it means to own diamond jewellery by offering high-quality, sustainable, and accessible ',
@@ -324,7 +324,7 @@ export const namePlateCards: NamePlateCard[] = [
 		imageAlt: 'Diamond-set name plate pendant reading Kayla',
 		name: 'Yellow gold frams50013',
 		category: 'wedding rings',
-		rating: 5.5,
+		rating: 0,
 		cta: 'Customise now',
 		href: '/products',
 		crop: { left: -3.61, top: -5.45, width: 109.31 },
@@ -336,7 +336,7 @@ export const namePlateCards: NamePlateCard[] = [
 		imageAlt: 'Diamond-set name plate pendant reading Laura',
 		name: 'Rose gold frams50013',
 		category: 'wedding rings',
-		rating: 5.5,
+		rating: 0,
 		cta: 'Customise now',
 		href: '/products',
 		crop: { left: -3.75, top: -3.62, width: 109.31 },
@@ -348,7 +348,7 @@ export const namePlateCards: NamePlateCard[] = [
 		imageAlt: 'Diamond-set personalised name plate pendant',
 		name: 'Yellow gold frams50013',
 		category: 'wedding rings',
-		rating: 5.5,
+		rating: 0,
 		cta: 'Customise now',
 		href: '/products',
 		crop: { left: -3.56, top: -0.15, width: 109.31 },
@@ -360,7 +360,7 @@ export const namePlateCards: NamePlateCard[] = [
 		imageAlt: 'Diamond-set name plate reading Martin',
 		name: 'Rose gold frams50013',
 		category: 'wedding rings',
-		rating: 5.5,
+		rating: 0,
 		cta: 'Customise now',
 		href: '/products',
 		crop: { left: -3.75, top: 0, width: 109.31 },
@@ -400,7 +400,7 @@ export const lookbook = {
 	title: 'our best sellers products',
 	/** TODO: replace with the real campaign end date. */
 	offerEndsAt: '2026-12-31T23:59:59Z',
-	countdownLabels: ['Day', 'Hours', 'Minutes', 'Secound'],
+	countdownLabels: ['Days', 'Hours', 'Minutes', 'Seconds'],
 	shopNowLabel: 'Shop now',
 	shopNowHref: '/products',
 	image: '/ryans-jewels/home/lookbook-side.jpg',

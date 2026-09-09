@@ -74,6 +74,16 @@ describe('Ryan Jewelers SEO helpers', () => {
 		expect(schema.description).toContain('Ryan Jewelers')
 	})
 
+	it('omits empty aggregate ratings from product schema', () => {
+		const schema = productStructuredData(
+			{ title: 'Diamond Ring', price: 995.99, stock: 2, manageInventory: true },
+			{ name: 'Ryan Jewelers', currency: { code: 'USD' } },
+			'https://ryan.varnijewels.com/products/diamond-ring'
+		)
+
+		expect(schema.aggregateRating).toBeUndefined()
+	})
+
 	it('ships indexable blog fallbacks and the real Instagram profile', () => {
 		expect(ryansBlogPosts).toHaveLength(3)
 		expect(new Set(ryansBlogPosts.map((post) => post.slug)).size).toBe(ryansBlogPosts.length)

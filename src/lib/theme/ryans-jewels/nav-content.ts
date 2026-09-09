@@ -45,7 +45,7 @@ export const ryansJewelsNavContent: RyansJewelsNavContent = {
 		giftCard: { label: 'Gift Card', href: '/products?search=gift+card' },
 		helpContact: { label: 'Help & Contact', href: '/contact-us' },
 		postalCodeLabel: 'Enter postal code',
-		countryCode: 'IN',
+		countryCode: 'US',
 		language: 'English'
 	},
 	searchPlaceholder: 'Search here',

@@ -41,4 +41,20 @@ describe('Ryan critical account links', () => {
 		expect(footer).toContain("{ label: 'Customise Design', href: '/products' }")
 		expect(footer).toContain("{ label: 'Contact Us', href: '/contact-us' }")
 	})
+
+	it('shows only genuine customer ratings and testimonials', async () => {
+		const [homeContent, namePlate, navigationContent, productDetails] = await Promise.all([
+			readFile('src/lib/theme/ryans-jewels/home-content.ts', 'utf8'),
+			readFile('src/lib/theme/ryans-jewels/RjNamePlate.svelte', 'utf8'),
+			readFile('src/lib/theme/ryans-jewels/nav-content.ts', 'utf8'),
+			readFile('src/lib/theme/ryans-jewels/RyansJewelsProductDetails.svelte', 'utf8')
+		])
+
+		expect(homeContent).not.toContain('rating: 5.5')
+		expect(namePlate).toContain('{#if liveCards.length}')
+		expect(navigationContent).toContain("countryCode: 'US'")
+		expect(productDetails).not.toContain('TESTIMONIAL_FALLBACK')
+		expect(productDetails).not.toContain('reviewRating || 4.5')
+		expect(productDetails).toContain('ryansSeoText(product?.description)')
+	})
 })

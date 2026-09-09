@@ -14,23 +14,11 @@
 	import { productRating, withoutDemoProducts } from './product-filters.js'
 	import RjInstagram from './RjInstagram.svelte'
 	import { instagramStrip } from './footer-content.js'
+	import { ryansSeoText } from './seo.js'
 	import RjWideBanner from './RjWideBanner.svelte'
 	import { adjacentProductImage, customizationOptions, diamondImageForShape, discountPercent, groupedProductForAttribute, groupedProductForSelections, groupedValuesForAttribute, metalColorImage, metalColorTone, productAttributeValue, productDetailParagraphs, productImages, toggleStoredId, variantForOption, variantForSelections } from './product-details.logic.js'
 
 	const COMPARE_STORAGE_KEY = 'ryans-jewels-compare-products'
-	const TESTIMONIAL_FALLBACK = [
-		{ name: 'Johan Michel', rating: 4.5, likes: '4.5k', comments: 500, createdAt: '2025-08-29', image: '/ryans-jewels/product/testimonials/avatar-1.jpg', review: "A diamond toggle bracelet was my very first purchase at Ryan's Jewels. I was impressed by the designs and how smooth the entire purchase felt." },
-		{ name: 'Emilio Lindgren', rating: 4.5, likes: '4.5k', comments: 500, createdAt: '2025-08-29', image: '/ryans-jewels/product/testimonials/avatar-2.jpg', review: 'The jewellery is beautifully finished, comfortable to wear, and looked even better in person than it did online.' },
-		{ name: 'Melinda Gusikowski', rating: 4.5, likes: '4.5k', comments: 500, createdAt: '2025-08-29', image: '/ryans-jewels/product/testimonials/avatar-3.jpg', review: 'The piece arrived safely packed and right on time. The quality, sparkle, and delicate details exceeded my expectations.' },
-		{ name: 'Ernesto Feeney', rating: 4.5, likes: '4.5k', comments: 500, createdAt: '2025-08-29', image: '/ryans-jewels/product/testimonials/avatar-4.jpg', review: 'I had an amazing experience with this product. The quality exceeded my expectations, and the customer service team was incredibly helpful.' },
-		{ name: 'Clara Kuphal', rating: 4.5, likes: '4.5k', comments: 500, createdAt: '2025-08-29', image: '/ryans-jewels/product/testimonials/avatar-5.jpg', review: 'A timeless design with a beautiful finish. It has quickly become one of my favourite pieces to wear every day.' },
-		{ name: 'Joy Zboncak', rating: 4.5, likes: '4.5k', comments: 500, createdAt: '2025-08-29', image: '/ryans-jewels/product/testimonials/avatar-6.jpg', review: 'The craftsmanship is excellent and the fit is perfect. I received so many compliments the first time I wore it.' },
-		{ name: 'Naomi Grady', rating: 4.5, likes: '4.5k', comments: 500, createdAt: '2025-08-29', image: '/ryans-jewels/product/testimonials/avatar-7.jpg', review: 'The ordering experience was simple and the jewellery feels premium. I would happily recommend Ryan’s Jewels.' },
-		{ name: 'Denise Lind', rating: 4.5, likes: '4.5k', comments: 500, createdAt: '2025-08-29', image: '/ryans-jewels/product/testimonials/avatar-8.jpg', review: 'Beautifully made, elegant, and exactly as pictured. The attention to detail makes this piece feel truly special.' },
-		{ name: 'Ernest Von', rating: 4.5, likes: '4.5k', comments: 500, createdAt: '2025-08-29', image: '/ryans-jewels/product/testimonials/avatar-9.jpg', review: 'The stones catch the light beautifully and the setting feels secure. Everything from order to delivery was excellent.' },
-		{ name: 'Mia Schaefer', rating: 4.5, likes: '4.5k', comments: 500, createdAt: '2025-08-29', image: '/ryans-jewels/product/testimonials/avatar-10.jpg', review: 'I chose this as a gift and it was loved instantly. The presentation, finish, and service were all wonderful.' }
-	]
-
 	const productState = useProductState()
 	const data = $derived(page.data)
 	let selectedProduct = $state<any>(null)
@@ -89,13 +77,14 @@
 	const category = $derived(product?.category?.name || [...(product?.categoryHierarchy || [])].reverse().find((item: any) => item.name !== product.title)?.name || '')
 	const ratings = $derived(Array.isArray(product?.ratings) ? product.ratings : [])
 	const testimonials = $derived([...ratings, ...(Array.isArray(product?.brandReviews) ? product.brandReviews : [])])
-	const displayedTestimonials = $derived(testimonials.length ? testimonials.slice(0, 10) : TESTIMONIAL_FALLBACK)
+	const displayedTestimonials = $derived(testimonials.slice(0, 10))
 	const rating = $derived(productRating(product))
 	const reviewCount = $derived(Number(product?.reviewCount ?? product?.ratingCount ?? ratings.length) || ratings.length)
 	const inStock = $derived(!product?.manageInventory || Number(selectedVariant?.stock ?? product?.stock ?? 0) > 0)
 	const attributes = $derived(Array.isArray(product?.attributes) ? product.attributes : [])
 	const detailSku = $derived(selectedVariant?.sku || product?.sku || product?.id || '')
-	const detailParagraphs = $derived(productDetailParagraphs(product?.description, product?.subtitle))
+	const productDescription = $derived(ryansSeoText(product?.description))
+	const detailParagraphs = $derived(productDetailParagraphs(productDescription, product?.subtitle))
 	const metalType = $derived(productAttributeValue(attributes, /metal\s*type/i))
 	const metalColor = $derived(productAttributeValue(attributes, /metal\s*color/i))
 	const caratWeight = $derived(productAttributeValue(attributes, /(carat|diamond).*weight|weight.*(carat|diamond)/i))
@@ -419,16 +408,19 @@
 			<div class="rj-product-meta">
 				<div class="rj-meta-summary">
 					{#if category}<span class="rj-category">{category}</span>{/if}
-					<span class="rj-stars"><img src="/ryans-jewels/product/star.svg" alt="" /><img src="/ryans-jewels/product/star.svg" alt="" />{rating.toFixed(1)}</span>
+					{#if reviewCount > 0}<span class="rj-stars"><img src="/ryans-jewels/product/star.svg" alt="" /><img src="/ryans-jewels/product/star.svg" alt="" />{rating.toFixed(1)}</span>{/if}
 				</div>
-				<i aria-hidden="true"></i>
-				<span class="rj-rating-copy">{rating.toFixed(1)} out of 5 ratings <span class="rj-review-count">{reviewCount} {reviewCount === 1 ? 'review' : 'reviews'}</span></span><i aria-hidden="true"></i>
+				{#if reviewCount > 0}
+					<i aria-hidden="true"></i>
+					<span class="rj-rating-copy">{rating.toFixed(1)} out of 5 ratings <span class="rj-review-count">{reviewCount} {reviewCount === 1 ? 'review' : 'reviews'}</span></span>
+					<i aria-hidden="true"></i>
+				{/if}
 				<span class:available={inStock} class="rj-stock">{#if inStock}<span class="rj-stock-icon"><img src="/ryans-jewels/product/stock-tick.svg" alt="" /></span>{/if}{inStock ? 'Stock Available' : 'Out Of Stock'}</span>
 			</div>
 
 			<div class="rj-description">
 				<p class="rj-label">Description</p>
-				<div class="rj-description-copy">{@html product.description || ''}</div>
+				<div class="rj-description-copy">{@html productDescription}</div>
 			</div>
 
 			<hr />
@@ -626,7 +618,7 @@
 			{#each reviews as review}
 				{@const reviewerName = reviewValue(review, 'name', 'reviewerName', 'userName') || 'Customer'}
 				{@const reviewerImage = reviewValue(review, 'img', 'image', 'avatar')}
-				{@const reviewCopy = reviewValue(review, 'review', 'message', 'comment') || 'A wonderful experience with Ryan’s Jewels.'}
+				{@const reviewCopy = reviewValue(review, 'review', 'message', 'comment') || ''}
 				{@const createdAt = reviewValue(review, 'createdAt', 'created_at', 'date')}
 				{@const reviewRating = Number(reviewValue(review, 'rating', 'stars', 'score') || 0)}
 				<article class="rj-testimonial-card">
@@ -635,7 +627,7 @@
 							<span class="rj-mobile-review-avatar">{#if reviewerImage}<img src={reviewerImage} alt="" loading="lazy" decoding="async" />{:else}{String(reviewerName).charAt(0).toUpperCase()}{/if}</span>
 							<div>
 								<b>{reviewerName}</b>
-								<span class="rj-mobile-review-rating"><img src="/ryans-jewels/product/testimonials/stars.svg" alt="" /><i></i><small>{reviewRating || 4.5} Review</small></span>
+								{#if reviewRating > 0}<span class="rj-mobile-review-rating"><img src="/ryans-jewels/product/testimonials/stars.svg" alt="" /><i></i><small>{reviewRating} Review</small></span>{/if}
 							</div>
 						</div>
 						<div class="rj-testimonial-social">
@@ -652,25 +644,27 @@
 			{/each}
 		{/snippet}
 
-		<section class="rj-mobile-testimonials" aria-labelledby="rj-mobile-testimonials-title">
-			<header>
-				<div><h2 id="rj-mobile-testimonials-title">Don't take our word for it.</h2><p>Trust our customers</p></div>
-			</header>
-			<div class="rj-testimonial-rows">
-				<div class="rj-testimonial-row">
-					<div class="rj-testimonial-strip">
-						<div class="rj-testimonial-group">{@render testimonialCards(displayedTestimonials)}</div>
-						<div class="rj-testimonial-group" aria-hidden="true">{@render testimonialCards(displayedTestimonials)}</div>
+		{#if displayedTestimonials.length}
+			<section class="rj-mobile-testimonials" aria-labelledby="rj-mobile-testimonials-title">
+				<header>
+					<div><h2 id="rj-mobile-testimonials-title">Don't take our word for it.</h2><p>Trust our customers</p></div>
+				</header>
+				<div class="rj-testimonial-rows">
+					<div class="rj-testimonial-row">
+						<div class="rj-testimonial-strip">
+							<div class="rj-testimonial-group">{@render testimonialCards(displayedTestimonials)}</div>
+							<div class="rj-testimonial-group" aria-hidden="true">{@render testimonialCards(displayedTestimonials)}</div>
+						</div>
+					</div>
+					<div class="rj-testimonial-row is-reverse">
+						<div class="rj-testimonial-strip">
+							<div class="rj-testimonial-group">{@render testimonialCards(displayedTestimonials)}</div>
+							<div class="rj-testimonial-group" aria-hidden="true">{@render testimonialCards(displayedTestimonials)}</div>
+						</div>
 					</div>
 				</div>
-				<div class="rj-testimonial-row is-reverse">
-					<div class="rj-testimonial-strip">
-						<div class="rj-testimonial-group">{@render testimonialCards(displayedTestimonials)}</div>
-						<div class="rj-testimonial-group" aria-hidden="true">{@render testimonialCards(displayedTestimonials)}</div>
-					</div>
-				</div>
-			</div>
-		</section>
+			</section>
+		{/if}
 
 		<RjInstagram href={instagramHref} />
 	</div>

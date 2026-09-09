@@ -75,15 +75,15 @@
 				<a class="rj-plate-button" href={ctaHref}>{ctaLabel}</a>
 			</div>
 
-			<ul class="rj-plate-cards rj-plate-cards--static" bind:this={track}>
-				{#each cards as card (card.key)}
-					<li class="rj-plate-card"><RjCustomiseCard {card} /></li>
-				{/each}
-			</ul>
-
 			{#if liveCards.length}
-				<ul class="rj-plate-cards rj-plate-cards--live">
+				<ul class="rj-plate-cards" bind:this={track}>
 					{#each liveCards as card (card.key)}
+						<li class="rj-plate-card"><RjCustomiseCard {card} /></li>
+					{/each}
+				</ul>
+			{:else}
+				<ul class="rj-plate-cards" bind:this={track}>
+					{#each cards as card (card.key)}
 						<li class="rj-plate-card"><RjCustomiseCard {card} /></li>
 					{/each}
 				</ul>
@@ -262,10 +262,6 @@
 	}
 
 	.rj-plate-cards::-webkit-scrollbar {
-		display: none;
-	}
-
-	.rj-plate-cards--live {
 		display: none;
 	}
 
@@ -518,14 +514,6 @@
 
 		.rj-plate-cards::-webkit-scrollbar {
 			display: none;
-		}
-
-		.rj-plate-cards--static {
-			display: none;
-		}
-
-		.rj-plate-cards--live {
-			display: flex;
 		}
 
 		.rj-plate-card {
