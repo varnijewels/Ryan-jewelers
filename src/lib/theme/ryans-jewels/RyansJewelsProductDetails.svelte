@@ -192,7 +192,8 @@
 		if (!selectedVariant?.id || !product?.id) return toast.error('Please select a product variation')
 		const previousCartId = cartState.cart?.id
 		await cartState.createSingleItemCheckoutSession({ productId: product.id, variantId: selectedVariant.id, qty: productState.qty })
-		if (cartState.cart?.id && cartState.cart.id !== previousCartId) goto('/checkout/cart')
+		if (!cartState.cart?.id || cartState.cart.id === previousCartId) return toast.error('Unable to start checkout. Please try again.')
+		await goto('/checkout/address')
 	}
 
 	async function toggleWishlist() {
