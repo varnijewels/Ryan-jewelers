@@ -57,7 +57,7 @@ describe('Ryan critical account links', () => {
 		expect(productDetails).not.toContain('TESTIMONIAL_FALLBACK')
 		expect(productDetails).not.toContain('reviewRating || 4.5')
 		expect(productDetails).toContain('ryansSeoText(product?.description)')
-		expect(productDetails).toContain("await goto('/checkout/address')")
+		expect(productDetails).toContain("await goto('/checkout/address?step=shipping')")
 		expect(productDetails).toContain('Unable to start checkout. Please try again.')
 		expect(checkoutOverview).not.toContain(':is(button, a, input, select):focus-visible')
 		expect(checkoutOverview).toContain('.rj-customer-fields label, .rj-address-fields label > span')
