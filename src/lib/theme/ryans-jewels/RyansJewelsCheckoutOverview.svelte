@@ -764,7 +764,8 @@
 <style>
 	:global(.theme-ryans-jewels main.inter-gap:has(> .rj-checkout-overview)) { min-height: auto; }
 	.rj-checkout-overview { min-height: 708px; background: #fff; color: #202020; font-family: 'Lato', sans-serif; }
-	.rj-checkout-overview :is(button, a, input, select):focus-visible { outline: 2px solid #8b670f; outline-offset: 3px; }
+	.rj-checkout-overview :is(button, a):focus-visible { outline: 2px solid #8b670f; outline-offset: 3px; }
+	.rj-checkout-overview :is(.rj-customer-fields label, .rj-address-fields label > span, .rj-shipping-coupon, .rj-login-fields label):focus-within { border-color: #8b670f; box-shadow: 0 0 0 1px #8b670f; }
 	.rj-checkout-overview :is(input, select):autofill,
 	.rj-checkout-overview :is(input, select):-webkit-autofill,
 	.rj-checkout-overview :is(input, select):-webkit-autofill:hover,

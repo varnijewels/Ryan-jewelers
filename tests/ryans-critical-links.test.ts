@@ -43,11 +43,12 @@ describe('Ryan critical account links', () => {
 	})
 
 	it('shows only genuine customer ratings and testimonials', async () => {
-		const [homeContent, namePlate, navigationContent, productDetails] = await Promise.all([
+		const [homeContent, namePlate, navigationContent, productDetails, checkoutOverview] = await Promise.all([
 			readFile('src/lib/theme/ryans-jewels/home-content.ts', 'utf8'),
 			readFile('src/lib/theme/ryans-jewels/RjNamePlate.svelte', 'utf8'),
 			readFile('src/lib/theme/ryans-jewels/nav-content.ts', 'utf8'),
-			readFile('src/lib/theme/ryans-jewels/RyansJewelsProductDetails.svelte', 'utf8')
+			readFile('src/lib/theme/ryans-jewels/RyansJewelsProductDetails.svelte', 'utf8'),
+			readFile('src/lib/theme/ryans-jewels/RyansJewelsCheckoutOverview.svelte', 'utf8')
 		])
 
 		expect(homeContent).not.toContain('rating: 5.5')
@@ -58,5 +59,7 @@ describe('Ryan critical account links', () => {
 		expect(productDetails).toContain('ryansSeoText(product?.description)')
 		expect(productDetails).toContain("await goto('/checkout/address')")
 		expect(productDetails).toContain('Unable to start checkout. Please try again.')
+		expect(checkoutOverview).not.toContain(':is(button, a, input, select):focus-visible')
+		expect(checkoutOverview).toContain('.rj-customer-fields label, .rj-address-fields label > span')
 	})
 })
