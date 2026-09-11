@@ -116,13 +116,6 @@ test('Ryan header does not render the static fallback menu', async ({ request })
 	expect(await response.text()).not.toContain('>All Jewellery<')
 })
 
-test('sitemap serves Ryan pages instead of redirecting to a missing file', async ({ request }) => {
-	const response = await request.get('/sitemap.xml')
-	expect(response.status()).toBe(200)
-	expect(response.headers()['content-type']).toContain('application/xml')
-	expect(await response.text()).toContain(`<loc>${new URL(response.url()).origin}/products</loc>`)
-})
-
 for (const path of ['/collections', '/categories/lab-grown-diamond', '/categories/rings', '/categories/engagement', '/categories/bracelets', '/categories/earrings', '/categories/pendants']) {
 	test(`${path} redirects to the working catalog`, async ({ request }) => {
 		const response = await request.get(path)

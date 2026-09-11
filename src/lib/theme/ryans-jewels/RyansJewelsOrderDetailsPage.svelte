@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import { page } from '$app/state'
-	import { MyOrdersIdRenderer, OrderTrackingModule } from '$lib/core/composables/index.js'
+	import { OrderTrackingModule } from '$lib/core/composables/index.js'
 	import { getCartState } from '$lib/core/stores/index.js'
 	import { formatPrice } from '$lib/core/utils/index.js'
 	import { toast } from 'svelte-sonner'
-	import { productReviewHref } from './commerce-flow.js'
+	import { orderInvoiceUrl, productReviewHref, sameVariant } from './commerce-flow.js'
+	import RyansJewelsOrderDetailsRenderer from './RyansJewelsOrderDetailsRenderer.svelte'
 
 	const cartState = getCartState()
 	const hasPublicTracking = Boolean(page.url.searchParams.get('otp') && page.url.searchParams.get('email'))
@@ -93,17 +94,37 @@
 		}
 	}
 
-	async function buyAgain(item: any) {
+	async function buyAgain(items: any[]) {
 		if (buyingAgain) return
-		if (!cartState || !item?.productId || !item?.variantId) return toast.error('This product variation is no longer available')
+		if (!cartState || !items.length || items.some((item) => !item?.productId || !item?.variantId)) return toast.error('This product variation is no longer available')
 		buyingAgain = true
-		const previousQty = Number(cartState.cart?.lineItems?.find((entry: any) => entry.productId === item.productId && entry.variantId === item.variantId)?.qty || 0)
-		await cartState.addOrUpdate({ productId: item.productId, variantId: item.variantId, qty: Number(item.qty || item.quantity || 1) })
-		const nextQty = Number(cartState.cart?.lineItems?.find((entry: any) => entry.productId === item.productId && entry.variantId === item.variantId)?.qty || 0)
-		buyingAgain = false
-		if (nextQty <= previousQty) return toast.error('Unable to add this item to your bag')
-		toast.success('Item added to bag')
-		await goto('/checkout/cart')
+		try {
+			await cartState.hasLoaded
+			const previousQty = items.map((item) => Number(cartState.cart?.lineItems?.find((entry: any) => sameVariant(entry, item))?.qty || 0))
+			for (const item of items) {
+				await cartState.addOrUpdate({ productId: item.productId, variantId: item.variantId, qty: Math.max(1, Number(item.qty || item.quantity || 1)) })
+			}
+			if (!items.every((item, index) => Number(cartState.cart?.lineItems?.find((entry: any) => sameVariant(entry, item))?.qty || 0) > previousQty[index])) {
+				return toast.error('Unable to add this order to your bag')
+			}
+			toast.success('Order added to bag')
+			await goto('/checkout/cart')
+		} catch (cause: any) {
+			toast.error(cause?.message || 'Unable to add this order to your bag')
+		} finally {
+			buyingAgain = false
+		}
+	}
+
+	function openInvoice(url: string) {
+		if (!url) return window.print()
+		try {
+			const invoice = new URL(url, window.location.origin)
+			if (!['http:', 'https:'].includes(invoice.protocol)) throw new Error()
+			window.open(invoice.href, '_blank', 'noopener,noreferrer')
+		} catch {
+			toast.error('Invoice link is not available')
+		}
 	}
 
 	function useFallbackImage(event: Event) {
@@ -115,6 +136,7 @@
 
 {#snippet orderDetails(order: any)}
 	{@const item = order?.lineItems?.[0] || {}}
+	{@const invoiceUrl = orderInvoiceUrl(order)}
 	{@const fulfillment = shipment(order)}
 	<!-- ponytail: local demo fallback only; remove when test orders receive backend fulfillments. -->
 	{@const trackingNumber = fulfillment?.trackingNumber || order?.trackingNumber || (import.meta.env.DEV ? `RJ-TEST-${order?.orderNo}` : '')}
@@ -129,9 +151,9 @@
 				<header class="rj-detail-header">
 					<div><span>Order ID:</span><strong>{order?.orderNo || order?.parentOrderNo || '—'}</strong></div>
 					<nav>
-						<button type="button" disabled={buyingAgain} onclick={() => buyAgain(item)}><img src="/ryans-jewels/account/order-buy-again.svg" alt="" />{buyingAgain ? 'Adding…' : 'Buy Again'}</button><i></i>
+						<button type="button" disabled={buyingAgain} onclick={() => buyAgain(order?.lineItems || [])}><img src="/ryans-jewels/account/order-buy-again.svg" alt="" />{buyingAgain ? 'Adding…' : 'Buy Again'}</button><i></i>
 						{#if String(order?.status || '').toLowerCase() === 'delivered' && item?.slug}<a href={productReviewHref(item)}><img src="/ryans-jewels/product/review-brush.svg" alt="" />Rate &amp; Review</a><i></i>{/if}
-						{#if order?.invoiceLink || order?.invoiceUrl}<a href={order.invoiceLink || order.invoiceUrl} target="_blank"><img src="/ryans-jewels/account/track-invoice.svg" alt="" />Invoice PDF</a>{:else}<span><img src="/ryans-jewels/account/track-invoice.svg" alt="" />Invoice PDF</span>{/if}<i></i>
+						<button type="button" title={invoiceUrl ? 'Open invoice PDF' : 'Print or save invoice as PDF'} aria-label={invoiceUrl ? 'Open invoice PDF' : 'Print or save invoice as PDF'} onclick={() => openInvoice(invoiceUrl)}><img src="/ryans-jewels/account/track-invoice.svg" alt="" />Invoice PDF</button><i></i>
 						<em class={String(order?.status || '').toLowerCase()}><b></b>{titleCase(order?.status || 'Pending')}</em>
 					</nav>
 				</header>
@@ -183,37 +205,37 @@
 {#if publicTracking}
 	{#if publicTracking.loading}<div class="rj-detail-loading">Loading order details…</div>{:else if publicTracking.order}{@render orderDetails(publicTracking.order)}{:else}<div class="rj-detail-loading">Order not found</div>{/if}
 {:else}
-	<MyOrdersIdRenderer>{#snippet content({ loading, order })}{#if loading}<div class="rj-detail-loading">Loading order details…</div>{:else if order}{@render orderDetails(order)}{:else}<div class="rj-detail-loading">Order not found</div>{/if}{/snippet}</MyOrdersIdRenderer>
+	<RyansJewelsOrderDetailsRenderer>{#snippet content({ loading, order })}{#if loading}<div class="rj-detail-loading">Loading order details…</div>{:else if order}{@render orderDetails(order)}{:else}<div class="rj-detail-loading">Order not found</div>{/if}{/snippet}</RyansJewelsOrderDetailsRenderer>
 {/if}
 
 <style>
-	.rj-order-details { width: 100%; color: #202020; font-family: 'Lato', sans-serif; }
-	.rj-order-back { display: inline-flex; height: 26px; gap: 12px; align-items: center; color: #000; font-size: 22px; font-weight: 700; line-height: 26px; text-decoration: none; }
+	.rj-order-details { display: flex; width: 100%; flex-direction: column; gap: 20px; color: #202020; font-family: 'Lato', sans-serif; }
+	.rj-order-back { display: inline-flex; width: max-content; height: 26px; gap: 12px; align-items: center; color: #000; font-size: 22px; font-weight: 700; line-height: 26px; text-decoration: none; white-space: nowrap; }
 	.rj-order-back img { width: 26px; height: 26px; }
-	.rj-order-detail-card { box-sizing: border-box; width: 100%; height: 927px; margin-top: 20px; padding: 18px 22px 30px; border: 1px solid #c2c2c2; border-radius: 6px; background: #fff; }
+	.rj-order-detail-card { box-sizing: border-box; width: 100%; height: 927px; padding: 18px 22px 30px; border: 1px solid #c2c2c2; border-radius: 6px; background: #fff; }
 	.rj-order-detail-inner { width: 100%; height: 877px; }
 	.rj-detail-header { display: flex; height: 66px; align-items: flex-start; justify-content: space-between; border-bottom: 1px solid #d9d9d9; }
 	.rj-detail-header > div { display: flex; width: 133px; flex-direction: column; gap: 3px; }
 	.rj-detail-header > div span { color: #606060; font-size: 14px; line-height: 17px; }
-	.rj-detail-header > div strong { overflow: hidden; font-size: 16px; line-height: 19px; text-overflow: ellipsis; white-space: nowrap; }
+	.rj-detail-header > div strong { overflow: hidden; font-size: 20px; line-height: 19px; text-overflow: ellipsis; white-space: nowrap; }
 	.rj-detail-header nav { display: flex; gap: 16px; align-items: center; margin-top: 8px; }
-	.rj-detail-header nav a, .rj-detail-header nav button, .rj-detail-header nav > span { display: flex; gap: 6px; align-items: center; padding: 0; border: 0; background: transparent; color: #202020; font: inherit; font-size: 16px; line-height: 19px; text-decoration: none; white-space: nowrap; }
+	.rj-detail-header nav a, .rj-detail-header nav button { display: flex; gap: 6px; align-items: center; padding: 0; border: 0; background: transparent; color: #202020; font: inherit; font-size: 16px; font-weight: 500; line-height: 19px; text-decoration: none; white-space: nowrap; }
 	.rj-detail-header nav button { cursor: pointer; }
 	.rj-detail-header nav img { width: 22px; height: 22px; }
 	.rj-detail-header nav > i { width: 1px; height: 20px; background: #c2c2c2; }
-	.rj-detail-header nav em { display: flex; gap: 4px; align-items: center; color: #ffb13b; font-size: 16px; font-weight: 600; line-height: 19px; }
+	.rj-detail-header nav em { display: flex; gap: 4px; align-items: center; color: #ffb13b; font-size: 16px; font-style: normal; font-weight: 600; line-height: 19px; }
 	.rj-detail-header nav em.delivered { color: #00c41d; } .rj-detail-header nav em.cancelled { color: #f63049; }
 	.rj-detail-header nav em b { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
 	.rj-item-summary { height: 203px; margin-top: 16px; }
-	.rj-item-summary h2 { margin: 0 0 15px; color: #606060; font-size: 16px; font-weight: 400; line-height: 19px; }
+	.rj-item-summary h2 { margin: 0 0 15px; color: #606060; font-family: 'Lato', sans-serif; font-size: 15px; font-weight: 400; line-height: 19px; }
 	.rj-item-row { display: grid; height: 169px; grid-template-columns: 169px minmax(0, 1fr) auto; gap: 15px; align-items: start; }
 	.rj-item-image { display: grid; width: 169px; height: 169px; overflow: hidden; border-radius: 5px; background: #fafafa; place-items: center; }
 	.rj-item-image img { width: 100%; height: 100%; object-fit: contain; }
 	.rj-item-copy { width: min(100%, 387px); }
-	.rj-item-copy > strong { display: block; overflow: hidden; font-size: 20px; font-weight: 500; line-height: 24px; text-overflow: ellipsis; white-space: nowrap; }
-	.rj-item-copy p { display: -webkit-box; overflow: hidden; margin: 10px 0 8px; color: #606060; font-size: 14px; line-height: 19px; line-clamp: 2; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+	.rj-item-copy > strong { display: block; overflow: hidden; font-size: 20px; font-weight: 600; line-height: 24px; text-overflow: ellipsis; white-space: nowrap; }
+	.rj-item-copy p { display: -webkit-box; overflow: hidden; margin: 10px 0 8px; color: #606060; font-size: 14px; line-height: 18px; line-clamp: 2; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 	.rj-item-copy span { color: #606060; font-size: 14px; line-height: 19px; }
-	.rj-item-row > b { font-size: 20px; font-weight: 500; line-height: 24px; }
+	.rj-item-row > b { font-size: 20px; font-weight: 600; line-height: 24px; }
 	.rj-detail-grid { display: grid; height: 170px; grid-template-columns: 501fr 237fr 237fr; gap: 24px; margin-top: 26px; }
 	.rj-delivery-overview, .rj-stat-card { box-sizing: border-box; height: 170px; padding: 15px; border: 1px solid #c2c2c2; border-radius: 6px; background: #fcfcfc; }
 	.rj-delivery-overview header, .rj-stat-card header { display: flex; gap: 10px; align-items: center; }
@@ -230,9 +252,9 @@
 	.rj-stat-card { display: flex; flex-direction: column; justify-content: space-between; }
 	.rj-stat-card > b { font: 700 18px/29px 'Sarala', sans-serif; }
 	.rj-info-grid, .rj-bottom-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 24px; }
-	.rj-timeline-card, .rj-shipment-card { box-sizing: border-box; height: 200px; padding: 16px 17px; border-radius: 5px; background: #fcfcfc; }
+	.rj-timeline-card, .rj-shipment-card { box-sizing: border-box; height: 200px; padding: 16px 19px 16px 17px; border-radius: 5px; background: #fcfcfc; }
 	.rj-timeline-card > header { display: flex; height: 19px; align-items: flex-start; justify-content: space-between; }
-	.rj-timeline-card > header strong, .rj-shipment-card h3 { margin: 0; font-size: 16px; font-weight: 600; line-height: 19px; }
+	.rj-timeline-card > header strong, .rj-shipment-card h3 { margin: 0; font-family: 'Lato', sans-serif; font-size: 16px; font-weight: 600; line-height: 19px; }
 	.rj-timeline-card > header button { display: flex; gap: 0; align-items: center; padding: 0; border: 0; background: transparent; color: #606060; font: 500 14px/17px 'Lato', sans-serif; cursor: pointer; }
 	.rj-timeline-card > header button span { display: flex; width: 20px; }
 	.rj-timeline-card > header button img { width: 14px; height: 14px; }
@@ -269,6 +291,10 @@
 	.rj-bottom-grid .payment strong img { width: 24px; height: 18px; object-fit: contain; }
 	.rj-bottom-grid .payment small b { color: #202020; font-weight: 600; }
 	.rj-detail-loading { display: grid; min-height: 927px; place-items: center; color: #606060; font-family: 'Lato', sans-serif; }
+
+	@media (min-width: 901px) {
+		.rj-order-details { width: calc(100% - 1px); margin-left: 1px; }
+	}
 
 	@media (max-width: 1100px) {
 		.rj-order-detail-card { height: auto; min-height: 927px; }

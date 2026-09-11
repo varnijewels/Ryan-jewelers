@@ -906,7 +906,7 @@
 	}
 
 	.rj-cart-label {
-		font-size: 14px;
+		font-size: 16px;
 		font-weight: 700;
 		color: var(--rj-ink, #404040);
 		white-space: nowrap;

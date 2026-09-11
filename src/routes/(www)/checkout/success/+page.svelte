@@ -45,6 +45,7 @@
 		}).format(date)
 	})
 	onMount(async () => {
+		if (data.preview) return
 		await fireGTagEvent('purchase', checkoutPurchaseData(orders, userState.user))
 		if (!cartState) return
 		const prevCartId = localStorage.getItem('prev_cart_id')
@@ -239,7 +240,7 @@
 	</div>
 </div>
 
-{#if data?.store?.plugins?.googleReviewsOptIn?.active && data.store.plugins.googleReviewsOptIn.merchantId && orderNo && useremail}
+{#if !data.preview && data?.store?.plugins?.googleReviewsOptIn?.active && data.store.plugins.googleReviewsOptIn.merchantId && orderNo && useremail}
 	<!-- Split the tag name so Vite does not scan this generated embed as component JavaScript. -->
 	{@html `<${'script'} src="https://apis.google.com/js/platform.js?onload=renderOptIn" async defer></${'script'}>
   <${'script'}>

@@ -10,6 +10,17 @@ vi.mock('$lib/core/services/index.js', () => ({
 			return [{ name: 'Bracelets', slug: 'bracelets' }]
 		}
 	},
+	ProductService: class {
+		async list() {
+			return {
+				data: [
+					{ title: 'First Ring', slug: 'first-ring-1', groupedSku: 'FIRST', thumbnail: '/ring-1.jpg' },
+					{ title: 'First Ring Variant', slug: 'first-ring-2', groupedSku: 'FIRST', thumbnail: '/ring-1.jpg' },
+					{ title: 'Second Ring', slug: 'second-ring', thumbnail: '/ring-2.jpg', description: 'A new ring.' }
+				]
+			}
+		}
+	},
 	UserService: class {
 		constructor(private fetch: typeof globalThis.fetch) {}
 
@@ -61,6 +72,10 @@ describe('Ryan account auth guard', () => {
 		expect(result.isPublicHomepage).toBe(true)
 		expect(result.store).toMatchObject({ id: 'store-1', countries: [] })
 		expect(result.navigation.megaMenu).toEqual([{ name: 'Bracelets', slug: 'bracelets' }])
+		expect(result.navigation.collectionProducts).toEqual([
+			{ name: 'First Ring', href: '/products/first-ring', thumbnail: '/ring-1.jpg', description: 'Discover this new arrival from Ryan Jewelers.' },
+			{ name: 'Second Ring', href: '/products/second-ring', thumbnail: '/ring-2.jpg', description: 'A new ring.' }
+		])
 	})
 
 	it('rejects a stale session and keeps the requested account return URL', async () => {

@@ -14,6 +14,20 @@
 	const product = $derived(page.data?.dashboardProducts?.[0])
 	const currency = $derived(page.data?.store?.currency?.code || 'USD')
 	const couponCount = $derived(cartState?.cart?.couponCode ? 1 : 0)
+	const localTestOrder = {
+		id: 'rj-local-test-order',
+		orderNo: 'RJ-TEST-0911',
+		status: 'Processing',
+		lineItems: [{
+			id: 'rj-local-test-item',
+			title: 'Round Diamond Engagement Ring',
+			description: 'Local test order for checking the customer order flow.',
+			thumbnail: '/ryans-jewels/account/dashboard-product.png',
+			price: 959.99,
+			qty: 1,
+			variantTitle: '14K White Gold / 1 CT'
+		}]
+	}
 
 	function itemCategory(item: any) {
 		return item.categoryTitle || item.category?.title || item.variantTitle || 'Jewellery'
@@ -25,7 +39,8 @@
 
 <MyOrdersRenderer>
 	{#snippet content({ loading, orders })}
-		{@const orderRows = dashboardOrderRows(orders, orderFilter, orderSearch)}
+		{@const profileOrders = import.meta.env.DEV ? { ...orders, data: [localTestOrder, ...(orders?.data || []).filter((order: any) => order.orderNo !== localTestOrder.orderNo)] } : orders}
+		{@const orderRows = dashboardOrderRows(profileOrders, orderFilter, orderSearch)}
 		<section class="rj-dashboard">
 			<div class="rj-dashboard-top">
 				<article class="rj-profile-summary">
@@ -38,7 +53,7 @@
 					</header>
 					<div class="rj-profile-stats">
 						<div><strong>—</strong><span>Unread messages</span></div><i></i>
-						<div><strong>{deliveredOrderCount(orders)}</strong><span>Delivered Orders</span></div><i></i>
+						<div><strong>{deliveredOrderCount(profileOrders)}</strong><span>Delivered Orders</span></div><i></i>
 						<div><strong>{couponCount}</strong><span>Coupons</span></div>
 					</div>
 				</article>
@@ -76,7 +91,7 @@
 					</div>
 				</header>
 
-				{#if loading}
+				{#if loading && !import.meta.env.DEV}
 					<div class="rj-orders-loading" aria-live="polite">Loading order history…</div>
 				{:else if orderRows.length}
 					<div class="rj-order-list">

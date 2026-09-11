@@ -1,11 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
 	canonicalProductPath,
-	canonicalProductPaths,
 	canonicalProductSlug,
 	isMissingCatalogPage,
 	productStructuredData,
-	robotsSitemapUrl,
 	ryansSeoText
 } from '$lib/theme/ryans-jewels/seo.js'
 import { ryansBlogPosts } from '$lib/theme/ryans-jewels/blog-content.js'
@@ -35,16 +33,6 @@ describe('Ryan Jewelers SEO helpers', () => {
 	it('marks empty catch-all catalog routes as missing', () => {
 		expect(isMissingCatalogPage({ products: { count: 0 } })).toBe(true)
 		expect(isMissingCatalogPage({ products: { count: 1 } })).toBe(false)
-	})
-
-	it('builds the working local sitemap URL for robots.txt', () => {
-		expect(robotsSitemapUrl(new URL('https://ryan.varnijewels.com/robots.txt'))).toBe('https://ryan.varnijewels.com/sitemap.xml')
-	})
-
-	it('emits canonical grouped products once in the sitemap', () => {
-		expect(canonicalProductPaths([{ slug: 'diamond-ring-20', groupedSku: 'RING-1' }, { slug: 'diamond-ring-19', groupedSku: 'RING-1' }])).toEqual([
-			'/products/diamond-ring'
-		])
 	})
 
 	it('emits complete product pricing and availability for search engines', () => {

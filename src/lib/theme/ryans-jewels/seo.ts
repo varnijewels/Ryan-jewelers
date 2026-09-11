@@ -42,14 +42,6 @@ export function canonicalProductPath(product: ProductLike | null | undefined) {
 	return slug ? `/products/${slug}` : '/products'
 }
 
-export function canonicalProductPaths(products: ProductLike[] = []) {
-	return [...new Set(products.map(canonicalProductPath).filter((path) => path !== '/products'))]
-}
-
-export function robotsSitemapUrl(url: URL) {
-	return new URL('/sitemap.xml', url).href
-}
-
 export function isMissingCatalogPage(data: { products?: { count?: number } } | null | undefined) {
 	return !Number(data?.products?.count)
 }

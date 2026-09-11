@@ -5,6 +5,13 @@ import { describe, expect, it } from 'vitest'
 import { load as loadLegacyOtp } from '../src/routes/(www)/auth/verify-otp/+page.server.js'
 
 describe('Ryan critical account links', () => {
+	it('uses the Ryan-specific signed-in dropdown', async () => {
+		const navigation = await readFile('src/lib/theme/ryans-jewels/RyansJewelsNav.svelte', 'utf8')
+
+		expect(navigation).toContain("import RjProfileDropdown from './RjProfileDropdown.svelte'")
+		expect(navigation).not.toContain("import ProfileDropdown from '$lib/components/nav/profile-dropdown.svelte'")
+	})
+
 	it('routes the legacy OTP page to the working sign-in flow', () => {
 		expect.assertions(1)
 		try {

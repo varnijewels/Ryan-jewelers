@@ -12,7 +12,7 @@
 		{ label: 'Track Orders', href: '/order-tracking', icon: 'dashboard-track.svg' },
 		{ divider: true },
 		{ label: 'Address Book', href: '/my/addresses', icon: 'dashboard-address.svg' },
-		{ label: 'Chat with Expert', href: '/contact-us', icon: 'dashboard-chat.svg' },
+		{ label: 'Privacy Policy', href: '/privacy-policy', icon: 'dashboard-terms.svg' },
 		{ divider: true },
 		{ label: 'FAQ', href: '/faqs', icon: 'dashboard-faq.svg' },
 		{ label: 'Terms & Conditions', href: '/terms-and-conditions', icon: 'dashboard-terms.svg' },

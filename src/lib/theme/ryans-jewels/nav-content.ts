@@ -50,7 +50,7 @@ export const ryansJewelsNavContent: RyansJewelsNavContent = {
 	},
 	searchPlaceholder: 'Search here',
 	orderReturn: { top: 'Order', bottom: '& Return', href: '/shipping-policy' },
-	cartLabel: 'Cart',
+	cartLabel: 'Add to Cart',
 	account: {
 		greeting: 'Hello!',
 		greetingLoggedIn: 'Hello! Good Morning',

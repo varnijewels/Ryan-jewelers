@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { AuthService, OrderService, ProductService } from '@misiki/litekart-connector'
 import { describe, expect, it, vi } from 'vitest'
 import { normalizePhone, resetPasswordError } from '../src/lib/theme/ryans-jewels/auth-flow.js'
-import { buyAgainItems, couponAction, productReviewHref, sameVariant } from '../src/lib/theme/ryans-jewels/commerce-flow.js'
+import { buyAgainItems, couponAction, orderInvoiceUrl, productReviewHref, sameVariant } from '../src/lib/theme/ryans-jewels/commerce-flow.js'
 import { load as loadCategory } from '../src/routes/(www)/categories/[slug]/+page.server.js'
 
 function redirectFor(slug: string, query = '') {
@@ -61,6 +61,7 @@ describe('Ryan critical commerce flows', () => {
 		expect(sameVariant(item, { productId: 'product-1', variantId: 'white-7' })).toBe(false)
 		expect(sameVariant(item, { productId: 'product-1', variantId: 'yellow-7' })).toBe(true)
 		expect(productReviewHref(item)).toBe('/products/diamond-ring?variant_id=yellow-7&review=1#rj-specifications')
+		expect(orderInvoiceUrl({ fulfillments: [{ invoiceUrl: ' https://shop.test/invoice.pdf ' }] })).toBe('https://shop.test/invoice.pdf')
 	})
 
 	it('chooses the correct coupon action', () => {
@@ -85,7 +86,7 @@ describe('Ryan critical commerce flows', () => {
 			readFile('src/routes/(www)/auth/login/+page.svelte', 'utf8'),
 			readFile('src/routes/(www)/auth/reset-password/+page.svelte', 'utf8'),
 			readFile('src/routes/(www)/products/[slug]/components/product-reviews-section.svelte', 'utf8'),
-			readFile('src/routes/(my)/my/orders/[id]/+page.svelte', 'utf8'),
+			readFile('src/lib/theme/ryans-jewels/RyansJewelsOrderDetailsPage.svelte', 'utf8'),
 			readFile('src/routes/(www)/order-tracking/+page.svelte', 'utf8')
 		])
 		expect(buyAgain).toContain('buyAgainItems(response)')
@@ -97,6 +98,8 @@ describe('Ryan critical commerce flows', () => {
 		expect(reviews).toContain('await productService.addReview')
 		expect(reviews).toContain('await invalidateAll()')
 		expect(order).toContain('productReviewHref(item)')
+		expect(order).toContain('await cartState.addOrUpdate')
+		expect(order).toContain("window.print()")
 		expect(tracking).toContain('productReviewHref(item)')
 	})
 })
