@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
 	isCollectionGroup,
+	menuArtwork,
 	menuChildren,
 	menuGroups,
 	menuHref,
@@ -59,5 +60,14 @@ describe('Ryan admin menu', () => {
 			menuGroups({ children: [{ name: 'Shapes' }, { name: 'Browser By Collection' }, { name: 'Popular Types' }] }).map(({ name }) => name)
 		).toEqual(['Shapes', 'Popular Types', 'Browser By Collection'])
 		expect(menuGroups({ children: [{ name: 'New Category' }] }).map(({ name }) => name)).toEqual(['New Category', 'Browser By Collection'])
+	})
+
+	it('uses category-matched artwork in Browse By Collection', () => {
+		expect(['Earrings', 'Bracelets', 'Pendants', 'Engagement Rings'].map((name) => menuArtwork({ name }))).toEqual([
+			'earrings',
+			'bracelets',
+			'pendants',
+			'rings'
+		])
 	})
 })

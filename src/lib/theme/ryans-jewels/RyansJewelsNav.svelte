@@ -35,6 +35,7 @@
 	const isLoggedIn = $derived(!!activeUser?.role)
 	const displayName = $derived(activeUser?.firstName || activeUser?.name || 'My Account')
 	const serverMegaMenu = $derived((page.data as any)?.navigation?.megaMenu as any[] | undefined)
+	const collectionProducts = $derived((page.data as any)?.navigation?.collectionProducts as any[] | undefined)
 	const resolvedMenu = $derived(
 		resolveAdminMenu(serverMegaMenu?.length ? serverMegaMenu : navModule.megaMenu, navModule.navMenu, nav.home, [])
 	)
@@ -435,7 +436,7 @@
 										<path d="M10.9329 0.75L6.74143 4.94143C6.24643 5.43643 5.43643 5.43643 4.94143 4.94143L0.75 0.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
 									</svg>
 								</a>
-								<RjAdminMegaMenu category={item} {menuId} onNavigate={() => (openMega = null)} />
+								<RjAdminMegaMenu category={item} {menuId} {collectionProducts} onNavigate={() => (openMega = null)} />
 							</div>
 						{:else}
 							<a class="rj-menu-item" {href} aria-current={pathname === href ? 'page' : undefined} onmouseenter={() => (openMega = null)}>

@@ -41,6 +41,13 @@ export const mobileMenuView = (label = '') =>
 				? 'engagement-rings'
 				: null
 export const isCollectionGroup = (item: AdminMenuItem) => /^brows(?:e|er)? by collection$/i.test(menuLabel(item)?.trim() || '')
+export const menuArtwork = (item: AdminMenuItem) => {
+	const label = menuLabel(item) || ''
+	if (/earrings?/i.test(label)) return 'earrings'
+	if (/bracelets?/i.test(label)) return 'bracelets'
+	if (/pendants?/i.test(label)) return 'pendants'
+	return 'rings'
+}
 export const menuGroups = (item: AdminMenuItem) => {
 	const groups = [...menuChildren(item)]
 	if (!groups.some(isCollectionGroup)) groups.push({ name: 'Browser By Collection' })
