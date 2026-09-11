@@ -38,7 +38,7 @@
 					</header>
 					<div class="rj-profile-stats">
 						<div><strong>—</strong><span>Unread messages</span></div><i></i>
-						<div><strong>{deliveredOrderCount(orders)}</strong><span>Total Delivered Order</span></div><i></i>
+						<div><strong>{deliveredOrderCount(orders)}</strong><span>Delivered Orders</span></div><i></i>
 						<div><strong>{couponCount}</strong><span>Coupons</span></div>
 					</div>
 				</article>
@@ -69,10 +69,10 @@
 
 			<article class:with-orders={orderRows.length > 0} class="rj-order-history">
 				<header>
-					<strong>All Order History</strong>
+					<strong>Order History</strong>
 					<div class="rj-order-tools">
 						<label class="rj-order-filter"><img src="/ryans-jewels/account/dashboard-filter.svg" alt="" /><select bind:value={orderFilter} aria-label="Filter orders"><option value="all">Select Filter</option><option value="processing">Processing</option><option value="shipped">Shipped</option><option value="delivered">Delivered</option><option value="cancelled">Cancelled</option></select><img src="/ryans-jewels/account/dashboard-arrow-down.svg" alt="" /></label>
-						<label class="rj-order-search"><img src="/ryans-jewels/account/dashboard-search.svg" alt="" /><input type="search" bind:value={orderSearch} placeholder="Search for product, order id" aria-label="Search order history" /></label>
+						<label class="rj-order-search"><img src="/ryans-jewels/account/dashboard-search.svg" alt="" /><input type="search" bind:value={orderSearch} placeholder="Search for product or order ID" aria-label="Search order history" /></label>
 					</div>
 				</header>
 
@@ -89,15 +89,15 @@
 									<div class="rj-order-heading">
 										<div><a href="/my/orders/{orderId}">{row.item.title || 'Jewellery Order'}</a><p>{row.item.description || row.item.subtitle || 'Your Ryan Jewelers order and product details.'}</p></div>
 										<div class="rj-order-actions">
-											{#if status !== 'cancelled'}<a class="tracking" href="/order-tracking?order={orderId}">Tracking Order <img src="/ryans-jewels/account/dashboard-order-truck.svg" alt="" /></a>{/if}
+											{#if status !== 'cancelled'}<a class="tracking" href="/order-tracking?order={orderId}">Track Order <img src="/ryans-jewels/account/dashboard-order-truck.svg" alt="" /></a>{/if}
 											<a class="details" href="/my/orders/{orderId}">Order Details <img src="/ryans-jewels/account/dashboard-arrow-right.svg" alt="" /></a>
 										</div>
 									</div>
 									<div class="rj-order-meta">
 										<span>Price: <b>{formatPrice(Number(row.item.total ?? row.item.price ?? 0), currency)}</b></span>
 										<span>Qty: <b>{row.item.qty || row.item.quantity || 1}</b></span>
-										<span>Order Id: <b>{orderId || '_'}</b></span>
-										<span>Product Categories: <b>{itemCategory(row.item)}</b></span>
+										<span>Order ID: <b>{orderId || '_'}</b></span>
+										<span>Product Category: <b>{itemCategory(row.item)}</b></span>
 										<span>Order Status: <b class="rj-status {status}"><i></i>{row.order.status || 'Processing'}</b></span>
 									</div>
 								</div>
@@ -108,7 +108,7 @@
 				{:else}
 					<div class="rj-no-orders">
 						<img src="/ryans-jewels/account/dashboard-no-order.png" alt="" />
-						<div><strong>No Orders Placed Yet</strong><p>{orderSearch || orderFilter !== 'all' ? 'No orders match your current search or filter.' : 'Don’t wait & let’s make your first punches now.'}</p></div>
+						<div><strong>No Orders Placed Yet</strong><p>{orderSearch || orderFilter !== 'all' ? 'No orders match your current search or filter.' : 'Don’t wait—make your first purchase now.'}</p></div>
 						<a href="/products">Continue Shopping <img src="/ryans-jewels/account/dashboard-arrow-right.svg" alt="" /></a>
 					</div>
 				{/if}

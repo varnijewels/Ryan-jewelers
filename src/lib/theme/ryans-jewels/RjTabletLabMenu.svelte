@@ -276,7 +276,7 @@
 
 		<section class="rj-tablet-lab-collection">
 			<div class="rj-tablet-lab-collection-head">
-				<span>Brows By Collection</span>
+				<span>Browse By Collection</span>
 				<a href={menuHref(category)} onclick={onClose}>
 					<span>View More</span>
 					<span class="rj-tablet-lab-more-arrows" aria-hidden="true">

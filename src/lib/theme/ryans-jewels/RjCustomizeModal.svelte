@@ -83,7 +83,7 @@
 
 <details class="rj-customizer" bind:open={isOpen}>
 	<summary>
-		<span><img src="/ryans-jewels/product/customize.svg" alt="" />Select your Customise variation</span>
+		<span><img src="/ryans-jewels/product/customize.svg" alt="" />Choose Your Customisation</span>
 		<span>+ Customise<img src="/ryans-jewels/product/customizer/arrow-right.svg" alt="" /></span>
 	</summary>
 	{#if isOpen}

@@ -1270,8 +1270,8 @@
 		/* Burger sits inside the brand cluster (gap 18) on tablet. */
 		.rj-burger {
 			display: flex;
-			width: 26px;
-			height: 26px;
+			width: 40px;
+			height: 40px;
 			grid-area: brand;
 			place-self: center start;
 		}
@@ -1352,9 +1352,20 @@
 
 		.rj-cart,
 		.rj-order {
-			min-width: 0;
+			justify-content: center;
+			width: 40px;
+			height: 40px;
+			min-width: 40px;
 			align-items: center;
 			gap: 0;
+		}
+
+		:global(.rj-guest-trigger) {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 40px;
+			height: 40px;
 		}
 
 		.rj-row-menu {
@@ -1428,12 +1439,6 @@
 				'brand actions'
 				'search search';
 			gap: 11px;
-		}
-
-		.rj-burger {
-			width: 26px;
-			height: 26px;
-			place-self: center start;
 		}
 
 		.rj-brand {

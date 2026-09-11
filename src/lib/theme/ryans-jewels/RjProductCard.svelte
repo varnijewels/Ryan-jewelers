@@ -433,9 +433,9 @@
 		}
 
 		.rj-card .rj-card-swatch {
-			width: 20px;
-			height: 20px;
-			border-radius: 6px;
+			width: 40px;
+			height: 40px;
+			border-radius: 10px;
 		}
 
 		.rj-card-name {

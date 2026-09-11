@@ -108,7 +108,7 @@ export const ryansJewelsFooter = {
 			gap: 12,
 			links: [
 				{ label: 'Privacy policy', href: '/privacy-policy' },
-				{ label: 'Terms and Condition', href: '/terms-and-conditions' },
+				{ label: 'Terms and Conditions', href: '/terms-and-conditions' },
 				{ label: 'Disclaimer', href: '/terms-and-conditions' },
 				{ label: 'Shipping & Returns', href: '/shipping-policy' },
 				{ label: 'Refund policy', href: '/refund-policy' }
@@ -131,7 +131,7 @@ export const ryansJewelsFooter = {
 		title: 'Join Our Newsletter',
 		placeholder: 'Email address',
 		button: 'SUBSCRIBE',
-		consent: 'I Agree with the terms & Condition',
+		consent: 'I agree to the Terms & Conditions',
 		note: 'Keep up with the latest trends and receive exclusive offers! ',
 		noteLink: 'Learn more.',
 		noteHref: '/faqs'

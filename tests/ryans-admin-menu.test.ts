@@ -59,7 +59,7 @@ describe('Ryan admin menu', () => {
 		expect(
 			menuGroups({ children: [{ name: 'Shapes' }, { name: 'Browser By Collection' }, { name: 'Popular Types' }] }).map(({ name }) => name)
 		).toEqual(['Shapes', 'Popular Types', 'Browser By Collection'])
-		expect(menuGroups({ children: [{ name: 'New Category' }] }).map(({ name }) => name)).toEqual(['New Category', 'Browser By Collection'])
+		expect(menuGroups({ children: [{ name: 'New Category' }] }).map(({ name }) => name)).toEqual(['New Category', 'Browse By Collection'])
 	})
 
 	it('uses category-matched artwork in Browse By Collection', () => {

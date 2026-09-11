@@ -91,7 +91,7 @@
 	<section class="rj-rings-collections" aria-labelledby="rj-rings-collections-title">
 		<div class="rj-rings-collections-inner">
 			<div class="rj-rings-collections-head">
-				<h2 id="rj-rings-collections-title">Brows By Collection</h2>
+				<h2 id="rj-rings-collections-title">Browse By Collection</h2>
 				<a href="/collections"><span>View More</span><span class="rj-rings-more-arrows"><img src="/ryans-jewels/mega-menu/arrow-11.svg" alt="" /><img src="/ryans-jewels/mega-menu/arrow-11.svg" alt="" /></span></a>
 			</div>
 

@@ -17,8 +17,8 @@
 		{@const rows = dashboardOrderRows(orders, 'all', search)}
 		<section class="rj-orders-page">
 			<header>
-				<strong>All Order History</strong>
-				<label><img src="/ryans-jewels/account/dashboard-search.svg" alt="" /><input type="search" bind:value={search} placeholder="Search for product, order id" aria-label="Search order history" /></label>
+				<strong>Order History</strong>
+				<label><img src="/ryans-jewels/account/dashboard-search.svg" alt="" /><input type="search" bind:value={search} placeholder="Search for product or order ID" aria-label="Search order history" /></label>
 			</header>
 
 			{#if loading}
@@ -34,15 +34,15 @@
 								<div class="rj-order-heading">
 									<div><a href="/my/orders/{orderId}">{row.item.title || 'Jewellery Order'}</a><p>{row.item.description || row.item.subtitle || 'Your Ryan Jewelers order and product details.'}</p></div>
 									<div class="rj-order-actions">
-										{#if status !== 'cancelled'}<a class="tracking" href="/order-tracking?order={orderId}">Tracking Order <img src="/ryans-jewels/account/dashboard-order-truck.svg" alt="" /></a>{/if}
+										{#if status !== 'cancelled'}<a class="tracking" href="/order-tracking?order={orderId}">Track Order <img src="/ryans-jewels/account/dashboard-order-truck.svg" alt="" /></a>{/if}
 										<a class="details" href="/my/orders/{orderId}">Order Details <img src="/ryans-jewels/account/dashboard-arrow-right.svg" alt="" /></a>
 									</div>
 								</div>
 								<div class="rj-order-meta">
 									<span>Price: <b>{formatPrice(Number(row.item.total ?? row.item.price ?? 0), currency)}</b></span>
 									<span>Qty: <b>{row.item.qty || row.item.quantity || 1}</b></span>
-									<span>Order Id: <b>{orderId || '_'}</b></span>
-									<span>Product Categories: <b>{itemCategory(row.item)}</b></span>
+									<span>Order ID: <b>{orderId || '_'}</b></span>
+									<span>Product Category: <b>{itemCategory(row.item)}</b></span>
 									<span>Order Status: <b class="rj-order-status {status}"><i></i>{row.order.status || 'Pending'}</b></span>
 								</div>
 							</div>
@@ -53,7 +53,7 @@
 				<div class="rj-orders-empty">
 					<img src="/ryans-jewels/account/dashboard-no-order.png" alt="" />
 					<strong>{search ? 'No Orders Found' : 'No Orders Placed Yet'}</strong>
-					<p>{search ? 'No orders match your search.' : 'Don’t wait & let’s make your first purchase now.'}</p>
+					<p>{search ? 'No orders match your search.' : 'Don’t wait—make your first purchase now.'}</p>
 					<a href="/products">Continue Shopping <img src="/ryans-jewels/account/dashboard-arrow-right.svg" alt="" /></a>
 				</div>
 			{/if}

@@ -127,7 +127,7 @@
 		<section class="rj-order-detail-card">
 			<div class="rj-order-detail-inner">
 				<header class="rj-detail-header">
-					<div><span>Order Id:</span><strong>{order?.orderNo || order?.parentOrderNo || '—'}</strong></div>
+					<div><span>Order ID:</span><strong>{order?.orderNo || order?.parentOrderNo || '—'}</strong></div>
 					<nav>
 						<button type="button" disabled={buyingAgain} onclick={() => buyAgain(item)}><img src="/ryans-jewels/account/order-buy-again.svg" alt="" />{buyingAgain ? 'Adding…' : 'Buy Again'}</button><i></i>
 						{#if String(order?.status || '').toLowerCase() === 'delivered' && item?.slug}<a href={productReviewHref(item)}><img src="/ryans-jewels/product/review-brush.svg" alt="" />Rate &amp; Review</a><i></i>{/if}

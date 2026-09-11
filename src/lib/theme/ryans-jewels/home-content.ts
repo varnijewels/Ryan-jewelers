@@ -288,14 +288,14 @@ export const rarePassion = {
 
 /** Section 8 head copy — 1:6005 (desktop) · 63:40326 (tablet) · 77:107264 (mobile). */
 export const bestSellers = {
-	eyebrow: "Our Product's",
+	eyebrow: 'Our Products',
 	/** Rendered with `text-transform: capitalize`, exactly as the source does. */
-	title: 'our best sellers products',
+	title: 'our best sellers',
 	emptyText: 'Our best sellers are on their way. Please check back shortly.'
 }
 
 /**
- * Section 9 — "Create your personalised name Plate!".
+ * Section 9 — "Create your personalised nameplate!".
  * desktop 1:6110 (bg) / 1:6111 (panel) / 1:6127 (head) / 1:6133,1:6161,1:6147 (cards)
  * tablet 63:40549 · mobile 77:107373 (panel) + 77:107388 (head + cards)
  *
@@ -322,7 +322,7 @@ export const namePlateCards: NamePlateCard[] = [
 		key: 'kayla',
 		image: '/ryans-jewels/home/nameplate-card-1.webp',
 		imageAlt: 'Diamond-set name plate pendant reading Kayla',
-		name: 'Yellow gold frams50013',
+		name: 'Yellow Gold Nameplate Necklace',
 		category: 'wedding rings',
 		rating: 0,
 		cta: 'Customise now',
@@ -334,7 +334,7 @@ export const namePlateCards: NamePlateCard[] = [
 		key: 'laura',
 		image: '/ryans-jewels/home/nameplate-card-2.webp',
 		imageAlt: 'Diamond-set name plate pendant reading Laura',
-		name: 'Rose gold frams50013',
+		name: 'Rose Gold Nameplate Necklace',
 		category: 'wedding rings',
 		rating: 0,
 		cta: 'Customise now',
@@ -346,7 +346,7 @@ export const namePlateCards: NamePlateCard[] = [
 		key: 'third',
 		image: '/ryans-jewels/home/nameplate-card-3.webp',
 		imageAlt: 'Diamond-set personalised name plate pendant',
-		name: 'Yellow gold frams50013',
+		name: 'Yellow Gold Nameplate Necklace',
 		category: 'wedding rings',
 		rating: 0,
 		cta: 'Customise now',
@@ -358,7 +358,7 @@ export const namePlateCards: NamePlateCard[] = [
 		key: 'martin',
 		image: '/ryans-jewels/home/nameplate-word.webp',
 		imageAlt: 'Diamond-set name plate reading Martin',
-		name: 'Rose gold frams50013',
+		name: 'Rose Gold Nameplate Necklace',
 		category: 'wedding rings',
 		rating: 0,
 		cta: 'Customise now',
@@ -374,15 +374,15 @@ export const namePlate = {
 	panel: {
 		/** 1:6111 — deep violet gradient, radius 5 on the right corners. */
 		background: '/ryans-jewels/home/nameplate-panel.webp',
-		heading: 'Create your personalised name Plate!',
+		heading: 'Create Your Personalised Nameplate!',
 		art: '/ryans-jewels/home/nameplate-word.webp',
 		artAlt: 'Diamond-set name plate spelling Martin',
 		cta: 'Customise now',
 		href: '/products'
 	},
-	eyebrow: 'Top rated collection',
-	title: 'Create a one-of-a -kind piece.',
-	ctaLabel: 'customise now',
+	eyebrow: 'Top-Rated Collection',
+	title: 'Create a one-of-a-kind piece.',
+	ctaLabel: 'Customise Now',
 	ctaHref: '/products',
 	cards: namePlateCards
 }
@@ -396,8 +396,8 @@ export const namePlate = {
  * countdown instead — set it to the campaign's actual end date.
  */
 export const lookbook = {
-	eyebrow: 'New Connection',
-	title: 'our best sellers products',
+	eyebrow: 'New Collection',
+	title: 'our best sellers',
 	/** TODO: replace with the real campaign end date. */
 	offerEndsAt: '2026-12-31T23:59:59Z',
 	countdownLabels: ['Days', 'Hours', 'Minutes', 'Seconds'],
@@ -447,7 +447,7 @@ export const trending = {
  */
 export const enquiry = {
 	title: 'Create Your Signature Piece',
-	subtitle: 'Customise your Own Orders',
+	subtitle: 'Customise Your Own Jewellery',
 	logo: '/ryans-jewels/logo.webp',
 	background: '/ryans-jewels/home/marble-bg.jpg',
 	nameLabel: 'First name',
@@ -464,7 +464,7 @@ export const enquiry = {
 }
 
 /**
- * Section 15 — "Frequently Asking Questions".
+ * Section 15 — "Frequently Asked Questions".
  * desktop 1:6431 (bg 1:6318, content 1:6434) · tablet 63:40782 · mobile 77:107676
  *
  * The source shows the accordion collapsed only, so it carries no answer copy.
@@ -472,7 +472,7 @@ export const enquiry = {
  * they should be reviewed and replaced with the client's own wording.
  */
 export const faq = {
-	heading: 'Frequently Asking Questions',
+	heading: 'Frequently Asked Questions',
 	intro:
 		'We believe true luxury lies in exceptional craftsmanship, timeless design, and conscious choices',
 	sideImage: '/ryans-jewels/home/faq-side.webp',

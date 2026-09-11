@@ -96,7 +96,7 @@
 			{:else if order?.orderNo}
 				<section class="rj-track-summary">
 					<div class="rj-track-order-meta">
-						<div><span>Order Id:</span> <strong>{orderNo}</strong> <em class={String(order.status || '').toLowerCase()}><i></i>{status}</em></div>
+						<div><span>Order ID:</span> <strong>{orderNo}</strong> <em class={String(order.status || '').toLowerCase()}><i></i>{status}</em></div>
 						<p>Placed on {formatDate(order.createdAt)}</p>
 					</div>
 					<div class="rj-track-actions">

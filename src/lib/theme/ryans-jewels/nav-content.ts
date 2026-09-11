@@ -2,7 +2,7 @@
  * Theme-owned header content for the "ryans-jewels" storefront theme.
  *
  * Everything here is static design copy taken from the Figma source
- * (Design System / "Login menu" + "Without Lohin", node 1:5408). Live commerce
+ * (Design System / "Login menu" + "Without Login", node 1:5408). Live commerce
  * data (cart qty, user, search results) stays with the app/API layer.
  */
 
@@ -50,7 +50,7 @@ export const ryansJewelsNavContent: RyansJewelsNavContent = {
 	},
 	searchPlaceholder: 'Search here',
 	orderReturn: { top: 'Order', bottom: '& Return', href: '/shipping-policy' },
-	cartLabel: 'Add Cart',
+	cartLabel: 'Cart',
 	account: {
 		greeting: 'Hello!',
 		greetingLoggedIn: 'Hello! Good Morning',

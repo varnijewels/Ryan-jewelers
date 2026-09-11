@@ -483,18 +483,18 @@
 			</div>
 
 			<div class="rj-delivery">
-				<label><span>Check Zip Code For Order Delivery Related</span><span class="rj-zip-input"><span><img src="/ryans-jewels/product/routing.svg" alt="" /><input bind:value={postalCode} inputmode="text" placeholder="Please Enter Zip Code" onkeydown={(event) => event.key === 'Enter' && checkPostalCode()} /></span><button type="button" disabled={locating} onclick={locateMe}>{locating ? 'Locating...' : 'Locate Me'}</button></span></label>
+				<label><span>Check ZIP Code for Delivery</span><span class="rj-zip-input"><span><img src="/ryans-jewels/product/routing.svg" alt="" /><input bind:value={postalCode} inputmode="text" placeholder="Enter ZIP code" onkeydown={(event) => event.key === 'Enter' && checkPostalCode()} /></span><button type="button" disabled={locating} onclick={locateMe}>{locating ? 'Locating...' : 'Locate Me'}</button></span></label>
 			</div>
 
 			<div class="rj-service-row">
-				<div><img src="/ryans-jewels/product/free-shipping.svg" alt="" /><span><b>Free Shipping</b><small>Free Shipping All order</small></span></div>
-				<div><img src="/ryans-jewels/product/support.svg" alt="" /><span><b>24/7 Support</b><small>Free Shipping All order</small></span></div>
-				<div><img src="/ryans-jewels/product/payment-security.svg" alt="" /><span><b>Payment Security</b><small>Free Shipping All order</small></span></div>
+				<div><img src="/ryans-jewels/product/free-shipping.svg" alt="" /><span><b>Free Shipping</b><small>Free shipping on eligible orders</small></span></div>
+				<div><img src="/ryans-jewels/product/support.svg" alt="" /><span><b>24/7 Support</b><small>Help whenever you need it</small></span></div>
+				<div><img src="/ryans-jewels/product/payment-security.svg" alt="" /><span><b>Payment Security</b><small>Secure and encrypted checkout</small></span></div>
 			</div>
 
 			<div class="rj-payments">
 				<div class="rj-payment-logos">{#each ['mastercard.png', 'paypal.png', 'visa.png', 'amex.png', 'apple-pay.png', 'discover.png'] as card}<span class="rj-payment-logo"><img src="/ryans-jewels/product/{card}" alt="" /></span>{/each}</div>
-				<p>Learn more about our <a href="/terms-and-conditions">TERAMS &amp; POLICIES</a></p>
+				<p>Learn more about our <a href="/terms-and-conditions">TERMS &amp; POLICIES</a></p>
 			</div>
 		</div>
 	</section>

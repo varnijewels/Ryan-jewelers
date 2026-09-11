@@ -50,7 +50,7 @@ export const menuArtwork = (item: AdminMenuItem) => {
 }
 export const menuGroups = (item: AdminMenuItem) => {
 	const groups = [...menuChildren(item)]
-	if (!groups.some(isCollectionGroup)) groups.push({ name: 'Browser By Collection' })
+	if (!groups.some(isCollectionGroup)) groups.push({ name: 'Browse By Collection' })
 	return groups.sort((a, b) => Number(isCollectionGroup(a)) - Number(isCollectionGroup(b)))
 }
 

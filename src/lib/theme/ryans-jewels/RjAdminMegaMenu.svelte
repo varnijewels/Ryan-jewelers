@@ -60,7 +60,7 @@
 	<section class="rj-admin-collections" aria-labelledby="{menuId}-collections-title">
 		<div class="rj-admin-collections-inner">
 			<div class="rj-admin-collections-head">
-				<h2 id="{menuId}-collections-title">Brows By Collection</h2>
+				<h2 id="{menuId}-collections-title">Browse By Collection</h2>
 				<a href="/collections" onclick={onNavigate}>
 					<span>View More</span>
 					<span class="rj-admin-more-arrows" aria-hidden="true">
