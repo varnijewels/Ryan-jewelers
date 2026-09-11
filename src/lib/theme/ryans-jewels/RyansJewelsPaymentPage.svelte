@@ -2,14 +2,17 @@
 	import { page } from '$app/state'
 	import { goto } from '$app/navigation'
 	import { onMount } from 'svelte'
+	import { toast } from 'svelte-sonner'
 	import { formatPrice } from '$lib/core/utils/index.js'
 	import { CartModule } from '$lib/core/composables/index.js'
 	import { canStartPayment, hasCheckoutAddress } from './checkout-process.js'
+	import { couponAction } from './commerce-flow.js'
 
 	let { paymentModule, cartState }: { paymentModule: any; cartState: any } = $props()
 
 	const cartModule = new CartModule()
 	let couponCode = $state('')
+	let couponApplying = $state(false)
 	let cardSelectionError = $state('')
 	let paymentSubmitting = $state(false)
 
@@ -20,6 +23,7 @@
 	const tax = $derived(Number(cartState.cart?.taxAmount || cartState.cart?.taxes || 0))
 	const discount = $derived(Number(cartState.cart?.discountAmount || 0))
 	const total = $derived(Number(cartState.cart?.total ?? subtotal + tax - discount))
+	const couponMode = $derived(couponAction(cartState.cart?.couponCode, couponCode))
 	const discountPercent = $derived(subtotal ? Math.round((discount / subtotal) * 100) : 0)
 	const orderNumber = $derived(String(cartState.cart?.orderNo || cartState.cart?.id || '0258741').slice(-7).toUpperCase())
 	const canPlaceOrder = $derived(
@@ -86,8 +90,22 @@
 
 	async function applyCoupon(event: SubmitEvent) {
 		event.preventDefault()
-		if (!couponCode.trim()) return
-		await cartState.applyCoupon(couponCode.trim())
+		if (couponMode === 'none' || couponApplying) return
+		couponApplying = true
+		try {
+			if (couponMode === 'remove') {
+				await cartState.removeCoupon()
+				couponCode = ''
+				toast.success('Coupon removed')
+			} else {
+				await cartState.applyCoupon(couponCode.trim())
+				toast.success('Coupon applied')
+			}
+		} catch {
+			// Shared cart state displays the API error.
+		} finally {
+			couponApplying = false
+		}
 	}
 </script>
 
@@ -174,7 +192,7 @@
 					</div>
 					<form class="rj-payment-coupon" onsubmit={applyCoupon}>
 						<label for="rj-payment-coupon">Discount Code</label>
-						<div><img src="/ryans-jewels/checkout/shipping/coupon.svg" alt="" /><input id="rj-payment-coupon" bind:value={couponCode} placeholder="Enter coupon code" /><button type="submit">{cartState.cart?.couponCode ? 'APPLIED' : 'APPLY COUPON'}</button></div>
+						<div><img src="/ryans-jewels/checkout/shipping/coupon.svg" alt="" /><input id="rj-payment-coupon" bind:value={couponCode} placeholder="Enter coupon code" /><button type="submit" disabled={couponMode === 'none' || couponApplying || cartState.isUpdatingCart} aria-busy={couponApplying}>{couponApplying ? 'APPLYING…' : couponMode === 'remove' ? 'REMOVE COUPON' : 'APPLY COUPON'}</button></div>
 					</form>
 					<div class="rj-payment-total"><p class="discount"><span>Discount</span><b>{discountPercent ? `%${discountPercent}` : formatPrice(discount, currency)}</b></p><p><span>Total</span><b>{formatPrice(total, currency)}</b></p></div>
 				</section>

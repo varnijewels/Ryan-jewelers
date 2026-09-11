@@ -12,6 +12,7 @@
 	import { formatPrice } from '$lib/core/utils/index.js'
 	import RjProductCard from './RjProductCard.svelte'
 	import { checkoutGate } from './checkout-overview.logic.js'
+	import { couponAction } from './commerce-flow.js'
 	import { findAddressReplacement, groupSavedAddresses, savedAddressId, splitCustomerName } from './shipping-address.logic.js'
 
 	let { addressModule, cartState }: { addressModule: any; cartState: any } = $props()
@@ -25,6 +26,7 @@
 	let error = $state('')
 	let otp = $state('')
 	let couponCode = $state('')
+	let couponApplying = $state(false)
 	let fullName = $state('')
 	let building = $state('')
 	let street = $state('')
@@ -58,6 +60,7 @@
 	const tax = $derived(Number(cartState.cart?.taxAmount || cartState.cart?.taxes || 0))
 	const discount = $derived(Number(cartState.cart?.discountAmount || 0))
 	const total = $derived(Number(cartState.cart?.total ?? subtotal + tax - discount))
+	const couponMode = $derived(couponAction(cartState.cart?.couponCode, couponCode))
 	const products = $derived((page.data?.checkoutProducts || []).slice(0, 5))
 	const isShippingStep = $derived(page.url.searchParams.get('step') === 'shipping')
 	const guestCheckoutEnabled = $derived(Boolean(page.data?.store?.plugins?.isGuestCheckout?.active))
@@ -114,20 +117,41 @@
 	}
 
 	async function addCoupon() {
+		if (cartState.cart?.couponCode) {
+			couponCode = cartState.cart.couponCode
+			await updateCoupon(cartState.cart.couponCode)
+			return
+		}
 		const code = window.prompt('Enter discount code', cartState.cart?.couponCode || '')?.trim()
 		if (!code) return
-		try {
-			await cartState.applyCoupon(code)
-			toast.success('Coupon applied')
-		} catch {
-			// Shared cart state displays the API error.
-		}
+		couponCode = code
+		await updateCoupon(code)
 	}
 
 	async function applyShippingCoupon(event: SubmitEvent) {
 		event.preventDefault()
-		if (!couponCode.trim()) return
-		await cartState.applyCoupon(couponCode.trim())
+		await updateCoupon(couponCode)
+	}
+
+	async function updateCoupon(code: string) {
+		const action = couponAction(cartState.cart?.couponCode, code)
+		if (action === 'none' || couponApplying) return
+		couponApplying = true
+		try {
+			if (action === 'remove') {
+				await cartState.removeCoupon()
+				couponCode = ''
+				toast.success('Coupon removed')
+			} else {
+				await cartState.applyCoupon(code.trim())
+				couponCode = code.trim()
+				toast.success('Coupon applied')
+			}
+		} catch {
+			// Shared cart state displays the API error.
+		} finally {
+			couponApplying = false
+		}
 	}
 
 	function startOtpTimer(seconds: number) {
@@ -592,7 +616,7 @@
 								<form class="rj-shipping-coupon" onsubmit={applyShippingCoupon}>
 									<img src="/ryans-jewels/checkout/shipping/coupon.svg" alt="" />
 									<input id="rj-shipping-coupon" bind:value={couponCode} placeholder="Enter coupon code" />
-									<button type="submit">APPLY COUPON</button>
+									<button type="submit" disabled={couponMode === 'none' || couponApplying || cartState.isUpdatingCart} aria-busy={couponApplying}>{couponApplying ? 'APPLYING…' : couponMode === 'remove' ? 'REMOVE COUPON' : 'APPLY COUPON'}</button>
 								</form>
 								<div class="rj-order-total">
 									<p class="discount"><span>Discount</span><b>-{formatPrice(discount, currency)}</b></p>
@@ -672,7 +696,7 @@
 							<span class="rj-discount-icon"><img src="/ryans-jewels/checkout/coupon-polygon.svg" alt="" /><img src="/ryans-jewels/checkout/coupon-wallet.svg" alt="" /></span>
 						<span><b>Discount Code</b><small>Save with an eligible coupon code</small></span>
 						</div>
-						<button type="button" onclick={addCoupon}><img src="/ryans-jewels/checkout/coupon-ticket.svg" alt="" />Add Code</button>
+						<button type="button" disabled={couponApplying || cartState.isUpdatingCart} aria-busy={couponApplying} onclick={addCoupon}><img src="/ryans-jewels/checkout/coupon-ticket.svg" alt="" />{couponApplying ? 'Updating…' : cartState.cart?.couponCode ? 'Remove Code' : 'Add Code'}</button>
 					</div>
 				</div>
 

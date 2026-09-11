@@ -7,6 +7,7 @@
 	import { getUserState } from '$lib/core/stores/index.js'
 	import { fireGTagEvent } from '$lib/core/utils/index.js'
 	import { isCustomerSignedIn } from './auth-gate.logic.js'
+	import { couponAction } from './commerce-flow.js'
 
 	let { cartModule, cartState }: { cartModule: any; cartState: any } = $props()
 
@@ -23,6 +24,7 @@
 	const subtotal = $derived(Number(cartState.cart?.subtotal || 0))
 	const discount = $derived(Number(cartState.cart?.discountAmount || 0))
 	const total = $derived(Number(cartState.cart?.total ?? subtotal - discount))
+	const couponMode = $derived(couponAction(cartState.cart?.couponCode, coupon))
 	const deliveryDate = $derived(deliveryAt ? `${new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(deliveryAt)} ${new Intl.DateTimeFormat('en-US', { month: 'short' }).format(deliveryAt)} ${new Date(deliveryAt).getDate()}` : '—')
 	const countdown = $derived.by(() => {
 		const seconds = Math.max(0, Math.floor((cutoff - now) / 1000))
@@ -55,10 +57,10 @@
 
 	async function handleCoupon() {
 		const code = coupon.trim()
-		if (!code || applyingCoupon) return
+		if (couponMode === 'none' || applyingCoupon) return
 		applyingCoupon = true
 		try {
-			if (cartState.cart?.couponCode?.toLowerCase() === code.toLowerCase()) {
+			if (couponMode === 'remove') {
 				await cartState.removeCoupon()
 				coupon = ''
 				toast.success('Coupon removed')
@@ -142,7 +144,7 @@
 						<h2>Discount Code</h2>
 						<form onsubmit={(event) => { event.preventDefault(); handleCoupon() }}>
 							<label><img src="/ryans-jewels/cart/ticket.svg" alt="" /><input bind:value={coupon} placeholder="Enter coupon code" aria-label="Coupon code" /></label>
-							<button type="submit" disabled={!coupon.trim() || applyingCoupon || cartState.isUpdatingCart}>{applyingCoupon ? 'Applying…' : cartState.cart?.couponCode ? 'Remove Coupon' : 'Apply Coupon'}</button>
+							<button type="submit" disabled={couponMode === 'none' || applyingCoupon || cartState.isUpdatingCart} aria-busy={applyingCoupon}>{applyingCoupon ? 'Applying…' : couponMode === 'remove' ? 'Remove Coupon' : 'Apply Coupon'}</button>
 						</form>
 						<p>Coupons can only be applied to eligible products. <img src="/ryans-jewels/cart/info.svg" alt="" /></p>
 					</div>

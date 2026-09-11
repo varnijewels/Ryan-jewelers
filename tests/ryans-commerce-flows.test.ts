@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { AuthService, OrderService, ProductService } from '@misiki/litekart-connector'
 import { describe, expect, it, vi } from 'vitest'
 import { normalizePhone, resetPasswordError } from '../src/lib/theme/ryans-jewels/auth-flow.js'
-import { buyAgainItems, productReviewHref, sameVariant } from '../src/lib/theme/ryans-jewels/commerce-flow.js'
+import { buyAgainItems, couponAction, productReviewHref, sameVariant } from '../src/lib/theme/ryans-jewels/commerce-flow.js'
 import { load as loadCategory } from '../src/routes/(www)/categories/[slug]/+page.server.js'
 
 function redirectFor(slug: string, query = '') {
@@ -61,6 +61,12 @@ describe('Ryan critical commerce flows', () => {
 		expect(sameVariant(item, { productId: 'product-1', variantId: 'white-7' })).toBe(false)
 		expect(sameVariant(item, { productId: 'product-1', variantId: 'yellow-7' })).toBe(true)
 		expect(productReviewHref(item)).toBe('/products/diamond-ring?variant_id=yellow-7&review=1#rj-specifications')
+	})
+
+	it('chooses the correct coupon action', () => {
+		expect(couponAction('', '   ')).toBe('none')
+		expect(couponAction('SAVE10', 'save10')).toBe('remove')
+		expect(couponAction('SAVE10', 'SAVE20')).toBe('apply')
 	})
 
 	it('routes every jewelry category into the real catalogue and removes kids and saree', () => {
