@@ -1004,29 +1004,27 @@
 		.rj-share img { width: 22px; height: 22px; }
 		.rj-buy-now { height: 46px; font-size: 16px; }
 		.rj-buy-now img { width: 25px; height: 25px; }
-		/* Figma 77:121085 — 380×203 assurance block at the 412px viewport. */
+		/* Figma 77:121085 — the assurance block scales down with the viewport. */
 		.rj-service-row {
 			display: grid;
-			width: calc(100vw - 32px);
-			height: 90px;
-			grid-template-columns: 147px 148px;
-			grid-template-rows: repeat(2, 36px);
-			column-gap: 67px;
-			row-gap: 18px;
+			width: 100%;
+			min-height: 100px;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			grid-template-rows: repeat(2, minmax(42px, auto));
+			column-gap: 8px;
+			row-gap: 12px;
 			align-items: center;
-			justify-content: center;
-			margin-left: -4px;
-			padding: 0;
+			margin-left: 0;
+			padding: 8px 0;
 			border-top: 0;
 		}
-		.rj-service-row > div { gap: 8px; }
+		.rj-service-row > div { min-width: 0; gap: 8px; justify-content: center; }
 		.rj-service-row > div:nth-child(2) { gap: 9px; }
 		.rj-service-row > div:nth-child(3) { grid-column: 1 / -1; justify-content: center; }
 		.rj-service-row img { width: 35px; height: 35px; }
-		.rj-service-row span { width: 104px; }
-		.rj-service-row > div:nth-child(3) span { width: 125px; }
+		.rj-service-row span, .rj-service-row > div:nth-child(3) span { width: auto; }
 		.rj-service-row b { color: #000; font-size: 14px; line-height: 18px; white-space: nowrap; }
-		.rj-service-row small { font-size: 10px; line-height: 18px; white-space: nowrap; }
+		.rj-service-row small { font-size: 10px; line-height: 14px; white-space: normal; }
 		.rj-payments {
 			box-sizing: border-box;
 			width: calc(100vw - 32px);
