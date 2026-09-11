@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { ChevronRight, Menu } from '@lucide/svelte'
 	import { page } from '$app/state'
-	import ProfileDropdown from '$lib/components/nav/profile-dropdown.svelte'
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu'
 	import { AuthButton } from '$lib/core/components/index.js'
 	import { MsSearchRenderer } from '$lib/core/composables/index.js'
@@ -9,6 +8,7 @@
 	import { getCartState } from '$lib/core/stores/index.js'
 	import { ryansJewelsNavContent as nav } from './nav-content.js'
 	import RjAdminMegaMenu from './RjAdminMegaMenu.svelte'
+	import RjProfileDropdown from './RjProfileDropdown.svelte'
 	import { menuChildren, menuHref, menuLabel, resolveAdminMenu } from './admin-menu.js'
 
 	let {
@@ -310,7 +310,7 @@
 				</a>
 
 				{#if isLoggedIn}
-					<ProfileDropdown onSignOut={navModule.handleSignOut}>
+					<RjProfileDropdown onSignOut={navModule.handleSignOut}>
 						{#snippet trigger()}
 							<span class="rj-account">
 								<span class="rj-account-icon" aria-hidden="true">
@@ -348,7 +348,7 @@
 								</span>
 							</span>
 						{/snippet}
-					</ProfileDropdown>
+					</RjProfileDropdown>
 				{:else}
 					<DropdownMenu.Root>
 						<DropdownMenu.Trigger aria-label="Open account menu" class="rj-guest-trigger">
