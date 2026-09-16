@@ -20,7 +20,7 @@
 
 	onMount(async () => {
 		try {
-			const response = await fetch('/api/instagram')
+			const response = await fetch('/instagram-feed.json')
 			if (!response.ok) return
 			const items = (await response.json()).items
 			if (Array.isArray(items) && items.length) visibleTiles = items
