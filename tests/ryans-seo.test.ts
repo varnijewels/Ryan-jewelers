@@ -115,14 +115,25 @@ describe('Ryan Jewelers SEO helpers', () => {
 						permalink: 'https://www.instagram.com/p/post/',
 						caption: 'Diamond ring'
 					},
-					{ media_type: 'VIDEO', thumbnail_url: 'https://cdn.example.com/reel.jpg', permalink: 'https://www.instagram.com/reel/video/' },
+					{
+						media_type: 'VIDEO',
+						media_url: 'https://cdn.example.com/reel.mp4',
+						thumbnail_url: 'https://cdn.example.com/reel.jpg',
+						permalink: 'https://www.instagram.com/reel/video/'
+					},
 					{ media_type: 'IMAGE', media_url: 'javascript:alert(1)' }
 				],
 				instagramStrip.href
 			)
 		).toEqual([
 			{ src: 'https://cdn.example.com/post.jpg', href: 'https://www.instagram.com/p/post/', alt: 'Diamond ring', isVideo: false },
-			{ src: 'https://cdn.example.com/reel.jpg', href: 'https://www.instagram.com/reel/video/', alt: 'Ryan Jewelers Instagram reel', isVideo: true }
+			{
+				src: 'https://cdn.example.com/reel.jpg',
+				videoSrc: 'https://cdn.example.com/reel.mp4',
+				href: 'https://www.instagram.com/reel/video/',
+				alt: 'Ryan Jewelers Instagram reel',
+				isVideo: true
+			}
 		])
 	})
 })

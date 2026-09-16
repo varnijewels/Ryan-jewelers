@@ -38,12 +38,19 @@
 		</div>
 
 		<ul class="rj-ig-grid">
-			{#each visibleTiles as tile (tile.src)}
+			{#each visibleTiles as tile (tile.videoSrc || tile.src)}
 				<li class="rj-ig-cell">
-					<a class="rj-ig-tile" href={tile.href} target="_blank" rel="noopener noreferrer">
-						<img src={tile.src} alt={tile.alt} loading="lazy" decoding="async" />
-						{#if tile.isVideo}<span class="rj-ig-play" aria-hidden="true">&#9654;</span>{/if}
-					</a>
+					{#if tile.isVideo && tile.videoSrc}
+						<div class="rj-ig-tile">
+							<video src={tile.videoSrc} poster={tile.src || undefined} aria-label={tile.alt} controls muted playsinline preload="metadata"></video>
+							<a class="rj-ig-open" href={tile.href} target="_blank" rel="noopener noreferrer" aria-label="Open this reel on Instagram">Instagram &#8599;</a>
+						</div>
+					{:else}
+						<a class="rj-ig-tile" href={tile.href} target="_blank" rel="noopener noreferrer">
+							<img src={tile.src} alt={tile.alt} loading="lazy" decoding="async" />
+							{#if tile.isVideo}<span class="rj-ig-play" aria-hidden="true">&#9654;</span>{/if}
+						</a>
+					{/if}
 				</li>
 			{/each}
 		</ul>
@@ -123,10 +130,14 @@
 		overflow: hidden;
 	}
 
-	.rj-ig-tile img {
+	.rj-ig-tile img,
+	.rj-ig-tile video {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
+	}
+
+	.rj-ig-tile img {
 		transition: transform 0.4s var(--rj-ease, ease);
 	}
 
@@ -146,6 +157,20 @@
 		background: rgb(0 0 0 / 55%);
 		color: #fff;
 		font-size: 12px;
+	}
+
+	.rj-ig-open {
+		position: absolute;
+		right: 8px;
+		bottom: 42px;
+		z-index: 1;
+		padding: 5px 8px;
+		border-radius: 999px;
+		background: rgb(0 0 0 / 65%);
+		color: #fff;
+		font-size: 10px;
+		line-height: 1;
+		text-decoration: none;
 	}
 
 	@media (max-width: 1279px) {
