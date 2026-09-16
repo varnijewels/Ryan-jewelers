@@ -12,6 +12,7 @@ import {
 } from '$lib/theme/ryans-jewels/seo.js'
 import { ryansBlogPosts } from '$lib/theme/ryans-jewels/blog-content.js'
 import { instagramStrip } from '$lib/theme/ryans-jewels/footer-content.js'
+import { instagramTiles } from '$lib/theme/ryans-jewels/instagram-feed.js'
 import { realCatalogUrl } from '$lib/theme/ryans-jewels/product-filters.js'
 
 describe('Ryan Jewelers SEO helpers', () => {
@@ -101,6 +102,27 @@ describe('Ryan Jewelers SEO helpers', () => {
 		expect(ryansBlogPosts).toHaveLength(3)
 		expect(new Set(ryansBlogPosts.map((post) => post.slug)).size).toBe(ryansBlogPosts.length)
 		expect(ryansBlogPosts.every((post) => post.title && post.excerpt && post.content && post.imageUrl)).toBe(true)
-		expect(instagramStrip.href).toBe('https://www.instagram.com/varnijewels/')
+		expect(instagramStrip.href).toBe('https://www.instagram.com/ryan.jewelers/')
+	})
+
+	it('normalizes Instagram posts and reels without exposing unusable media', () => {
+		expect(
+			instagramTiles(
+				[
+					{
+						media_type: 'IMAGE',
+						media_url: 'https://cdn.example.com/post.jpg',
+						permalink: 'https://www.instagram.com/p/post/',
+						caption: 'Diamond ring'
+					},
+					{ media_type: 'VIDEO', thumbnail_url: 'https://cdn.example.com/reel.jpg', permalink: 'https://www.instagram.com/reel/video/' },
+					{ media_type: 'IMAGE', media_url: 'javascript:alert(1)' }
+				],
+				instagramStrip.href
+			)
+		).toEqual([
+			{ src: 'https://cdn.example.com/post.jpg', href: 'https://www.instagram.com/p/post/', alt: 'Diamond ring', isVideo: false },
+			{ src: 'https://cdn.example.com/reel.jpg', href: 'https://www.instagram.com/reel/video/', alt: 'Ryan Jewelers Instagram reel', isVideo: true }
+		])
 	})
 })

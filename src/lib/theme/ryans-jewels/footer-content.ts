@@ -154,7 +154,7 @@ export const ryansJewelsFooter = {
 export const instagramStrip = {
 	eyebrow: 'Follow us on Instagram!',
 	heading: 'Explore the Instagram Universe!',
-	href: 'https://www.instagram.com/varnijewels/',
+	href: 'https://www.instagram.com/ryan.jewelers/',
 	tiles: [
 		{ src: '/ryans-jewels/instagram/figma-1.png', alt: 'Model wearing diamond jewellery' },
 		{ src: '/ryans-jewels/instagram/figma-2.png', alt: 'Model wearing statement rings' },

@@ -6,7 +6,9 @@
 	 *
 	 * Tiles default to theme imagery; callers can provide live store imagery.
 	 */
+	import { onMount } from 'svelte'
 	import { instagramStrip } from './footer-content.js'
+	import type { InstagramTile } from './instagram-feed.js'
 
 	interface Props {
 		tiles?: { src: string; alt: string }[]
@@ -14,6 +16,18 @@
 	}
 
 	const { tiles = instagramStrip.tiles, href = instagramStrip.href }: Props = $props()
+	let visibleTiles = $state<InstagramTile[]>(tiles.map((tile) => ({ ...tile, href, isVideo: false })))
+
+	onMount(async () => {
+		try {
+			const response = await fetch('/api/instagram')
+			if (!response.ok) return
+			const items = (await response.json()).items
+			if (Array.isArray(items) && items.length) visibleTiles = items
+		} catch {
+			// Static theme tiles remain visible when Instagram is unavailable.
+		}
+	})
 </script>
 
 <section class="rj-ig" aria-labelledby="rj-ig-heading">
@@ -24,10 +38,11 @@
 		</div>
 
 		<ul class="rj-ig-grid">
-			{#each tiles as tile, i (tile.src)}
+			{#each visibleTiles as tile (tile.src)}
 				<li class="rj-ig-cell">
-					<a class="rj-ig-tile" {href} target="_blank" rel="noopener noreferrer">
+					<a class="rj-ig-tile" href={tile.href} target="_blank" rel="noopener noreferrer">
 						<img src={tile.src} alt={tile.alt} loading="lazy" decoding="async" />
+						{#if tile.isVideo}<span class="rj-ig-play" aria-hidden="true">&#9654;</span>{/if}
 					</a>
 				</li>
 			{/each}
@@ -100,6 +115,7 @@
 	}
 
 	.rj-ig-tile {
+		position: relative;
 		display: block;
 		width: 100%;
 		aspect-ratio: 203 / 251;
@@ -116,6 +132,20 @@
 
 	.rj-ig-tile:hover img {
 		transform: scale(1.05);
+	}
+
+	.rj-ig-play {
+		position: absolute;
+		top: 10px;
+		right: 10px;
+		display: grid;
+		width: 30px;
+		height: 30px;
+		place-items: center;
+		border-radius: 50%;
+		background: rgb(0 0 0 / 55%);
+		color: #fff;
+		font-size: 12px;
 	}
 
 	@media (max-width: 1279px) {
