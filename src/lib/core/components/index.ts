@@ -1,2 +1,6 @@
 export * from '@misiki/kitcommerce-core/components'
 export { default as SeoHeader } from './seo-header.svelte'
+export { default as GoogleStructuredDataProductsList } from './structured-product-list.svelte'
+export { default as GoogleStructuredDataBreadcrumb } from './structured-breadcrumb.svelte'
+export { default as GoogleStructuredDataWebsite } from './structured-website.svelte'
+export { default as GoogleStructuredDataOrganization } from './structured-organization.svelte'

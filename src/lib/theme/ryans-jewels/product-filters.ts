@@ -1,8 +1,33 @@
 export const clientFilterKeys = ['uiStatus', 'uiMaterial', 'uiShape', 'uiQuality', 'uiWeight']
 export const clientSorts = new Set(['rating:desc', 'title:asc', 'title:desc'])
 
+const categoryCatalogFilters: Record<string, [string, string]> = {
+	'lab-grown-diamond': ['search', 'lab grown diamond'],
+	rings: ['categories', 'engagement'],
+	engagement: ['categories', 'engagement'],
+	bracelets: ['search', 'bracelets'],
+	earrings: ['search', 'earrings'],
+	pendants: ['search', 'pendants']
+}
+
 export function realCatalogUrl(url: URL) {
 	const filteredUrl = new URL(url)
+	const categorySlug = filteredUrl.pathname.match(/^\/categories\/([^/]+)\/?$/)?.[1]
+	if (categorySlug) {
+		const [key, value] = categoryCatalogFilters[categorySlug] || ['categories', categorySlug]
+		if (!filteredUrl.searchParams.has(key)) filteredUrl.searchParams.set(key, value)
+		const type = filteredUrl.searchParams.get('type')
+		if (type) {
+			filteredUrl.searchParams.delete('type')
+			filteredUrl.searchParams.set('search', type.replaceAll('-', ' '))
+		}
+		const shape = filteredUrl.searchParams.get('shape')
+		if (shape) {
+			filteredUrl.searchParams.delete('shape')
+			filteredUrl.searchParams.set('uiShape', shape.replace(/\b\w/g, (letter) => letter.toUpperCase()))
+		}
+		filteredUrl.pathname = '/products'
+	}
 	filteredUrl.searchParams.delete('catalog')
 	filteredUrl.searchParams.set('tags', 'JewelWeSell')
 	return filteredUrl

@@ -1,45 +1,33 @@
 <script lang="ts">
-  import { GoogleStructuredDataProductsList, GoogleStructuredServiceSchema, GoogleStructuredDataBreadcrumb,GoogleStructuredVideoSchema, GoogleStructuredFaqSchema } from '@misiki/kitcommerce-core/components'
-
 	import { page } from '$app/state'
+	import { GoogleStructuredDataBreadcrumb, GoogleStructuredDataProductsList } from '$lib/core/components/index.js'
+	import { canonicalProductPath } from '$lib/theme/ryans-jewels/seo.js'
 
-	const { products = [] } = $props()
-
+	const products = $derived(page.data.products?.data || [])
 	const mappedProducts = $derived(
-		products?.map((p: any) => ({
-			url: `${page.url.origin}/products/${p.slug}`,
-			name: p.name || p.title,
-			image: p.images || [p.thumbnail],
-			description: p.description || p.metaDescription || '',
-			brandName: p.brandName || page.data.store?.name || 'JewelWeSell',
-			manufacturer: p.manufacturer || '',
-			material: p.material || '',
-			offers: {
-				url: `${page.url.origin}/products/${p.slug}`,
-				priceCurrency: page.data.store?.currency?.code || 'USD',
-				price: p.price,
-				availability: p.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-				shippingDetails: p.shippingDetails,
-				hasMerchantReturnPolicy: p.hasMerchantReturnPolicy
+		products.map((product: any) => {
+			const url = `${page.url.origin}${canonicalProductPath(product)}`
+			return {
+				url,
+				name: product.name || product.title,
+				image: product.images || (product.thumbnail ? [product.thumbnail] : []),
+				description: product.description || product.metaDescription || '',
+				brandName: product.brandName || page.data.store?.name || 'Ryan Jewelers',
+				manufacturer: product.manufacturer || '',
+				material: product.material || '',
+				offers: {
+					url,
+					priceCurrency: page.data.store?.currency?.code || 'USD',
+					price: product.price,
+					availability: product.allowBackorder || product.manageInventory === false || product.stock > 0
+						? 'https://schema.org/InStock'
+						: 'https://schema.org/OutOfStock'
+				}
 			}
-		}))
+		})
 	)
-
-	const listingFaqs = [
-		{
-			question: 'What is your return policy?',
-			answer:
-				'We offer an easy 7-day return policy on all our products. Items must be in their original condition.'
-		},
-	]
-
 	const categoryHierarchy = $derived(page.data.products?.categoryHierarchy)
 </script>
 
 <GoogleStructuredDataProductsList products={mappedProducts} />
 <GoogleStructuredDataBreadcrumb {categoryHierarchy} />
-<GoogleStructuredFaqSchema faqs={listingFaqs} />
-<!-- <GoogleStructuredServiceSchema
-	serviceName="Luxury Custom Jewelry Design"
-	serviceDescription="Experience the art of bespoke jewelry design. From engagement rings to statement pieces, we bring your vision to life with unparalleled craftsmanship."
-/> -->

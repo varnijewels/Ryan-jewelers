@@ -54,6 +54,7 @@
 	metaDescription={post?.excerpt || 'Read practical Ryan Jewelers guides about diamonds, rings and fine jewelry.'}
 	image={post?.imageUrl}
 	{canonicalUrl}
+	ogType="article"
 />
 {#if articleSchema}<StructuredData schema={articleSchema} />{/if}
 

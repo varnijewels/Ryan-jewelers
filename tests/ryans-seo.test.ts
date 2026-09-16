@@ -1,17 +1,23 @@
 import { describe, expect, it } from 'vitest'
 import {
 	canonicalProductPath,
+	canonicalProductPaths,
 	canonicalProductSlug,
 	isMissingCatalogPage,
 	productStructuredData,
+	robotsSitemapUrl,
+	ryansSeoPlainText,
+	safeJsonLd,
 	ryansSeoText
 } from '$lib/theme/ryans-jewels/seo.js'
 import { ryansBlogPosts } from '$lib/theme/ryans-jewels/blog-content.js'
 import { instagramStrip } from '$lib/theme/ryans-jewels/footer-content.js'
+import { realCatalogUrl } from '$lib/theme/ryans-jewels/product-filters.js'
 
 describe('Ryan Jewelers SEO helpers', () => {
 	it('replaces legacy storefront brands in API metadata', () => {
 		expect(ryansSeoText('Diamond Ring | JewelWeSell')).toBe('Diamond Ring | Ryan Jewelers')
+		expect(ryansSeoText("JewelWeSell's certified diamond")).toBe('Ryan Jewelers certified diamond')
 		expect(ryansSeoText('', 'Shop at Arialshop')).toBe('Shop at Ryan Jewelers')
 	})
 
@@ -34,7 +40,25 @@ describe('Ryan Jewelers SEO helpers', () => {
 		expect(isMissingCatalogPage({ products: { count: 0 } })).toBe(true)
 		expect(isMissingCatalogPage({ products: { count: 1 } })).toBe(false)
 	})
+	it('publishes canonical sitemap URLs without duplicate product variants', () => {
+		expect(robotsSitemapUrl(new URL('https://ryan.example/robots.txt'))).toBe('https://ryan.example/sitemap.xml')
+		expect(canonicalProductPaths([{ slug: 'diamond-ring-20', groupedSku: 'RING-1' }, { slug: 'diamond-ring-19', groupedSku: 'RING-1' }])).toEqual([
+			'/products/diamond-ring'
+		])
+	})
 
+	it('loads category landing pages through the existing product search', () => {
+		const url = realCatalogUrl(new URL('https://ryan.example/categories/engagement?shape=oval'))
+		expect(url.pathname).toBe('/products')
+		expect(url.searchParams.get('categories')).toBe('engagement')
+		expect(url.searchParams.get('uiShape')).toBe('Oval')
+		expect(url.searchParams.get('tags')).toBe('JewelWeSell')
+	})
+
+	it('keeps structured data plain and safe to embed', () => {
+		expect(ryansSeoPlainText('<p>Made by JewelWeSell &amp; crafted for you.</p>')).toBe('Made by Ryan Jewelers & crafted for you.')
+		expect(safeJsonLd({ description: '</script><script>alert(1)</script>' })).not.toContain('</script>')
+	})
 	it('emits complete product pricing and availability for search engines', () => {
 		const schema = productStructuredData(
 			{
@@ -60,6 +84,7 @@ describe('Ryan Jewelers SEO helpers', () => {
 			availability: 'https://schema.org/InStock'
 		})
 		expect(schema.description).toContain('Ryan Jewelers')
+		expect(schema.description).not.toContain('<p>')
 	})
 
 	it('omits empty aggregate ratings from product schema', () => {

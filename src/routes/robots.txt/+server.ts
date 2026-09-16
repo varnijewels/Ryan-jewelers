@@ -1,6 +1,8 @@
 import type { RequestHandler } from '@sveltejs/kit'
+import { robotsSitemapUrl } from '$lib/theme/ryans-jewels/seo.js'
 
-export const GET: RequestHandler = async () => {
+export const GET: RequestHandler = async ({ url }) => {
+	const sitemap = robotsSitemapUrl(url)
 	const robotsTxt = `# we use Litekart as our ecommerce platform
 
 User-agent: *
@@ -41,6 +43,8 @@ Disallow: /*/*?*ls%3d*%3fls%3d*
 Disallow: /apple-app-site-association
 Disallow: /.well-known/litekart/monorail
 Disallow: /cdn/wpm/*.js
+Sitemap: ${sitemap}
+
 # Google adsbot ignores robots.txt unless specifically named!
 User-agent: adsbot-google
 Disallow: /checkouts/*

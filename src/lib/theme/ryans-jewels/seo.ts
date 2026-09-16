@@ -25,10 +25,34 @@ type ProductLike = {
 	}>
 }
 
-const legacyBrand = /Arialshop|JewelWeSell|Svelte Commerce|Shop Your Fashion|Our Store|Ryan'?s?\s*Jewelers?/gi
+const legacyBrand = /(?:Arialshop|JewelWeSell|Svelte Commerce|Shop Your Fashion|Our Store)(?:['’]s)?|Ryan'?s?\s*Jewelers?/gi
 
 export function ryansSeoText(value: unknown, fallback = '') {
 	return String(value || fallback).replace(legacyBrand, 'Ryan Jewelers')
+}
+
+export function seoPlainText(value: unknown) {
+	return String(value || '')
+		.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
+		.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
+		.replace(/<[^>]+>/g, ' ')
+		.replace(/&nbsp;/gi, ' ')
+		.replace(/&amp;/gi, '&')
+		.replace(/&quot;/gi, '"')
+		.replace(/&#39;|&apos;/gi, "'")
+		.replace(/&lt;/gi, '<')
+		.replace(/&gt;/gi, '>')
+		.replace(/\s+/g, ' ')
+		.trim()
+}
+
+export function ryansSeoPlainText(value: unknown, fallback = '') {
+	return seoPlainText(ryansSeoText(value, fallback))
+}
+
+export function safeJsonLd(value: unknown) {
+	const json = JSON.stringify(value)
+	return json ? json.replace(/</g, '\\u003c') : ''
 }
 
 export function canonicalProductSlug(product: ProductLike | null | undefined) {
@@ -40,6 +64,14 @@ export function canonicalProductSlug(product: ProductLike | null | undefined) {
 export function canonicalProductPath(product: ProductLike | null | undefined) {
 	const slug = canonicalProductSlug(product)
 	return slug ? `/products/${slug}` : '/products'
+}
+
+export function canonicalProductPaths(products: ProductLike[] = []) {
+	return [...new Set(products.map(canonicalProductPath).filter((path) => path !== '/products'))]
+}
+
+export function robotsSitemapUrl(url: URL) {
+	return new URL('/sitemap.xml', url).href
 }
 
 export function isMissingCatalogPage(data: { products?: { count?: number } } | null | undefined) {
@@ -68,7 +100,7 @@ export function productStructuredData(
 	return {
 		name: String(product?.title || ''),
 		image: imageList(variant?.images || variant?.img || product?.images || product?.thumbnail),
-		description: ryansSeoText(product?.description),
+		description: ryansSeoPlainText(product?.description),
 		sku: String(variant?.sku || product?.sku || ''),
 		brandName: ryansSeoText(store?.name, 'Ryan Jewelers'),
 		aggregateRating: ratingValue > 0 && reviewCount > 0 ? { ratingValue, reviewCount } : undefined,

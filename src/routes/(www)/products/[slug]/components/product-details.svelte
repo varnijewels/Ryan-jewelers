@@ -45,6 +45,7 @@
 	metaKeywords={data?.product?.keywords || ''}
 	image={data?.product?.thumbnail || ''}
 	{canonicalUrl}
+	ogType="product"
 />
 
 <GoogleStructuredDataProduct product={structuredProduct} />

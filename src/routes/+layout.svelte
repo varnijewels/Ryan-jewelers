@@ -59,6 +59,9 @@
 	})
 
 	const themeFontsUrl = $derived(getThemeFontsUrl(data?.theme?.name || 'default'))
+	const nonIndexablePath = $derived(
+		/^\/(?:auth|checkout|enquiry(?:\/|$)|messages(?:\/|$)|my(?:\/|$)|order-details(?:\/|$)|order-tracking(?:\/|$)|profile(?:\/|$)|reels(?:\/|$))/.test(page.url.pathname)
+	)
 
 	// Stale-client protection. SvelteKit's `updated` store flips to true once the
 	// deployed build (via _app/version.json polling) no longer matches the running
@@ -118,6 +121,7 @@
 
 <svelte:head>
 	<link rel="icon" href={data?.store?.favicon || '/favicon.png'} />
+	{#if nonIndexablePath}<meta name="robots" content="noindex, follow" />{/if}
 	{#if themeFontsUrl}
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
