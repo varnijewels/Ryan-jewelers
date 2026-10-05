@@ -7,6 +7,7 @@
 	import ListingGrid from '$lib/components/product-catalogue/listing-grid.svelte'
 	import RjInstagram from './RjInstagram.svelte'
 	import { facetOptions, isRyanCategoryVisible } from './product-filters.js'
+	import { canonicalProductPath } from './seo.js'
 
 	const sortOptions = [
 		['select', 'Select one'],
@@ -42,7 +43,7 @@
 	const categoryName = $derived(
 		page.url.searchParams.get('catalog') || (page.url.searchParams.get('uiShape')
 			? `${page.url.searchParams.get('uiShape')} Shape`
-			: data.products?.categoryHierarchy?.at(-1)?.name || data.products?.category?.name || 'All Jewellery')
+			: data.products?.categoryHierarchy?.at(-1)?.name || data.products?.category?.name || page.params.slug?.replaceAll('-', ' ') || 'All Jewellery')
 	)
 	const categories = $derived((filterState.categories || []).filter(isRyanCategoryVisible))
 	const visibleCategories = $derived(showAllCategories ? categories : categories.slice(0, 6))
@@ -287,7 +288,7 @@
 		<div class="rj-featured">
 			<h2><button class="rj-section-toggle" type="button" onclick={() => toggleSection('featured')} aria-expanded={openSections.featured}>Featured Product <span class:closed={!openSections.featured}>⌃</span></button></h2>
 			{#if openSections.featured}{#each featured as product}
-				<a href="/products/{product.slug}"><span class="rj-featured-image">{#if product.thumbnail || product.image_url}<img src={product.thumbnail || product.image_url} alt="" />{/if}</span><span><b>{product.title || product.name}</b><i>★★★★</i><small>{formatPrice(product.price, data.store?.currency?.code)}</small></span></a>
+				<a href={canonicalProductPath(product)}><span class="rj-featured-image">{#if product.thumbnail || product.image_url}<img src={product.thumbnail || product.image_url} alt={product.title || product.name || ''} />{/if}</span><span><b>{product.title || product.name}</b><i>★★★★</i><small>{formatPrice(product.price, data.store?.currency?.code)}</small></span></a>
 			{/each}
 			{#if featuredProducts.length > 3}<button class="rj-see-more" type="button" onclick={() => showAllFeatured = !showAllFeatured}>{showAllFeatured ? 'Show Less ↑' : 'See More ↓'}</button>{/if}{/if}
 			</div>

@@ -7,6 +7,7 @@
 	import { CartModule } from '$lib/core/composables/index.js'
 	import { canStartPayment, hasCheckoutAddress } from './checkout-process.js'
 	import { couponAction } from './commerce-flow.js'
+	import { cartShippingCharge, cartTaxAmount, isShippingReady } from './shipping-checkout.js'
 
 	let { paymentModule, cartState }: { paymentModule: any; cartState: any } = $props()
 
@@ -20,13 +21,17 @@
 	const currency = $derived(page.data?.store?.currency?.code || cartState.cart?.currencyCode || 'USD')
 	const itemCount = $derived(items.reduce((sum: number, item: any) => sum + Number(item.qty || 0), 0))
 	const subtotal = $derived(Number(cartState.cart?.subtotal || 0))
-	const tax = $derived(Number(cartState.cart?.taxAmount || cartState.cart?.taxes || 0))
+	const tax = $derived(cartTaxAmount(cartState.cart))
 	const discount = $derived(Number(cartState.cart?.discountAmount || 0))
-	const total = $derived(Number(cartState.cart?.total ?? subtotal + tax - discount))
+	const shippingCharge = $derived(cartShippingCharge(cartState.cart))
+	const shippingReady = $derived(Boolean(paymentModule.shippingStatus && isShippingReady(cartState.cart, paymentModule.shippingStatus)))
+	const checkoutBusy = $derived(Boolean(cartState.isUpdatingCart || Object.values(cartState.updatingItem || {}).some(Boolean) || paymentModule.shippingStatus?.loading || paymentModule.shippingStatus?.saving))
+	const total = $derived(Number(cartState.cart?.total ?? subtotal + tax + (shippingCharge || 0) - discount))
 	const couponMode = $derived(couponAction(cartState.cart?.couponCode, couponCode))
 	const discountPercent = $derived(subtotal ? Math.round((discount / subtotal) * 100) : 0)
 	const orderNumber = $derived(String(cartState.cart?.orderNo || cartState.cart?.id || '0258741').slice(-7).toUpperCase())
 	const canPlaceOrder = $derived(
+		items.length > 0 && shippingReady && !checkoutBusy && Boolean(paymentModule.SELECTED_PG_CODE) &&
 		(!page.data?.store?.isPhoneMandatory || cartState.cart?.phone) &&
 		(!page.data?.store?.isEmailMandatory || cartState.cart?.email) &&
 		(cartState.cart?.shippingAddress || cartState.cart?.shippingAddressId) &&
@@ -79,10 +84,13 @@
 	}
 
 	async function processPayment() {
-		if (!canStartPayment(paymentSubmitting, paymentModule.paymentLoader)) return
+		if (!canPlaceOrder || !canStartPayment(paymentSubmitting, paymentModule.paymentLoader)) return
+		cardSelectionError = ''
 		paymentSubmitting = true
 		try {
 			await paymentModule.placeOrder()
+		} catch (cause: any) {
+			cardSelectionError = cause?.message || 'Unable to start payment. Please try again.'
 		} finally {
 			paymentSubmitting = false
 		}
@@ -90,7 +98,7 @@
 
 	async function applyCoupon(event: SubmitEvent) {
 		event.preventDefault()
-		if (couponMode === 'none' || couponApplying) return
+		if (couponMode === 'none' || couponApplying || checkoutBusy || paymentSubmitting || paymentModule.paymentLoader) return
 		couponApplying = true
 		try {
 			if (couponMode === 'remove') {
@@ -121,14 +129,17 @@
 
 				<section class="rj-shipping-methods" aria-labelledby="rj-shipping-method-title">
 					<h1 id="rj-shipping-method-title"><img src="/ryans-jewels/checkout/payment/shipping-method.svg" alt="" />Shipping Method</h1>
-					{#if paymentModule.shippingRates?.error?.message}
+					{#if paymentModule.shippingStatus?.loading}
+						<p class="rj-payment-status" role="status">Calculating delivery options…</p>
+					{:else if paymentModule.shippingRates?.error?.message}
 						<p class="rj-payment-error" role="alert">{paymentModule.shippingRates.error.message}</p>
 						<a class="rj-payment-address-link" href="/checkout/address?step=shipping">Update delivery address</a>
+						<button type="button" class="rj-payment-address-link" disabled={checkoutBusy} onclick={() => paymentModule.retryShipping()}>Retry shipping</button>
 					{:else if paymentModule.shippingRates?.data?.length}
 						<div class="rj-shipping-list">
 							{#each paymentModule.shippingRates.data as rate, index (rate.id)}
 								<label>
-									<span><input type="radio" name="shippingRate" value={rate.id} checked={cartState.cart?.shippingRateId === rate.id} onchange={() => paymentModule.handleShippingRateChange(rate)} /><i></i></span>
+									<span><input type="radio" name="shippingRate" value={rate.id} disabled={checkoutBusy || paymentSubmitting || paymentModule.paymentLoader} checked={cartState.cart?.shippingRateId === rate.id} onchange={() => paymentModule.handleShippingRateChange(rate)} /><i></i></span>
 									<span class="copy"><b>{rate.name}</b><small>{rate.estimated_min_days && rate.estimated_max_days ? `${rate.estimated_min_days} to ${rate.estimated_max_days} business day` : rate.description || 'Shipping method'}</small></span>
 									<strong>{Number(rate.base_rate) > 0 ? formatPrice(rate.base_rate, currency) : 'FREE'}</strong>
 								</label>
@@ -138,6 +149,7 @@
 					{:else}
 						<p class="rj-payment-muted">Shipping methods will appear after your delivery address is confirmed.</p>
 					{/if}
+					{#if paymentModule.shippingStatus?.saving}<p class="rj-payment-status" role="status">Updating delivery charge and total…</p>{/if}
 				</section>
 
 				<section class="rj-payment-details" aria-labelledby="rj-payment-details-title">
@@ -149,7 +161,7 @@
 					<div class="rj-provider-grid" aria-label="Payment providers">
 						{#each providers as provider}
 							{@const method = providerMethod(provider)}
-							<button class:selected={method?.code && paymentModule.SELECTED_PG_CODE === method.code} type="button" disabled={!method?.code || paymentModule.loadingForPaymentMethods} onclick={() => selectProvider(provider)} aria-label={`${method?.code ? 'Select' : 'Unavailable'} ${method?.name || provider.label}`} aria-pressed={Boolean(method?.code && paymentModule.SELECTED_PG_CODE === method.code)}>
+							<button class:selected={method?.code && paymentModule.SELECTED_PG_CODE === method.code} type="button" disabled={paymentSubmitting || paymentModule.paymentLoader || !method?.code || paymentModule.loadingForPaymentMethods} onclick={() => selectProvider(provider)} aria-label={`${method?.code ? 'Select' : 'Unavailable'} ${method?.name || provider.label}`} aria-pressed={Boolean(method?.code && paymentModule.SELECTED_PG_CODE === method.code)}>
 								{#if provider.images.length}{#each provider.images as image}<span class="provider-image {provider.className}"><img src="/ryans-jewels/checkout/payment/{image}" alt="" /></span>{/each}{:else}<span class="provider-wordmark {provider.className}">{provider.label}</span>{/if}
 							</button>
 						{/each}
@@ -160,7 +172,7 @@
 						<div class="rj-saved-methods">
 							<h3>Other Payment Methods</h3>
 							{#each otherPaymentMethods as method (method.code)}
-								<button class:selected={paymentModule.SELECTED_PG_CODE === method.code} type="button" onclick={() => paymentModule.handlePaymentMethodChange(method.code)} aria-pressed={paymentModule.SELECTED_PG_CODE === method.code}>
+								<button class:selected={paymentModule.SELECTED_PG_CODE === method.code} type="button" disabled={paymentSubmitting || paymentModule.paymentLoader} onclick={() => paymentModule.handlePaymentMethodChange(method.code)} aria-pressed={paymentModule.SELECTED_PG_CODE === method.code}>
 									<span class="method-icon"><img src="/ryans-jewels/checkout/payment/card-tick.svg" alt="" /></span>
 									<span class="method-copy"><b>{method.name}</b><small>Secure payment method</small></span>
 									<i aria-hidden="true"></i>
@@ -177,7 +189,7 @@
 						<article>
 							<a href="/products/{item.slug || item.product?.slug}" class="product-image"><img src={item.thumbnail || item.image || '/placeholder.svg'} alt={item.title} /></a>
 							<div class="product-copy"><a href="/products/{item.slug || item.product?.slug}">{item.title}</a><p>{itemDescription(item)}</p></div>
-							<div class="product-price"><b>{formatPrice(Number(item.price || 0) * Number(item.qty || 0), currency)}</b><span><button type="button" disabled={cartState.updatingItem?.[item.id]} onclick={(event) => cartModule.increaseQty(event, item)} aria-label="Increase quantity">+</button><i>{cartState.updatingItem?.[item.id] ? '…' : item.qty}</i><button type="button" disabled={cartState.updatingItem?.[item.id]} onclick={(event) => cartModule.decreaseQty(event, item)} aria-label="Decrease quantity">−</button></span></div>
+							<div class="product-price"><b>{formatPrice(Number(item.price || 0) * Number(item.qty || 0), currency)}</b><span><button type="button" disabled={checkoutBusy || paymentSubmitting || paymentModule.paymentLoader || cartState.updatingItem?.[item.id]} onclick={(event) => cartModule.increaseQty(event, item)} aria-label="Increase quantity">+</button><i>{cartState.updatingItem?.[item.id] ? '…' : item.qty}</i><button type="button" disabled={checkoutBusy || paymentSubmitting || paymentModule.paymentLoader || cartState.updatingItem?.[item.id]} onclick={(event) => cartModule.decreaseQty(event, item)} aria-label="Decrease quantity">−</button></span></div>
 						</article>
 					{/each}
 				</section>
@@ -188,11 +200,12 @@
 						<p><span>Date &amp; Time</span><b>{orderDate}</b></p><hr />
 						<p><span>Total Item &amp; Price</span><b>{formatPrice(subtotal, currency)}*{itemCount}</b></p>
 						<p><span>Subtotal</span><b>{formatPrice(subtotal, currency)}</b></p>
+						<p><span>Shipping</span><b>{shippingReady && shippingCharge !== null ? shippingCharge === 0 ? 'FREE' : formatPrice(shippingCharge, currency) : 'Calculated before payment'}</b></p>
 						<p><span>Taxes</span><b>{formatPrice(tax, currency)}</b></p><hr />
 					</div>
 					<form class="rj-payment-coupon" onsubmit={applyCoupon}>
 						<label for="rj-payment-coupon">Discount Code</label>
-						<div><img src="/ryans-jewels/checkout/shipping/coupon.svg" alt="" /><input id="rj-payment-coupon" bind:value={couponCode} placeholder="Enter coupon code" /><button type="submit" disabled={couponMode === 'none' || couponApplying || cartState.isUpdatingCart} aria-busy={couponApplying}>{couponApplying ? 'APPLYING…' : couponMode === 'remove' ? 'REMOVE COUPON' : 'APPLY COUPON'}</button></div>
+						<div><img src="/ryans-jewels/checkout/shipping/coupon.svg" alt="" /><input id="rj-payment-coupon" disabled={paymentSubmitting || paymentModule.paymentLoader} bind:value={couponCode} placeholder="Enter coupon code" /><button type="submit" disabled={couponMode === 'none' || couponApplying || checkoutBusy || paymentSubmitting || paymentModule.paymentLoader} aria-busy={couponApplying}>{couponApplying ? 'APPLYING…' : couponMode === 'remove' ? 'REMOVE COUPON' : 'APPLY COUPON'}</button></div>
 					</form>
 					<div class="rj-payment-total"><p class="discount"><span>Discount</span><b>{discountPercent ? `%${discountPercent}` : formatPrice(discount, currency)}</b></p><p><span>Total</span><b>{formatPrice(total, currency)}</b></p></div>
 				</section>
@@ -308,6 +321,8 @@
 	@media (max-width: 1100px) { .rj-payment-layout { width: calc(100% - 60px); grid-template-columns: minmax(0, 1fr); } .rj-payment-right { padding-top: 30px; } }
 	@media (max-width: 700px) {
 		.rj-payment-layout { width: calc(100% - 30px); margin-top: 0; } .rj-payment-left { padding-top: 25px; } .rj-payment-steps { gap: 5px; padding-left: 0; font-size: 12px; } .rj-payment-steps li[aria-hidden='true'] { display: none; } .rj-payment-steps b { width: 28px; height: 28px; }
+		.rj-payment-steps { display: grid; height: auto; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+		.rj-payment-steps li { gap: 5px; white-space: normal; } .rj-payment-steps b { flex-shrink: 0; }
 		.rj-shipping-methods, .rj-payment-details { padding: 18px 15px; } .rj-payment-details > header { gap: 15px; } .rj-payment-details > header > span { font-size: 11px; } .rj-provider-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
 		.rj-payment-right { padding: 20px 15px 0; } .rj-payment-products article { grid-template-columns: 72px minmax(0, 1fr); } .product-image { width: 72px; height: 72px; } .product-price { grid-column: 2; flex-direction: row; align-items: center; justify-content: space-between; } .product-price > span { width: 132px; height: 44px; } .product-price button { min-width: 44px; min-height: 44px; }
 		.rj-payment-assurance { margin-inline: -15px; } .assurance-row { gap: 12px; overflow-x: auto; } .assurance-row > div { min-width: 150px; }

@@ -13,12 +13,13 @@
 	import CheckoutButton from '$lib/components/buttons/checkout-button.svelte'
 	import RyansJewelsPaymentPage from '$lib/theme/ryans-jewels/RyansJewelsPaymentPage.svelte'
 	import { StripePaymentElement } from '@misiki/kitcommerce-core/components'
+	import { RyansPaymentModule } from '$lib/theme/ryans-jewels/ryans-payment.svelte.js'
 
 	// Check if phone is required based on login type
 	const isPhoneRequired = page.data?.store?.isPhoneMandatory
 	const isEmailRequired = page.data?.store?.isEmailMandatory
 
-	const paymentModule = new PaymentModule()
+	const paymentModule = page.data?.theme?.name === 'ryans-jewels' ? new RyansPaymentModule() : new PaymentModule()
 	const cartState = paymentModule.cartState
 	const isRyansJewels = $derived(page.data?.theme?.name === 'ryans-jewels')
 

@@ -14,6 +14,7 @@
 	import { checkoutGate } from './checkout-overview.logic.js'
 	import { couponAction } from './commerce-flow.js'
 	import { findAddressReplacement, groupSavedAddresses, savedAddressId, splitCustomerName } from './shipping-address.logic.js'
+	import { cartShippingCharge, cartTaxAmount } from './shipping-checkout.js'
 
 	let { addressModule, cartState }: { addressModule: any; cartState: any } = $props()
 
@@ -57,9 +58,10 @@
 	const currency = $derived(page.data?.store?.currency?.code || cartState.cart?.currencyCode || 'USD')
 	const itemCount = $derived(items.reduce((sum: number, item: any) => sum + Number(item.qty || 0), 0))
 	const subtotal = $derived(Number(cartState.cart?.subtotal || 0))
-	const tax = $derived(Number(cartState.cart?.taxAmount || cartState.cart?.taxes || 0))
+	const tax = $derived(cartTaxAmount(cartState.cart))
 	const discount = $derived(Number(cartState.cart?.discountAmount || 0))
-	const total = $derived(Number(cartState.cart?.total ?? subtotal + tax - discount))
+	const shippingCharge = $derived(cartShippingCharge(cartState.cart))
+	const total = $derived(Number(cartState.cart?.total ?? subtotal + tax + (shippingCharge || 0) - discount))
 	const couponMode = $derived(couponAction(cartState.cart?.couponCode, couponCode))
 	const products = $derived((page.data?.checkoutProducts || []).slice(0, 5))
 	const isShippingStep = $derived(page.url.searchParams.get('step') === 'shipping')
@@ -609,6 +611,7 @@
 								<div class="rj-order-prices">
 									<p><span>Total Item &amp; Price</span><b>{itemCount} ({formatPrice(subtotal, currency)})</b></p>
 									<p><span>Subtotal</span><b>{formatPrice(subtotal, currency)}</b></p>
+									<p><span>Shipping (estimate)</span><b>{shippingCharge !== null ? formatPrice(shippingCharge, currency) : 'Calculated at payment'}</b></p>
 									<p><span>Taxes</span><b>{formatPrice(tax, currency)}</b></p>
 								</div>
 								<hr />
@@ -732,6 +735,7 @@
 						<div>
 							<p><span>Total Item &amp; Price</span><b>{itemCount} ({formatPrice(subtotal, currency)})</b></p>
 							<p><span>Subtotal</span><b>{formatPrice(subtotal, currency)}</b></p>
+							<p><span>Shipping (estimate)</span><b>{shippingCharge !== null ? formatPrice(shippingCharge, currency) : 'Calculated at payment'}</b></p>
 							<p><span>Taxes</span><b>{formatPrice(tax, currency)}</b></p>
 							<p class="discount"><span>Discount</span><b>-{formatPrice(discount, currency)}</b></p>
 							<hr />

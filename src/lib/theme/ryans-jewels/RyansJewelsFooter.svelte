@@ -927,4 +927,10 @@
 			gap: 15px;
 		}
 	}
+	@media (max-width: 359px) {
+		.rj-foot-usp-row { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 20px; }
+		.rj-foot-usp:nth-child(n) { width: auto; }
+		.rj-foot-usp-head { max-width: 100%; }
+		.rj-foot-usp:nth-child(2)::before, .rj-foot-usp:nth-child(4)::before { left: -10px; }
+	}
 </style>

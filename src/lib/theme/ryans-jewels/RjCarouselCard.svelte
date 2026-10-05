@@ -14,6 +14,7 @@
 	import { formatPrice } from '$lib/core/utils/index.js'
 	import { discountPercent, listingImage } from './product-details.logic.js'
 	import { productRating } from './product-filters.js'
+	import { canonicalProductPath } from './seo.js'
 
 	/**
 	 * `size` picks the source's two card widths:
@@ -25,7 +26,7 @@
 	const currencyCode = $derived(page?.data?.store?.currency?.code || '')
 
 	const title = $derived(product?.title || product?.name || '')
-	const href = $derived(product?.slug ? `/products/${product.slug}` : '/products')
+	const href = $derived(canonicalProductPath(product))
 	const image = $derived(
 		product?.thumbnail || product?.img || product?.image || product?.image_url || ''
 	)

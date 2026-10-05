@@ -370,12 +370,12 @@ export const namePlateCards: NamePlateCard[] = [
 
 export const namePlate = {
 	/** 1:6110 — near-white gradient behind the whole 1440×600 band. */
-	background: '/ryans-jewels/home/nameplate-bg.jpg',
+	background: '/ryans-jewels/home/nameplate-figma-bg.png',
 	panel: {
 		/** 1:6111 — deep violet gradient, radius 5 on the right corners. */
 		background: '/ryans-jewels/home/nameplate-panel.webp',
 		heading: 'Create Your Personalised Nameplate!',
-		art: '/ryans-jewels/home/nameplate-word.webp',
+		art: '/ryans-jewels/home/nameplate-figma-word.png',
 		artAlt: 'Diamond-set name plate spelling Martin',
 		cta: 'Customise now',
 		href: '/products'

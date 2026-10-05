@@ -5,15 +5,16 @@
 	 * Source frames
 	 *   desktop  bg 1:6110 (0,3323 · 1440×600) · panel 1:6111 (0,3323 · 598×600)
 	 *            cluster 1:6112 · heading 1:6121 · art 1:6122 · panel CTA 1:6126
-	 *            head 1:6127 (632,3364 · 748×60) · cards 1:6133 / 1:6161 / 1:6147
+	 *            updated 341:55580: head (632,37 · 748×60), cards (654,146)
 	 *   tablet   63:40549 — panel 63:40551 full-width band, content 63:40566
 	 *   mobile   panel 77:107373 (0,2608 · 412×213), content 77:107388
 	 *
 	 * Desktop puts the violet panel beside the collection column; tablet and
 	 * mobile stack the panel above it as a full-width band.
 	 *
-	 * The panel CTA deliberately overlaps the bottom of the name-plate render —
-	 * the source has it sitting over the reflection.
+	 * The updated desktop node 341:55580 uses a 375×182 artwork window and
+	 * a 45px gap before the panel CTA. Product copy stays live, but is bounded
+	 * to the source's text rows so it cannot grow over the carousel controls.
 	 */
 	import RjCustomiseCard from './RjCustomiseCard.svelte'
 	import RjArrowRule from './RjArrowRule.svelte'
@@ -53,7 +54,7 @@
 	}
 </script>
 
-<section class="rj-plate" aria-labelledby="rj-plate-heading">
+<section class="rj-plate" aria-labelledby="rj-plate-heading" style="background-image: url({namePlate.background})">
 	<div class="rj-plate-inner">
 		<div class="rj-plate-panel" style="background-image: url({panel.background})">
 			<div class="rj-plate-panel-body">
@@ -89,7 +90,7 @@
 				</ul>
 			{/if}
 
-			<div class="rj-plate-arrows"><RjArrowRule gap={20} onprevious={() => scrollProducts(-1)} onnext={() => scrollProducts(1)} /></div>
+			<div class="rj-plate-arrows"><RjArrowRule gap={20} color="#404040" onprevious={() => scrollProducts(-1)} onnext={() => scrollProducts(1)} /></div>
 		</div>
 	</div>
 </section>
@@ -98,13 +99,16 @@
 	/* ---- shell ---------------------------------------------------------- */
 	.rj-plate {
 		width: 100%;
-		background: #fff;
+		background-color: #fff;
+		background-size: cover;
+		background-position: center;
 	}
 
 	.rj-plate-inner {
 		display: flex;
 		align-items: stretch;
 		margin: 0 auto;
+		max-width: 1440px;
 		min-height: 600px;
 	}
 
@@ -124,7 +128,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: 41px 3px 51px;
+		padding: 41px 96px 51px;
 	}
 
 	/* 1:6121 — Red Rose 32/40, white, centred in a 406 box. */
@@ -144,29 +148,29 @@
 		color: #fff;
 	}
 
-	/* 1:6122 — 592×254 window onto an over-scaled square render. */
+	/* 341:55575 / 1:6122 — 375×182 window from the updated source node. */
 	.rj-plate-art {
 		position: relative;
 		display: block;
-		width: 592px;
+		width: 375px;
 		max-width: 100%;
-		aspect-ratio: 592 / 254;
+		aspect-ratio: 375 / 182;
 		margin-top: 52px;
 		overflow: hidden;
 	}
 
 	.rj-plate-art-img {
 		position: absolute;
-		left: 4.68%;
-		top: -79.3%;
-		width: 90.8%;
-		height: auto;
+		left: -21.41%;
+		top: -110.67%;
+		width: 143.35%;
+		height: 296.27%;
 		max-width: none;
 	}
 
-	/* 1:6126 — sits 27px over the bottom of the render. */
+	/* 341:55575 — 45px between the artwork window and the CTA. */
 	.rj-plate-panel-cta {
-		margin-top: -27px;
+		margin-top: 45px;
 		font-family: 'Red Rose', var(--font-body, sans-serif);
 		font-size: 32px;
 		font-weight: 400;
@@ -187,10 +191,10 @@
 		position: relative;
 		flex: 1 1 auto;
 		min-width: 0;
-		padding: 41px 60px 0 34px;
+		padding: 37px 60px 0 34px;
 	}
 
-	/* 1:6127 — 748×60, text left, gold button right. */
+	/* 341:55578 / 1:6127 — 748×60 at (632,37), gold button right. */
 	.rj-plate-head {
 		display: flex;
 		align-items: center;
@@ -267,25 +271,23 @@
 
 	.rj-plate-card {
 		display: block;
-	}
-
-	@media (min-width: 1670px) {
-		.rj-plate-cards {
-			justify-content: center;
-			padding-left: 0;
-		}
+		flex-shrink: 0;
 	}
 
 	.rj-plate-arrows {
 		position: absolute;
 		right: 60px;
-		bottom: 31px;
+		bottom: 22px;
 	}
 
 	/* ---- 1024–1279: keep the split, tighten the gutters ------------------ */
 	@media (max-width: 1279px) {
 		.rj-plate-panel {
 			flex: 0 1 520px;
+		}
+
+		.rj-plate-panel-body {
+			padding-inline: 32px;
 		}
 
 		.rj-plate-collection {
@@ -343,7 +345,10 @@
 		}
 
 		.rj-plate-art-img {
+			left: 4.68%;
 			top: -113.13%;
+			width: 90.8%;
+			height: auto;
 		}
 
 		.rj-plate-panel-cta {
@@ -404,7 +409,10 @@
 		}
 
 		.rj-plate-art-img {
+			left: 4.68%;
 			top: -113.13%;
+			width: 90.8%;
+			height: auto;
 		}
 
 		.rj-plate-panel-cta {
@@ -436,7 +444,7 @@
 		}
 
 		.rj-plate-panel-body {
-			padding: 19px 118px;
+			padding: 19px 20px;
 			width: 100%;
 		}
 
@@ -448,7 +456,7 @@
 		}
 
 		.rj-plate-art {
-			width: 100%;
+			width: 176px;
 			aspect-ratio: 121 / 45;
 			margin-top: 4px;
 		}

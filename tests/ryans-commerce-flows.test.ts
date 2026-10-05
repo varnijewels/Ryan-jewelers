@@ -5,6 +5,9 @@ import { normalizePhone, resetPasswordError } from '../src/lib/theme/ryans-jewel
 import { buyAgainItems, couponAction, orderInvoiceUrl, productReviewHref, sameVariant } from '../src/lib/theme/ryans-jewels/commerce-flow.js'
 import { load as loadCategory } from '../src/routes/(www)/categories/[slug]/+page.server.js'
 
+const { loadCatalogue } = vi.hoisted(() => ({ loadCatalogue: vi.fn(() => ({ products: { data: [] } })) }))
+vi.mock('$lib/core/load-functions/index.js', () => ({ wwwProductsLoadServer: loadCatalogue }))
+
 function redirectFor(slug: string, query = '') {
 	try {
 		loadCategory({ params: { slug }, url: new URL(`https://shop.test/categories/${slug}${query}`) } as any)
@@ -71,13 +74,13 @@ describe('Ryan critical commerce flows', () => {
 	})
 
 	it('routes every jewelry category into the real catalogue and removes kids and saree', () => {
-		expect(redirectFor('mens-rings')).toMatchObject({ status: 307, location: '/products?categories=mens-rings&catalog=Mens+Rings' })
-		expect(redirectFor('lab-grown-diamond', '?shape=oval')).toMatchObject({
-			status: 307,
-			location: '/products?search=lab+grown+diamond&uiShape=Oval&catalog=Lab+Grown+Diamond'
-		})
-		expect(redirectFor('kids-jewellery')).toMatchObject({ status: 307, location: '/categories' })
-		expect(redirectFor('saree')).toMatchObject({ status: 307, location: '/categories' })
+		for (const slug of ['mens-rings', 'lab-grown-diamond']) {
+			const event = { params: { slug }, url: new URL(`https://shop.test/categories/${slug}?shape=oval`) }
+			expect(loadCategory(event)).toEqual({ products: { data: [] } })
+			expect(loadCatalogue).toHaveBeenLastCalledWith(event)
+		}
+		expect(redirectFor('kids-jewellery')).toMatchObject({ status: 308, location: '/categories' })
+		expect(redirectFor('saree')).toMatchObject({ status: 308, location: '/categories' })
 	})
 
 	it('keeps Buy Again, reviews, OTP and reset completion wired to their APIs', async () => {

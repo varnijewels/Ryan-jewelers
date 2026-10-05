@@ -28,6 +28,8 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
+			'$env/dynamic/private': resolve('./tests/mocks/private-env.ts'),
+			'$app/environment': resolve('./tests/mocks/app-environment.ts'),
 			$lib: resolve('./src/lib'),
 			$app: resolve('./src/app'),
 			$env: resolve('./src/env')

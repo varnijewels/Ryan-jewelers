@@ -16,7 +16,7 @@
 </script>
 
 <svelte:head>
-	<title>Order</title>
+	<title>Track Your Order | Ryan Jewelers</title>
 </svelte:head>
 <div>
 	{#if orderTrackingModule.loading}

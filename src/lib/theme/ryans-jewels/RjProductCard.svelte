@@ -11,6 +11,7 @@
 	import { metalSwatchFills } from './home-content.js'
 	import { listingImage, metalColorImage, metalVariantChoices } from './product-details.logic.js'
 	import { productRating } from './product-filters.js'
+	import { canonicalProductPath } from './seo.js'
 
 	/**
 	 * `size` picks the two card boxes the source uses for this card:
@@ -45,7 +46,7 @@
 	const selectedChoice = $derived(swatches.find((choice) => choice.value === selectedMetal))
 	const loadedMetalProduct = $derived(selectedChoice ? loadedMetalProducts[selectedChoice.key] : null)
 	const selectedProduct = $derived(loadedMetalProduct || selectedChoice?.product || product)
-	const href = $derived(selectedProduct?.slug ? `/products/${selectedProduct.slug}` : product?.slug ? `/products/${product.slug}` : '/products')
+	const href = $derived(canonicalProductPath(selectedProduct || product))
 	const image = $derived(
 		imageOverride || loadedMetalProduct?.thumbnail || loadedMetalProduct?.img || selectedChoice?.variant?.thumbnail || selectedChoice?.variant?.img || selectedChoice?.product?.thumbnail || (selectedMetal ? metalColorImage(product?.thumbnail || product?.img || product?.image || product?.image_url || '', selectedMetal) : product?.thumbnail || product?.img || product?.image || product?.image_url || '')
 	)

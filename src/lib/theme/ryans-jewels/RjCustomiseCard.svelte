@@ -26,7 +26,7 @@
 	</span>
 
 	<span class="rj-cust-text" style="--text-w:{card.textWidth}px">
-		<span class="rj-cust-name">{card.name}</span>
+		<span class="rj-cust-name" title={card.name}>{card.name}</span>
 		<span class="rj-cust-meta">
 			<span class="rj-cust-category">{card.category}</span>
 			{#if card.rating > 0}
@@ -86,21 +86,33 @@
 		align-items: center;
 		gap: 2px;
 		width: var(--text-w);
+		max-width: 100%;
 		text-align: center;
 	}
 
 	.rj-cust-name {
+		display: block;
+		width: 100%;
+		height: 26px;
+		overflow: hidden;
 		font-family: 'Sarala', var(--font-body, sans-serif);
 		font-size: 16px;
-		line-height: normal;
+		line-height: 26px;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 		text-transform: capitalize;
 		color: #303030;
 	}
 
 	.rj-cust-category {
+		display: block;
+		min-width: 0;
+		overflow: hidden;
 		font-family: 'Sarala', var(--font-body, sans-serif);
 		font-size: 14px;
-		line-height: normal;
+		line-height: 23px;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 		text-transform: capitalize;
 		color: #8b8b8b;
 	}
@@ -110,6 +122,7 @@
 		align-items: center;
 		gap: 10px;
 		width: 100%;
+		height: 23px;
 	}
 
 	.rj-cust-rating,
@@ -119,6 +132,7 @@
 	}
 
 	.rj-cust-rating {
+		flex-shrink: 0;
 		gap: 2px;
 		font-family: 'Khmer MN', serif;
 		font-size: 20px;
@@ -138,9 +152,11 @@
 	}
 
 	.rj-cust-cta {
+		width: 100%;
+		height: 26px;
 		font-family: 'Sarala', var(--font-body, sans-serif);
 		font-size: 16px;
-		line-height: normal;
+		line-height: 26px;
 		text-transform: capitalize;
 		color: var(--rj-gold, #cca646);
 		transition: opacity 0.18s ease;
@@ -174,6 +190,8 @@
 			width: 100%;
 			overflow: hidden;
 			font-size: 14px;
+			height: 23px;
+			line-height: 23px;
 			text-overflow: ellipsis;
 			white-space: nowrap;
 		}
@@ -181,6 +199,8 @@
 		.rj-cust-cta {
 			color: #a80139;
 			font-size: 14px;
+			height: 23px;
+			line-height: 23px;
 		}
 	}
 </style>

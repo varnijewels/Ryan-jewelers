@@ -18,8 +18,9 @@
 	import Slider from '$lib/components/home/slider.svelte'
 	import Blocks from '$lib/components/page-blocks/blocks.svelte'
 	import { canonicalProductPath } from '$lib/theme/ryans-jewels/seo.js'
-	import { withoutDemoProducts } from '$lib/theme/ryans-jewels/product-filters.js'
+	import { realCatalogUrl, withoutDemoProducts } from '$lib/theme/ryans-jewels/product-filters.js'
 	import { instagramStrip } from '$lib/theme/ryans-jewels/footer-content.js'
+	import { searchService } from '$lib/core/services/index.js'
 
 	let { data } = $props()
 
@@ -88,10 +89,8 @@
 	onMount(async () => {
 		if (activeTheme !== 'ryans-jewels' || storefrontProducts.length) return
 		try {
-			const response = await fetch('/api/products?page=1&sort=-createdAt', {
-				headers: { 'x-litekart-store': data?.store?.id || '' }
-			})
-			if (response.ok) storefrontProducts = withoutDemoProducts((await response.json())?.data || [])
+			const result = await searchService.searchWithUrl(realCatalogUrl(new URL('/products?sort=createdAt%3Adesc', sveltePage.url.origin)))
+			storefrontProducts = withoutDemoProducts(result.data || [])
 		} catch {
 			storefrontProducts = []
 		} finally {

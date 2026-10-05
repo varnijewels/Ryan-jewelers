@@ -11,6 +11,7 @@
 		gap = 10,
 		length = 40,
 		mobileLength = 25,
+		color = '#000',
 		onprevious,
 		onnext,
 		previousDisabled = false,
@@ -19,6 +20,7 @@
 		gap?: number
 		length?: number
 		mobileLength?: number
+		color?: string
 		onprevious?: () => void
 		onnext?: () => void
 		previousDisabled?: boolean
@@ -26,7 +28,7 @@
 	} = $props()
 </script>
 
-<span class="rj-arrow-rule" style="--gap:{gap}px; --len:{length}px; --mobile-len:{mobileLength}px">
+<span class="rj-arrow-rule" style="--gap:{gap}px; --len:{length}px; --mobile-len:{mobileLength}px; --arrow-color:{color}">
 	{#if onprevious || onnext}
 		<button class="rj-arrow-button" type="button" disabled={previousDisabled} aria-label="Previous products" onclick={() => onprevious?.()}><span class="rj-arrow rj-arrow--prev" aria-hidden="true"></span></button>
 		<button class="rj-arrow-button" type="button" disabled={nextDisabled} aria-label="Next products" onclick={() => onnext?.()}><span class="rj-arrow rj-arrow--next" aria-hidden="true"></span></button>
@@ -49,7 +51,7 @@
 		display: block;
 		width: var(--len);
 		height: 1.5px;
-		background: #000;
+		background: var(--arrow-color, #000);
 	}
 
 	.rj-arrow-button {
@@ -80,12 +82,12 @@
 
 	.rj-arrow--prev::before {
 		left: 0;
-		border-right: 7.5px solid #000;
+		border-right: 7.5px solid var(--arrow-color, #000);
 	}
 
 	.rj-arrow--next::before {
 		right: 0;
-		border-left: 7.5px solid #000;
+		border-left: 7.5px solid var(--arrow-color, #000);
 	}
 
 	/* Mobile 412 — 25px rules (77:107009 / 77:107537). */
