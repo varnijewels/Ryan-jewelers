@@ -54,8 +54,24 @@ describe('Ryan product filters', () => {
 		]
 		expect(withoutDemoProducts(productsWithDemo)).toEqual([real])
 		const url = realCatalogUrl(new URL('https://shop.test/products?uiShape=Round&catalog=Round%20Rings'))
-		expect(url.searchParams.get('tags')).toBe('JewelWeSell')
+		expect(url.searchParams.has('tags')).toBe(false)
 		expect(url.searchParams.has('catalog')).toBe(false)
+	})
+
+	it('includes new Ryan uploads without requiring the legacy supplier tag', () => {
+		const pendant = { sku: 'RJ-P-3853-0.8CT-WG-14K', tags: [{ name: 'Ryan Jewellers' }, { name: 'Solitaire Pendants' }] }
+		expect(withoutDemoProducts([pendant])).toEqual([pendant])
+		const url = realCatalogUrl(new URL('https://shop.test/categories/pendants?page=2'))
+		expect(url.pathname).toBe('/products')
+		expect(url.searchParams.get('categories')).toBe('pendants')
+		expect(url.searchParams.get('page')).toBe('2')
+		expect(url.searchParams.has('tags')).toBe(false)
+	})
+
+	it('preserves explicit shopper tag and category filters', () => {
+		const url = realCatalogUrl(new URL('https://shop.test/products?tags=Solitaire%20Pendants&categories=pendants'))
+		expect(url.searchParams.get('tags')).toBe('Solitaire Pendants')
+		expect(url.searchParams.get('categories')).toBe('pendants')
 	})
 
 	it('removes kids and saree without hiding valid jewelry categories', () => {

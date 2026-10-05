@@ -14,15 +14,11 @@
 	 * `display: contents` below 1024 — that lets `order` interleave the card
 	 * between the two halves of the left column without duplicating markup.
 	 *
-	 * The "30% Off" hexagon overhangs the card's bottom-left corner at every
-	 * breakpoint; `.rj-passion-media` carries that overhang as padding so it stays
-	 * part of the flow (source group is 586 tall for a 567 card).
-	 *
 	 * Copy, image paths and per-breakpoint icon boxes come from ./home-content.ts.
 	 */
 	import { rarePassion } from './home-content.js'
 
-	const { eyebrow, heading, leadBefore, leadStrong, leadAfter, body, image, imageAlt, badge, stats } =
+	const { eyebrow, heading, leadBefore, leadStrong, leadAfter, body, image, imageAlt, stats } =
 		rarePassion
 </script>
 
@@ -62,13 +58,6 @@
 				<img class="rj-passion-photo" src={image} alt={imageAlt} loading="lazy" decoding="async" fetchpriority="low" />
 				<span class="rj-passion-frame" aria-hidden="true"></span>
 			</figure>
-			<div class="rj-passion-badge">
-				<img class="rj-passion-badge-shape" src={badge.shape} alt="" aria-hidden="true" />
-				<span class="rj-passion-badge-text">
-					<span class="rj-passion-badge-value">{badge.value}</span>
-					<span class="rj-passion-badge-label">{badge.label}</span>
-				</span>
-			</div>
 		</div>
 	</div>
 </section>
@@ -197,45 +186,6 @@
 	}
 
 	/* 1:5876 — 115.153×116 hexagon, 19px past the card's bottom-left corner. */
-	.rj-passion-badge {
-		position: absolute;
-		left: -19px;
-		bottom: 0;
-		width: 115.153px;
-		height: 116px;
-		display: grid;
-		place-items: center;
-	}
-
-	.rj-passion-badge-shape {
-		grid-area: 1 / 1;
-		width: 100%;
-		height: 100%;
-	}
-
-	.rj-passion-badge-text {
-		grid-area: 1 / 1;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		color: #fff;
-	}
-
-	.rj-passion-badge-value {
-		font-family: 'Rozha One', var(--font-heading, serif);
-		font-size: 34px;
-		font-weight: 400;
-		line-height: 35px;
-		text-transform: uppercase;
-	}
-
-	.rj-passion-badge-label {
-		font-family: 'Sarala', var(--font-body, sans-serif);
-		font-size: 24px;
-		font-weight: 400;
-		line-height: 35px;
-		text-align: center;
-	}
 
 	/* ---- stats ---------------------------------------------------------- */
 	/* 1:6184 — three items, gap 35, 60 below the text block. */
@@ -360,12 +310,6 @@
 			inset: 20px 14.85px;
 		}
 
-		.rj-passion-badge {
-			left: -11.97px;
-			width: 103.447px;
-			height: 102px;
-		}
-
 		.rj-passion-stats {
 			width: 100%;
 			max-width: 670px;
@@ -425,25 +369,10 @@
 			inset: 10.56px 7.96px;
 		}
 
-		.rj-passion-badge {
-			left: -6.413px;
-			width: 55.423px;
-			height: 53.847px;
-		}
-
-		.rj-passion-badge-value {
-			font-size: 19px;
-			line-height: 20px;
-		}
-
 		/*
 		 * The source leaves "Off" at 24px inside a 27.85px box, which clips it.
 		 * Scaled by the same 0.559 ratio the "30%" run uses so the badge reads.
 		 */
-		.rj-passion-badge-label {
-			font-size: 13px;
-			line-height: 20px;
-		}
 
 		/*
 		 * 77:107245 — the first two stats share a space-between row, the third is

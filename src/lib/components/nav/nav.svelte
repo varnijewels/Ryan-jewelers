@@ -36,6 +36,8 @@
 	import BorisAndTwinsNav from '$lib/theme/boris-and-twins/BorisAndTwinsNav.svelte'
 	import RyansJewelsNav from '$lib/theme/ryans-jewels/RyansJewelsNav.svelte'
 	import RjTabletLabMenu from '$lib/theme/ryans-jewels/RjTabletLabMenu.svelte'
+	import RjCatalogMobileMenu from '$lib/theme/ryans-jewels/RjCatalogMobileMenu.svelte'
+	import { catalogNavigation } from '$lib/theme/ryans-jewels/catalog-navigation.js'
 	import { menuChildren, menuHref, menuLabel, mobileMenuView, tabletMenuView, type AdminMenuItem } from '$lib/theme/ryans-jewels/admin-menu.js'
 	import { ryansJewelsNavContent as ryanNav } from '$lib/theme/ryans-jewels/nav-content.js'
 
@@ -112,7 +114,8 @@
 
 	const activeThemeName = $derived(page.data?.theme?.name ?? 'default')
 	const storeData = $derived(page?.data?.store ?? {})
-	let ryanSidebarView = $state<'root' | 'lab' | 'all-diamond' | 'earrings' | 'bracelets' | 'pendants' | 'engagement-rings'>('root')
+	let ryanSidebarView = $state('root')
+	const selectedRyanCategory = $derived(catalogNavigation.find((item) => item.name === ryanSidebarView))
 	const ryanServerMegaMenu = $derived((page.data as any)?.navigation?.megaMenu as AdminMenuItem[] | undefined)
 	const ryanStoreHeaderMenu = $derived(
 		((page.data as any)?.store?.menu?.find((menu: any) => menu.menuId === 'header')?.items || []) as AdminMenuItem[]
@@ -157,18 +160,7 @@
 	)
 	const ryanHomeItem = $derived(ryanAllMenuItems.find((item) => /^home$/i.test(menuLabel(item) || '')) || null)
 	const ryanOfferItem = $derived(ryanAllMenuItems.find((item) => /best offers?|offers?/i.test(menuLabel(item) || '')) || null)
-	const ryanSidebarItems = $derived([
-		{
-			label: ryanHomeItem ? menuLabel(ryanHomeItem) || 'Home' : 'Home',
-			href: ryanHomeItem ? menuHref(ryanHomeItem) : '/',
-			arrow: false
-		},
-		...uniqueRyanItems([...ryanMegaCategories, ...ryanHeaderItems].filter((item) => item !== ryanHomeItem && item !== ryanOfferItem)).map((item) => ({
-			label: menuLabel(item) || '',
-			href: menuHref(item),
-			arrow: ryanMegaCategories.includes(item) || menuChildren(item).length > 0
-		}))
-	].filter((item) => item.label))
+	const ryanSidebarItems = $derived([{ label: 'Home', href: '/', arrow: false }, ...catalogNavigation.map((item) => ({ label: item.name, href: item.href, arrow: true }))])
 
 	$effect(() => {
 		if (!navModule.openSidebar) ryanSidebarView = 'root'
@@ -351,7 +343,9 @@
 				: 'relative z-[60] flex h-full w-full max-w-[300px] flex-col overflow-hidden border-r border-gray-100 bg-white text-foreground shadow-2xl'}
 		>
 			{#if activeThemeName === 'ryans-jewels'}
-				{#if ryanSidebarView === 'engagement-rings'}
+				{#if selectedRyanCategory}
+ <RjCatalogMobileMenu category={selectedRyanCategory} onBack={() => ryanSidebarView = 'root'} onClose={() => navModule.openSidebar = false} onNavigate={navigateFromSidebar} />
+ {:else if ryanSidebarView === 'engagement-rings'}
 					{#if ryanEngagementRingsCategory}
 						<RjTabletLabMenu
 							category={ryanEngagementRingsCategory}
@@ -439,7 +433,9 @@
 					<ul>
 						{#each ryanSidebarItems as item}
 							<li>
-								{#if tabletMenuView(item.label)}
+								{#if item.arrow}
+ <button class="rj-tablet-menu-item" type="button" onclick={() => ryanSidebarView = item.label}><span>{item.label}</span><img src="/ryans-jewels/navigation/tablet-menu-arrow.svg" alt="" /></button>
+ {:else if tabletMenuView(item.label)}
 									<button
 										class="rj-tablet-menu-item"
 										type="button"

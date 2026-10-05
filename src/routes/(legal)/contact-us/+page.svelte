@@ -8,6 +8,7 @@
 	import { ContactUsRenderer } from '$lib/core/composables/index.js'
 	import { fade, fly } from 'svelte/transition'
 	import { SeoHeader } from '$lib/core/components/index.js'
+	import { ryanContact } from '$lib/theme/ryans-jewels/contact-content.js'
 
 	let info = $state({
 		name: '',
@@ -17,16 +18,18 @@
 
 	const contactMethods = [
 		{
-			icon: Mail,
-			title: 'Email',
-			value: page?.data?.store?.businessEmail || 'Use the contact form',
-			description: 'Our team will respond within 24 hours.'
+			icon: Phone,
+			title: 'Call our store',
+			value: ryanContact.phone,
+			href: ryanContact.phoneHref,
+			description: 'Jewelry, repairs, custom designs, and help with your order.'
 		},
 		{
-			icon: MessageSquare,
-			title: 'Live Chat',
-			value: 'Available 9am - 6pm',
-			description: 'Average response time: 5 minutes.'
+			icon: MapPin,
+			title: ryanContact.location,
+			value: ryanContact.address,
+			href: ryanContact.directionsHref,
+			description: ryanContact.city
 		}
 	]
 </script>
@@ -63,12 +66,19 @@
 									</div>
 									<div>
 										<h3 class="font-bold text-gray-900">{method.title}</h3>
-										<p class="mt-1 font-medium text-primary">{method.value}</p>
+										<a class="mt-1 block font-medium text-primary hover:underline" href={method.href}>{method.value}</a>
 										<p class="mt-1 text-sm text-gray-400">{method.description}</p>
 									</div>
 								</div>
 							{/each}
 						</div>
+
+						<section class="mt-8 rounded-2xl border border-gray-100 bg-white p-6" aria-labelledby="store-hours-heading">
+							<h2 id="store-hours-heading" class="mb-4 text-2xl">Store Hours</h2>
+							<dl class="space-y-3 text-sm">{#each ryanContact.hours as hours}<div class="flex flex-wrap justify-between gap-2"><dt>{hours.days}</dt><dd>{hours.time}</dd></div>{/each}</dl>
+							<p class="mt-4 text-xs text-gray-500">{ryanContact.hoursNote}</p>
+							<a class="mt-4 inline-block text-sm text-primary hover:underline" href={ryanContact.directionsHref} target="_blank" rel="noopener noreferrer">Get directions →</a>
+						</section>
 
 						<!-- Socials or Additional Info -->
 						<div class="mt-10 border-t border-gray-100 pt-10">

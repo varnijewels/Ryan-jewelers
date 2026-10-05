@@ -14,5 +14,5 @@ export const ryansJewelsContent: ThemeHomepageContent = {
 	description:
 		'Lab grown diamonds and fine jewellery, made to order. Explore rings, earrings and custom pieces in every classic diamond cut.',
 	seoTitle: 'Ryan Jewelers — Lab Grown Diamonds & Fine Jewellery',
-	seoImage: '/ryans-jewels/home/hero-desktop.png'
+	seoImage: '/ryans-jewels/home/campaign/solitaire-studs-model-v2.webp'
 }

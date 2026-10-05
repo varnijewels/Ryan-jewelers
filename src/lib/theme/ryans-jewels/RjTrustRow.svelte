@@ -19,7 +19,7 @@
 {/snippet}
 
 <div class="rj-trust">
-	<div class="rj-trust-counter-top">{@render counter()}</div>
+	{#if slideLabel}<div class="rj-trust-counter-top">{@render counter()}</div>{/if}
 
 	<ul class="rj-trust-list">
 		{#each trustBadges as badge}
@@ -37,7 +37,7 @@
 		{/each}
 	</ul>
 
-	<div class="rj-trust-counter-side">{@render counter()}</div>
+	{#if slideLabel}<div class="rj-trust-counter-side">{@render counter()}</div>{/if}
 </div>
 
 <style>

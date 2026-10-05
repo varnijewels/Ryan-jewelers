@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { ChevronRight, Menu } from '@lucide/svelte'
+	import { ChevronRight, Menu, ShoppingBag, UserRound, Search, X } from '@lucide/svelte'
+	import { tick } from 'svelte'
 	import { page } from '$app/state'
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu'
 	import { AuthButton } from '$lib/core/components/index.js'
-	import { MsSearchRenderer } from '$lib/core/composables/index.js'
-	import { priceRoundUp } from '@misiki/kitcommerce-core/utils'
 	import { getCartState } from '$lib/core/stores/index.js'
 	import { ryansJewelsNavContent as nav } from './nav-content.js'
+	import { catalogMegaMenu } from './catalog-navigation.js'
 	import RjAdminMegaMenu from './RjAdminMegaMenu.svelte'
 	import RjProfileDropdown from './RjProfileDropdown.svelte'
 	import { menuChildren, menuHref, menuLabel, resolveAdminMenu } from './admin-menu.js'
@@ -27,7 +27,19 @@
 		pathname?: string
 	} = $props()
 
-	let search = $state('')
+	let searchOpen = $state(false)
+	let searchInput: HTMLInputElement
+	let searchToggle: HTMLButtonElement
+	async function toggleSearch() {
+		searchOpen = !searchOpen
+		openMega = null
+		await tick()
+		if (searchOpen) searchInput?.focus()
+	}
+	function closeSearch() {
+		searchOpen = false
+		searchToggle?.focus()
+	}
 	let openMega = $state<string | null>(null)
 	const cartState = getCartState()
 
@@ -37,127 +49,13 @@
 	const serverMegaMenu = $derived((page.data as any)?.navigation?.megaMenu as any[] | undefined)
 	const collectionProducts = $derived((page.data as any)?.navigation?.collectionProducts as any[] | undefined)
 	const resolvedMenu = $derived(
-		resolveAdminMenu(serverMegaMenu?.length ? serverMegaMenu : navModule.megaMenu, navModule.navMenu, nav.home, [])
+		resolveAdminMenu(catalogMegaMenu, [], nav.home, [])
 	)
-	const homeLabel = $derived(menuLabel(resolvedMenu.home))
-	const homeHref = '/'
+	const homeLabel = 'Shop all'
+	const homeHref = '/products'
 </script>
 
-<!-- Utility bar — Figma 1:5409 -->
-<div class="rj-utility">
-	<div class="rj-utility-inner">
-		<div class="rj-utility-group">
-			<a class="rj-utility-link" href={nav.utility.dailyDeals.href}>{nav.utility.dailyDeals.label}</a>
-
-			<a class="rj-utility-link rj-utility-link--icon" href={nav.utility.giftCard.href}>
-				<svg class="rj-i20" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-					<path
-						d="M16.6417 8.33333H3.30833V15C3.30833 17.5 4.14167 18.3333 6.64167 18.3333H13.3083C15.8083 18.3333 16.6417 17.5 16.6417 15V8.33333Z"
-						stroke="currentColor"
-						stroke-width="1.2"
-						stroke-miterlimit="10"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-					/>
-					<path
-						d="M17.9167 5.83333V6.66667C17.9167 7.58333 17.475 8.33333 16.25 8.33333H3.75C2.475 8.33333 2.08333 7.58333 2.08333 6.66667V5.83333C2.08333 4.91667 2.475 4.16667 3.75 4.16667H16.25C17.475 4.16667 17.9167 4.91667 17.9167 5.83333Z"
-						stroke="currentColor"
-						stroke-width="1.2"
-						stroke-miterlimit="10"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-					/>
-					<path
-						d="M9.7 4.16667H5.1C4.81667 3.85833 4.825 3.38333 5.125 3.08333L6.30833 1.9C6.61667 1.59167 7.125 1.59167 7.43333 1.9L9.7 4.16667Z"
-						stroke="currentColor"
-						stroke-width="1.2"
-						stroke-miterlimit="10"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-					/>
-					<path
-						d="M14.8917 4.16667H10.2917L12.5583 1.9C12.8667 1.59167 13.375 1.59167 13.6833 1.9L14.8667 3.08333C15.1667 3.38333 15.175 3.85833 14.8917 4.16667Z"
-						stroke="currentColor"
-						stroke-width="1.2"
-						stroke-miterlimit="10"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-					/>
-					<path
-						d="M7.45 8.33333V12.6167C7.45 13.2833 8.18333 13.675 8.74167 13.3167L9.525 12.8C9.80833 12.6167 10.1667 12.6167 10.4417 12.8L11.1833 13.3C11.7333 13.6667 12.475 13.275 12.475 12.6083V8.33333H7.45Z"
-						stroke="currentColor"
-						stroke-width="1.2"
-						stroke-miterlimit="10"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-					/>
-				</svg>
-				<span>{nav.utility.giftCard.label}</span>
-			</a>
-
-			<a class="rj-utility-link rj-utility-link--icon" href={nav.utility.helpContact.href}>
-				<svg class="rj-i20" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-					<path
-						d="M4.65828 18.9167C2.70828 18.9167 1.05827 17.2667 1.05827 15.3167V10.1834C1.00827 7.75836 1.91662 5.46671 3.59996 3.74171C5.28329 2.02504 7.54995 1.08337 9.97495 1.08337C14.9416 1.08337 18.9749 5.12504 18.9749 10.0917V15.2251C18.9749 17.2084 17.3583 18.8251 15.375 18.8251C13.3916 18.8251 11.775 17.2084 11.775 15.2251V12.8834C11.775 11.6917 12.7416 10.725 13.9333 10.725C15.125 10.725 16.0916 11.6917 16.0916 12.8834V15.4084C16.0916 15.75 15.8083 16.0334 15.4666 16.0334C15.1249 16.0334 14.8416 15.75 14.8416 15.4084V12.8834C14.8416 12.3167 14.3833 11.975 13.9333 11.975C13.3666 11.975 13.025 12.4334 13.025 12.8834V15.2251C13.025 16.5001 14.1 17.5751 15.375 17.5751C16.65 17.5751 17.7249 16.5001 17.7249 15.2251V10.0917C17.7249 5.8167 14.25 2.33337 9.97495 2.33337C7.88329 2.33337 5.94163 3.1417 4.49163 4.6167C3.04163 6.0917 2.26661 8.06673 2.30827 10.1667V15.3084C2.30827 16.5834 3.38328 17.6584 4.65828 17.6584C5.93328 17.6584 7.00829 16.5834 7.00829 15.3084V12.9667C7.00829 12.4 6.54996 12.0584 6.09996 12.0584C5.53329 12.0584 5.19163 12.5167 5.19163 12.9667V15.4C5.19163 15.7417 4.90829 16.025 4.56663 16.025C4.22496 16.025 3.94163 15.7417 3.94163 15.4V12.9667C3.94163 11.7584 4.89162 10.8084 6.09996 10.8084C7.29162 10.8084 8.25829 11.775 8.25829 12.9667V15.3084C8.25829 17.3 6.64161 18.9167 4.65828 18.9167Z"
-						fill="currentColor"
-					/>
-					<path
-						d="M10.9831 9.88332C10.6498 9.88332 10.3498 9.70002 10.2081 9.40002L8.99976 6.99168L8.64978 7.64165C8.45811 7.99999 8.07478 8.225 7.66645 8.225H7.05811C6.71644 8.225 6.43311 7.94166 6.43311 7.6C6.43311 7.25833 6.71644 6.975 7.05811 6.975H7.59143L8.24977 5.75831C8.4081 5.47498 8.69976 5.32499 9.02476 5.29999C9.34976 5.29999 9.64144 5.49166 9.79144 5.77499L10.9831 8.15832L11.2664 7.58331C11.4581 7.19998 11.8331 6.96665 12.2664 6.96665H12.9414C13.2831 6.96665 13.5664 7.24999 13.5664 7.59165C13.5664 7.93332 13.2831 8.21665 12.9414 8.21665H12.3498L11.7581 9.39168C11.6081 9.70002 11.3164 9.88332 10.9831 9.88332Z"
-						fill="currentColor"
-					/>
-				</svg>
-				<span>{nav.utility.helpContact.label}</span>
-			</a>
-		</div>
-
-		<div class="rj-utility-group rj-utility-group--end">
-			<div class="rj-utility-postal">
-				<svg class="rj-i21" width="21" height="21" viewBox="0 0 21 21" fill="none" aria-hidden="true">
-					<g stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M10.5 12.25H11.375C12.3375 12.25 13.125 11.4625 13.125 10.5V1.75H5.25C3.9375 1.75 2.79126 2.47624 2.19626 3.54374" />
-						<path
-							d="M1.75 14.875C1.75 16.3275 2.9225 17.5 4.375 17.5H5.25C5.25 16.5375 6.0375 15.75 7 15.75C7.9625 15.75 8.75 16.5375 8.75 17.5H12.25C12.25 16.5375 13.0375 15.75 14 15.75C14.9625 15.75 15.75 16.5375 15.75 17.5H16.625C18.0775 17.5 19.25 16.3275 19.25 14.875V12.25H16.625C16.1437 12.25 15.75 11.8563 15.75 11.375V8.75C15.75 8.26875 16.1437 7.875 16.625 7.875H17.7537L16.2575 5.25876C15.9425 4.71626 15.365 4.375 14.735 4.375H13.125V10.5C13.125 11.4625 12.3375 12.25 11.375 12.25H10.5"
-						/>
-						<path d="M7 19.25C7.9665 19.25 8.75 18.4665 8.75 17.5C8.75 16.5335 7.9665 15.75 7 15.75C6.0335 15.75 5.25 16.5335 5.25 17.5C5.25 18.4665 6.0335 19.25 7 19.25Z" />
-						<path d="M14 19.25C14.9665 19.25 15.75 18.4665 15.75 17.5C15.75 16.5335 14.9665 15.75 14 15.75C13.0335 15.75 12.25 16.5335 12.25 17.5C12.25 18.4665 13.0335 19.25 14 19.25Z" />
-						<path d="M19.25 10.5V12.25H16.625C16.1437 12.25 15.75 11.8563 15.75 11.375V8.75C15.75 8.26875 16.1437 7.875 16.625 7.875H17.7537L19.25 10.5Z" />
-						<path d="M1.75 7H7" />
-						<path d="M1.75 9.625H5.25" />
-						<path d="M1.75 12.25H3.5" />
-					</g>
-				</svg>
-				<span>{nav.utility.postalCodeLabel}</span>
-			</div>
-
-			<div class="rj-utility-locale">
-				<svg class="rj-i21" width="21" height="21" viewBox="0 0 21 21" fill="none" aria-hidden="true">
-					<g stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M10.5 19.25C15.3325 19.25 19.25 15.3325 19.25 10.5C19.25 5.66751 15.3325 1.75 10.5 1.75C5.66751 1.75 1.75 5.66751 1.75 10.5C1.75 15.3325 5.66751 19.25 10.5 19.25Z" />
-						<path d="M7 2.625H7.875C6.16875 7.735 6.16875 13.265 7.875 18.375H7" />
-						<path d="M13.125 2.625C14.8312 7.735 14.8312 13.265 13.125 18.375" />
-						<path d="M2.625 14V13.125C7.735 14.8312 13.265 14.8312 18.375 13.125V14" />
-						<path d="M2.625 7.875C7.735 6.16875 13.265 6.16875 18.375 7.875" />
-					</g>
-				</svg>
-				<div class="rj-utility-locale-value">
-					<span>{nav.utility.countryCode}</span>
-					<span class="rj-locale-divider"></span>
-					<span>{nav.utility.language}</span>
-					<svg class="rj-i18" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-						<path
-							d="M14.94 6.7125L10.05 11.6025C9.4725 12.18 8.5275 12.18 7.95 11.6025L3.06 6.7125"
-							stroke="currentColor"
-							stroke-width="1.5"
-							stroke-miterlimit="10"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						/>
-					</svg>
-				</div>
-			</div>
-		</div>
-	</div>
-</div>
+<svelte:window onkeydown={(event) => { if (event.key === 'Escape') { openMega = null; if (searchOpen) closeSearch() } }} onscroll={() => (openMega = null)} />
 
 <!-- Main header — Figma 63:83424 (logged out) / 63:83358 (logged in) -->
 <header
@@ -167,12 +65,12 @@
 		if (!(event.currentTarget as HTMLElement).contains(event.relatedTarget as Node)) openMega = null
 	}}
 	onkeydown={(event) => {
-		if (event.key === 'Escape') openMega = null
+		if (event.key === 'Escape') { openMega = null; if (searchOpen) closeSearch() }
 	}}
 >
 	<div class="rj-header-inner">
 		<!-- Row 1 -->
-		<div class="rj-row-primary" onmouseenter={() => (openMega = null)}>
+		<div class="rj-row-primary">
 			<button class="rj-burger" type="button" aria-label="Open menu" onclick={() => (navModule.openSidebar = true)}>
 				<Menu class="h-5 w-5" />
 			</button>
@@ -184,128 +82,51 @@
 				<span class="rj-brand-name">{nav.brandName}</span>
 			</a>
 
-			<MsSearchRenderer bind:search>
-				{#snippet content({ searchResults, showSearchResults, loading, searchPlugin, closeSearch, handleKeyDown, handleResultClick, toggleSearchResults })}
-					<div class="rj-search">
-						<input
-							class="rj-search-input"
-							type="search"
-							bind:value={search}
-							placeholder={searchPlugin?.placeholder || nav.searchPlaceholder}
-							aria-label={searchPlugin?.placeholder || nav.searchPlaceholder}
-							autocomplete="off"
-							enterkeyhint="search"
-							onfocus={() => toggleSearchResults(true)}
-							onkeydown={handleKeyDown}
-						/>
-						<span class="rj-search-icon" aria-hidden="true">
-							<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-								<path
-									fill-rule="evenodd"
-									clip-rule="evenodd"
-									d="M10 6.00077C8.93913 6.00077 7.92172 6.42219 7.17157 7.17234C6.42143 7.92248 6 8.9399 6 10.0008C6 11.0616 6.42143 12.079 7.17157 12.8292C7.92172 13.5793 8.93913 14.0008 10 14.0008C11.0609 14.0008 12.0783 13.5793 12.8284 12.8292C13.5786 12.079 14 11.0616 14 10.0008C14 8.9399 13.5786 7.92248 12.8284 7.17234C12.0783 6.42219 11.0609 6.00077 10 6.00077ZM4 10.0008C3.99988 9.05647 4.22264 8.12548 4.65017 7.28351C5.0777 6.44154 5.69792 5.71236 6.4604 5.15529C7.22287 4.59822 8.10606 4.22898 9.03815 4.0776C9.97023 3.92622 10.9249 3.99698 11.8245 4.28412C12.724 4.57126 13.5432 5.06667 14.2152 5.73006C14.8872 6.39346 15.3931 7.2061 15.6919 8.1019C15.9906 8.9977 16.0737 9.95136 15.9343 10.8853C15.795 11.8193 15.4372 12.7072 14.89 13.4768L19.707 18.2938C19.8892 18.4824 19.99 18.735 19.9877 18.9972C19.9854 19.2594 19.8802 19.5102 19.6948 19.6956C19.5094 19.881 19.2586 19.9862 18.9964 19.9884C18.7342 19.9907 18.4816 19.8899 18.293 19.7078L13.477 14.8918C12.5794 15.53 11.5233 15.9089 10.4247 15.9869C9.326 16.0648 8.22707 15.8389 7.2483 15.3337C6.26953 14.8286 5.44869 14.0638 4.87572 13.1231C4.30276 12.1824 3.99979 11.1022 4 10.0008V10.0008Z"
-									fill="#B0BABF"
-								/>
-							</svg>
-						</span>
-
-						{#if showSearchResults && search}
-							<div class="rj-search-results">
-								{#if loading}
-									{#each Array(4) as _}
-										<div class="rj-search-skeleton"></div>
-									{/each}
-								{:else if searchResults.length > 0}
-									<ul>
-										{#each searchResults as result}
-											<li>
-												<button type="button" onclick={() => handleResultClick(result)}>
-													<span class="rj-search-thumb">
-														{#if result.thumbnail}<img src={result.thumbnail} alt="" />{/if}
-													</span>
-													<span class="rj-search-meta">
-														<span class="rj-search-title">{result.name || result.title}</span>
-														{#if result.price}
-															<span class="rj-search-price">{priceRoundUp(result?.price, page?.data?.store?.currency?.code)}</span>
-														{/if}
-													</span>
-												</button>
-											</li>
-										{/each}
-									</ul>
-								{:else}
-									<p class="rj-search-empty">No products found for “{search}”.</p>
-								{/if}
-							</div>
-							<button type="button" class="rj-search-backdrop" tabindex="-1" aria-label="Close search" onclick={closeSearch}></button>
-						{/if}
-					</div>
-				{/snippet}
-			</MsSearchRenderer>
-
-			<div class="rj-actions">
-				<a class="rj-order" href={nav.orderReturn.href}>
-					<span class="rj-order-icon" aria-hidden="true">
-						<svg width="21.55" height="19.3" viewBox="0 0 21.55 19.3" fill="none">
-							<g stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
-								<path
-									d="M8.65 13.15L11.65 14.15C11.65 14.15 19.15 12.65 20.15 12.65C21.15 12.65 21.15 13.65 20.15 14.65C19.15 15.65 15.65 18.65 12.65 18.65C9.65 18.65 7.65 17.15 5.65 17.15H0.65"
-								/>
-								<path
-									d="M0.65 11.15C1.65 10.15 3.65 8.65 5.65 8.65C7.65 8.65 12.4 10.65 13.15 11.65C13.9 12.65 11.65 14.15 11.65 14.15M6.65 5.65V1.65C6.65 1.38478 6.75536 1.13043 6.94289 0.942893C7.13043 0.755357 7.38478 0.65 7.65 0.65H19.65C19.9152 0.65 20.1696 0.755357 20.3571 0.942893C20.5446 1.13043 20.65 1.38478 20.65 1.65V9.65"
-								/>
-								<path d="M11.15 0.65H16.15V5.15H11.15V0.65Z" />
-							</g>
-						</svg>
-					</span>
-					<span class="rj-order-text">
-						<span class="rj-order-top">{nav.orderReturn.top}</span>
-						<span class="rj-order-bottom">{nav.orderReturn.bottom}</span>
-					</span>
+		<!-- Product categories -->
+		<div class="rj-row-menu">
+			<nav class="rj-menu" aria-label="Main navigation">
+				<a class="rj-menu-home" href={homeHref} aria-current={pathname === homeHref ? 'page' : undefined} onmouseenter={() => (openMega = null)}>
+					{homeLabel}
 				</a>
+				<span class="rj-menu-divider"></span>
+				<div class="rj-menu-list">
+					{#each resolvedMenu.items as item, index}
+						{@const label = menuLabel(item)}
+						{@const href = menuHref(item)}
+						{@const menuId = `rj-admin-menu-${index}`}
+						{#if menuChildren(item).length}
+							<div class="rj-menu-entry" class:is-open={openMega === menuId} onmouseenter={() => (openMega = menuId)}>
+								<a
+									class="rj-menu-item"
+									{href}
+									aria-current={pathname === href ? 'page' : undefined}
+									aria-haspopup="true"
+									aria-expanded={openMega === menuId}
+									aria-controls={menuId}
+									onfocus={() => (openMega = menuId)}
+								>
+									<span>{label}</span>
+									<svg class="rj-menu-caret" width="11.6829" height="6.06268" viewBox="0 0 11.6829 6.06268" fill="none" aria-hidden="true">
+										<path d="M10.9329 0.75L6.74143 4.94143C6.24643 5.43643 5.43643 5.43643 4.94143 4.94143L0.75 0.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+									</svg>
+								</a>
+								<RjAdminMegaMenu category={item} {menuId} open={openMega === menuId} onNavigate={() => (openMega = null)} />
+							</div>
+						{:else}
+							<a class="rj-menu-item" {href} aria-current={pathname === href ? 'page' : undefined} onmouseenter={() => (openMega = null)}>
+								<span>{label}</span>
+							</a>
+						{/if}
+					{/each}
+				</div>
+			</nav>
+		</div>
+			<div class="rj-actions" onmouseenter={() => (openMega = null)}>
+				<button bind:this={searchToggle} class="rj-search-toggle" type="button" aria-label="Search products" aria-expanded={searchOpen} aria-controls="rj-header-search" onclick={toggleSearch}><Search size={21} strokeWidth={1.5} /></button>
+
 
 				<a class="rj-cart" href="/checkout/cart" aria-label="Open cart">
-					{#if (cartState.cart?.qty || 0) > 0}
-									<span class="rj-cart-icon rj-cart-icon--count">
-										<svg width="27" height="27" viewBox="0 0 27 27" fill="none" aria-hidden="true">
-											<path
-												d="M9.99805 25C10.93 25 11.6855 24.2445 11.6855 23.3125C11.6855 22.3805 10.93 21.625 9.99805 21.625C9.06607 21.625 8.31055 22.3805 8.31055 23.3125C8.31055 24.2445 9.06607 25 9.99805 25Z"
-												fill="currentColor"
-											/>
-											<path
-												d="M20.25 25C21.182 25 21.9375 24.2445 21.9375 23.3125C21.9375 22.3805 21.182 21.625 20.25 21.625C19.318 21.625 18.5625 22.3805 18.5625 23.3125C18.5625 24.2445 19.318 25 20.25 25Z"
-												fill="currentColor"
-											/>
-											<path
-												d="M22.4999 11.125H22.1849L21.2474 15.25H9.99737L6.56987 4.39751C6.5328 4.28235 6.46842 4.17787 6.38222 4.09298C6.29603 4.00809 6.19058 3.94532 6.07487 3.91001L2.99987 2.96501C2.90532 2.93595 2.80597 2.9258 2.7075 2.93514C2.60902 2.94448 2.51335 2.97313 2.42595 3.01944C2.24943 3.11297 2.1173 3.2728 2.05862 3.46376C1.99994 3.65471 2.01952 3.86116 2.11305 4.03768C2.20659 4.21419 2.36641 4.34633 2.55737 4.40501L5.24987 5.23001L8.69237 16.105L7.46237 17.11L7.36487 17.2075C7.06062 17.5581 6.88817 18.0039 6.87722 18.468C6.86627 18.932 7.0175 19.3854 7.30487 19.75C7.50929 19.9986 7.76905 20.1959 8.06337 20.3261C8.3577 20.4564 8.67841 20.5159 8.99987 20.5H21.5174C21.7163 20.5 21.907 20.421 22.0477 20.2803C22.1884 20.1397 22.2674 19.9489 22.2674 19.75C22.2674 19.5511 22.1884 19.3603 22.0477 19.2197C21.907 19.079 21.7163 19 21.5174 19H8.87987C8.7935 18.9971 8.70936 18.9719 8.63556 18.9269C8.56177 18.882 8.50081 18.8187 8.45859 18.7433C8.41637 18.6679 8.3943 18.5829 8.39453 18.4965C8.39475 18.4101 8.41726 18.3252 8.45987 18.25L10.2674 16.75H21.8474C22.0207 16.7542 22.1902 16.6983 22.327 16.5916C22.4637 16.4849 22.5593 16.3342 22.5974 16.165L23.7749 10.9825C23.3567 11.0784 22.9289 11.1262 22.4999 11.125Z"
-												fill="currentColor"
-											/>
-										</svg>
-							<span class="rj-cart-count">{cartState.cart.qty}</span>
-									</span>
-								{:else}
-									<span class="rj-cart-icon">
-										<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-											<g clip-path="url(#rj-cart-clip)">
-												<path
-													d="M8.88667 21.3333C9.71509 21.3333 10.3867 20.6618 10.3867 19.8333C10.3867 19.0049 9.71509 18.3333 8.88667 18.3333C8.05824 18.3333 7.38667 19.0049 7.38667 19.8333C7.38667 20.6618 8.05824 21.3333 8.88667 21.3333Z"
-													fill="currentColor"
-												/>
-												<path
-													d="M18 21.3333C18.8284 21.3333 19.5 20.6618 19.5 19.8333C19.5 19.0049 18.8284 18.3333 18 18.3333C17.1716 18.3333 16.5 19.0049 16.5 19.8333C16.5 20.6618 17.1716 21.3333 18 21.3333Z"
-													fill="currentColor"
-												/>
-												<path d="M15.0467 4.66667C15.0163 4.44573 15.0007 4.22301 15 4C15.0007 3.77699 15.0163 3.55427 15.0467 3.33333H7.66L8.09333 4.66667H15.0467Z" fill="currentColor" />
-												<path
-													d="M20 9H19.72L18.8867 12.6667H8.88667L5.84 3.02C5.80705 2.91764 5.74982 2.82477 5.6732 2.74931C5.59658 2.67386 5.50285 2.61805 5.4 2.58667L2.66667 1.74667C2.58262 1.72084 2.49431 1.71182 2.40678 1.72012C2.31925 1.72842 2.23421 1.75389 2.15652 1.79505C1.99961 1.87819 1.88216 2.02026 1.83 2.19C1.77784 2.35974 1.79525 2.54325 1.87839 2.70015C1.96153 2.85706 2.10359 2.97451 2.27333 3.02667L4.66667 3.76L7.72667 13.4267L6.63333 14.32L6.54667 14.4067C6.27622 14.7183 6.12293 15.1145 6.1132 15.5271C6.10346 15.9396 6.23789 16.3426 6.49333 16.6667C6.67504 16.8876 6.90594 17.063 7.16756 17.1788C7.42918 17.2945 7.71426 17.3475 8 17.3333H19.1267C19.3035 17.3333 19.473 17.2631 19.5981 17.1381C19.7231 17.013 19.7933 16.8435 19.7933 16.6667C19.7933 16.4899 19.7231 16.3203 19.5981 16.1953C19.473 16.0702 19.3035 16 19.1267 16H7.89333C7.81656 15.9974 7.74177 15.975 7.67617 15.935C7.61058 15.8951 7.55639 15.8389 7.51886 15.7718C7.48133 15.7048 7.46172 15.6292 7.46192 15.5524C7.46212 15.4756 7.48212 15.4002 7.52 15.3333L9.12667 14H19.42C19.5741 14.0038 19.7248 13.954 19.8463 13.8592C19.9679 13.7644 20.0528 13.6304 20.0867 13.48L21.1333 8.87333C20.7616 8.95858 20.3814 9.00108 20 9V9Z"
-													fill="currentColor"
-												/>
-												<path d="M20 7.33333C21.8409 7.33333 23.3333 5.84095 23.3333 4C23.3333 2.15905 21.8409 0.666666 20 0.666666C18.1591 0.666666 16.6667 2.15905 16.6667 4C16.6667 5.84095 18.1591 7.33333 20 7.33333Z" fill="currentColor" />
-											</g>
-											<defs><clipPath id="rj-cart-clip"><rect width="24" height="24" fill="white" /></clipPath></defs>
-										</svg>
-									</span>
-					{/if}
+					<span class="rj-cart-icon"><ShoppingBag size={21} strokeWidth={1.5} />{#if (cartState.cart?.qty || 0) > 0}<span class="rj-bag-badge">{cartState.cart.qty}</span>{/if}</span>
 					<span class="rj-cart-label">{nav.cartLabel}</span>
 				</a>
 
@@ -313,23 +134,7 @@
 					<RjProfileDropdown onSignOut={navModule.handleSignOut}>
 						{#snippet trigger()}
 							<span class="rj-account">
-								<span class="rj-account-icon" aria-hidden="true">
-									<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-										<path
-											opacity="0.4"
-											d="M12 22.01C17.5228 22.01 22 17.5328 22 12.01C22 6.48715 17.5228 2.01 12 2.01C6.47715 2.01 2 6.48715 2 12.01C2 17.5328 6.47715 22.01 12 22.01Z"
-											fill="currentColor"
-										/>
-										<path
-											d="M12 6.94C9.93 6.94 8.25 8.62 8.25 10.69C8.25 12.72 9.84 14.37 11.95 14.43C11.98 14.43 12.02 14.43 12.04 14.43C12.06 14.43 12.09 14.43 12.11 14.43C12.12 14.43 12.13 14.43 12.13 14.43C14.15 14.36 15.74 12.72 15.75 10.69C15.75 8.62 14.07 6.94 12 6.94Z"
-											fill="currentColor"
-										/>
-										<path
-											d="M18.78 19.36C17 21 14.62 22.01 12 22.01C9.38 22.01 7 21 5.22 19.36C5.46 18.45 6.11 17.62 7.06 16.98C9.79 15.16 14.23 15.16 16.94 16.98C17.9 17.62 18.54 18.45 18.78 19.36Z"
-											fill="currentColor"
-										/>
-									</svg>
-								</span>
+								<span class="rj-account-icon" aria-hidden="true"><UserRound size={21} strokeWidth={1.5} /></span>
 								<span class="rj-account-text">
 									<span class="rj-account-greeting">{nav.account.greetingLoggedIn}</span>
 									<span class="rj-account-line">
@@ -353,14 +158,7 @@
 					<DropdownMenu.Root>
 						<DropdownMenu.Trigger aria-label="Open account menu" class="rj-guest-trigger">
 							<span class="rj-account">
-							<span class="rj-account-icon" aria-hidden="true">
-								<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-									<path
-										d="M12 12.25C11.2583 12.25 10.5333 12.0301 9.91661 11.618C9.29993 11.206 8.81928 10.6203 8.53545 9.93506C8.25162 9.24984 8.17736 8.49584 8.32205 7.76841C8.46675 7.04098 8.8239 6.3728 9.34835 5.84835C9.8728 5.3239 10.541 4.96675 11.2684 4.82206C11.9958 4.67736 12.7498 4.75162 13.4351 5.03545C14.1203 5.31928 14.706 5.79993 15.118 6.41661C15.5301 7.0333 15.75 7.75832 15.75 8.5C15.75 9.49456 15.3549 10.4484 14.6517 11.1517C13.9484 11.8549 12.9946 12.25 12 12.25ZM12 6.25C11.555 6.25 11.12 6.38196 10.75 6.62919C10.38 6.87643 10.0916 7.22783 9.92127 7.63896C9.75097 8.0501 9.70642 8.5025 9.79323 8.93895C9.88005 9.37541 10.0943 9.77632 10.409 10.091C10.7237 10.4057 11.1246 10.62 11.561 10.7068C11.9975 10.7936 12.4499 10.749 12.861 10.5787C13.2722 10.4084 13.6236 10.12 13.8708 9.75003C14.118 9.38002 14.25 8.94501 14.25 8.5C14.25 7.90326 14.0129 7.33097 13.591 6.90901C13.169 6.48705 12.5967 6.25 12 6.25V6.25ZM19 19.25C18.8019 19.2474 18.6126 19.1676 18.4725 19.0275C18.3324 18.8874 18.2526 18.6981 18.25 18.5C18.25 16.55 17.19 15.25 12 15.25C6.81 15.25 5.75 16.55 5.75 18.5C5.75 18.6989 5.67098 18.8897 5.53033 19.0303C5.38968 19.171 5.19891 19.25 5 19.25C4.80109 19.25 4.61032 19.171 4.46967 19.0303C4.32902 18.8897 4.25 18.6989 4.25 18.5C4.25 13.75 9.68 13.75 12 13.75C14.32 13.75 19.75 13.75 19.75 18.5C19.7474 18.6981 19.6676 18.8874 19.5275 19.0275C19.3874 19.1676 19.1981 19.2474 19 19.25Z"
-										fill="currentColor"
-									/>
-								</svg>
-							</span>
+							<span class="rj-account-icon" aria-hidden="true"><UserRound size={21} strokeWidth={1.5} /></span>
 							<span class="rj-account-text rj-account-text--guest">
 								<span class="rj-account-greeting">{nav.account.greeting}</span>
 								<span class="rj-account-line">
@@ -408,64 +206,17 @@
 			</div>
 		</div>
 
-		<!-- Row 2 -->
-		<div class="rj-row-menu">
-			<nav class="rj-menu" aria-label="Main navigation">
-				<a class="rj-menu-home" href={homeHref} aria-current={pathname === homeHref ? 'page' : undefined} onmouseenter={() => (openMega = null)}>
-					{homeLabel}
-				</a>
-				<span class="rj-menu-divider"></span>
-				<div class="rj-menu-list">
-					{#each resolvedMenu.items as item, index}
-						{@const label = menuLabel(item)}
-						{@const href = menuHref(item)}
-						{@const menuId = `rj-admin-menu-${index}`}
-						{#if menuChildren(item).length}
-							<div class="rj-menu-entry" class:is-open={openMega === menuId} onmouseenter={() => (openMega = menuId)}>
-								<a
-									class="rj-menu-item"
-									{href}
-									aria-current={pathname === href ? 'page' : undefined}
-									aria-haspopup="true"
-									aria-expanded={openMega === menuId}
-									aria-controls={menuId}
-									onfocus={() => (openMega = menuId)}
-								>
-									<span>{label}</span>
-									<svg class="rj-menu-caret" width="11.6829" height="6.06268" viewBox="0 0 11.6829 6.06268" fill="none" aria-hidden="true">
-										<path d="M10.9329 0.75L6.74143 4.94143C6.24643 5.43643 5.43643 5.43643 4.94143 4.94143L0.75 0.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-									</svg>
-								</a>
-								<RjAdminMegaMenu category={item} {menuId} {collectionProducts} onNavigate={() => (openMega = null)} />
-							</div>
-						{:else}
-							<a class="rj-menu-item" {href} aria-current={pathname === href ? 'page' : undefined} onmouseenter={() => (openMega = null)}>
-								<span>{label}</span>
-							</a>
-						{/if}
-					{/each}
-				</div>
-			</nav>
 
-			<a class="rj-offers" href={nav.offers.href} onmouseenter={() => (openMega = null)}>
-				<span class="rj-offers-gift" aria-hidden="true">
-					<img class="rj-offers-gift-base" src={isLoggedIn ? '/ryans-jewels/icons/gift-box-3d-premium.webp' : '/ryans-jewels/icons/gift-box-3d.webp'} alt="" />
-					<img class="rj-offers-gift-top" src="/ryans-jewels/icons/gift-box-3d.webp" alt="" />
-				</span>
-				<span class="rj-offers-label">{nav.offers.label}</span>
-				<svg class="rj-i18" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-					<path
-						d="M6.6825 14.94L11.5725 10.05C12.15 9.4725 12.15 8.5275 11.5725 7.95L6.6825 3.06"
-						stroke="currentColor"
-						stroke-width="1.5"
-						stroke-miterlimit="10"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-					/>
-				</svg>
-			</a>
-		</div>
 	</div>
+	{#if searchOpen}
+		<form id="rj-header-search" class="rj-header-search" role="search" action="/products" method="GET">
+			<label class="sr-only" for="rj-search-query">Search products</label>
+			<Search size={20} strokeWidth={1.5} />
+			<input bind:this={searchInput} id="rj-search-query" name="search" type="search" placeholder="Search diamonds, rings, and more" required />
+			<button type="submit" class="rj-search-submit">Search</button>
+			<button type="button" class="rj-search-toggle" aria-label="Close search" onclick={closeSearch}><X size={20} /></button>
+		</form>
+	{/if}
 </header>
 
 <style>
@@ -650,152 +401,6 @@
 	}
 
 	/* -------------------------------- search ------------------------------ */
-
-	.rj-search {
-		position: relative;
-		flex: 1 1 auto;
-		min-width: 0;
-		/* 186:56711 lets the field fill the row at 1920 — no cap. */
-		height: 40px;
-	}
-
-	.rj-search-input {
-		width: 100%;
-		height: 40px;
-		padding: 8px 39px 8px 15px;
-		background: #fff;
-		border: 1px solid var(--rj-line-2, #d9d9d9);
-		border-radius: 6px;
-		font-family: 'Inter', sans-serif;
-		font-size: 14px;
-		font-weight: 400;
-		line-height: 24px;
-		letter-spacing: -0.084px;
-		color: var(--rj-input-text, #252c32);
-		outline: none;
-		appearance: none;
-	}
-
-	.rj-search-input::placeholder {
-		color: var(--rj-input-text, #252c32);
-		opacity: 1;
-	}
-
-	.rj-search-input:focus {
-		border-color: var(--rj-gold, #cca646);
-	}
-
-	.rj-search-input::-webkit-search-cancel-button {
-		display: none;
-	}
-
-	.rj-search-icon {
-		position: absolute;
-		top: 7px;
-		right: 7px;
-		display: block;
-		width: 24px;
-		height: 24px;
-		pointer-events: none;
-	}
-
-	.rj-search-backdrop {
-		position: fixed;
-		inset: 0;
-		z-index: 70;
-		border: 0;
-		background: transparent;
-		cursor: default;
-	}
-
-	.rj-search-results {
-		position: absolute;
-		z-index: 80;
-		top: calc(100% + 6px);
-		left: 0;
-		right: 0;
-		max-height: 60vh;
-		overflow-y: auto;
-		padding: 6px;
-		background: #fff;
-		border: 1px solid var(--rj-line-2, #d9d9d9);
-		border-radius: 6px;
-		box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.28);
-	}
-
-	.rj-search-results ul {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-	}
-
-	.rj-search-results li button {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-		width: 100%;
-		padding: 8px;
-		border: 0;
-		background: none;
-		text-align: left;
-		cursor: pointer;
-	}
-
-	.rj-search-results li button:hover {
-		background: var(--rj-cream, #faf6ea);
-	}
-
-	.rj-search-thumb {
-		display: block;
-		width: 44px;
-		height: 44px;
-		flex-shrink: 0;
-		overflow: hidden;
-		border-radius: 4px;
-		background: var(--rj-surface, #f4f4f4);
-	}
-
-	.rj-search-thumb img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-	}
-
-	.rj-search-meta {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-		min-width: 0;
-	}
-
-	.rj-search-title {
-		font-size: 14px;
-		color: var(--rj-ink, #404040);
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.rj-search-price {
-		font-size: 13px;
-		font-weight: 700;
-		color: var(--rj-gold, #cca646);
-	}
-
-	.rj-search-skeleton {
-		height: 56px;
-		margin: 4px;
-		border-radius: 4px;
-		background: var(--rj-surface, #f4f4f4);
-		animation: rj-pulse 1.4s ease-in-out infinite;
-	}
-
-	.rj-search-empty {
-		padding: 24px 12px;
-		font-size: 14px;
-		text-align: center;
-		color: var(--rj-ink-2, #606060);
-	}
 
 	@keyframes rj-pulse {
 		0%,
@@ -1093,8 +698,6 @@
 		flex-shrink: 0;
 	}
 
-	.rj-menu-entry:hover :global(.rj-admin-mega),
-	.rj-menu-entry:focus-within :global(.rj-admin-mega),
 	.rj-menu-entry.is-open :global(.rj-lab-mega),
 	.rj-menu-entry.is-open :global(.rj-all-mega),
 	.rj-menu-entry.is-open :global(.rj-rings-mega),
@@ -1102,7 +705,7 @@
 		visibility: visible;
 		opacity: 1;
 		pointer-events: auto;
-		transform: translateY(0);
+		transform: translate(-50%, 0);
 	}
 
 	.rj-menu-entry:hover .rj-menu-caret,
@@ -1260,8 +863,7 @@
 			display: grid;
 			grid-template-columns: auto auto;
 			grid-template-areas:
-				'brand actions'
-				'search search';
+				'brand actions';
 			align-items: center;
 			gap: 11px;
 			justify-content: space-between;
@@ -1289,30 +891,6 @@
 
 		.rj-brand-name {
 			font-size: 22px;
-		}
-
-		.rj-search {
-			grid-area: search;
-			min-width: 0;
-			height: 44px;
-			max-width: none;
-		}
-
-		.rj-search-input {
-			height: 44px;
-			padding: 10px 48px 10px 16px;
-			border-color: var(--rj-line-3, #c2c2c2);
-			font-family: 'Sarala', var(--font-body, sans-serif);
-			color: var(--rj-ink, #404040);
-		}
-
-		.rj-search-input::placeholder {
-			color: var(--rj-placeholder, #bdbdbd);
-		}
-
-		.rj-search-icon {
-			top: 10px;
-			right: 16px;
 		}
 
 		.rj-actions {
@@ -1436,8 +1014,7 @@
 		.rj-row-primary {
 			grid-template-columns: minmax(0, 193px) minmax(0, auto);
 			grid-template-areas:
-				'brand actions'
-				'search search';
+				'brand actions';
 			gap: 11px;
 		}
 
@@ -1458,4 +1035,89 @@
 			gap: 0;
 		}
 	}
+
+	/* Compact navigation refresh; original logo and gold accents are retained. */
+	.rj-header { min-height: 0; box-shadow: 0 3px 14px #20202004; }
+	.rj-header-inner { max-width: 1440px; padding: 0 48px; gap: 0; }
+	.rj-row-primary { height: 86px; gap: 45px; justify-content: space-between; }
+	.rj-brand-mark { width: 46px; height: 44px; }
+	.rj-brand-name { font-size: 25px; }
+	.rj-actions { gap: 24px; }
+	.rj-cart { gap: 9px; min-height: 44px; }
+	.rj-cart-icon { position: relative; width: 24px; height: 24px; padding: 0; }
+	.rj-cart-label, .rj-account-name, .rj-account-link { font-size: 12px; font-weight: 400; }
+	.rj-bag-badge { position: absolute; right: -6px; top: -7px; min-width: 15px; height: 15px; padding: 0 3px; border-radius: 50%; background: #404040; color: #fff; font: 9px/15px Inter, sans-serif; text-align: center; }
+	.rj-account { min-height: 44px; gap: 9px; }
+	.rj-account-icon { width: 22px; height: 22px; }
+	.rj-account-text--guest { width: auto; }
+	.rj-account-greeting, .rj-account-or, .rj-account-link:last-child { display: none; }
+	.rj-account-link { color: #404040; text-decoration: none; }
+	.rj-row-menu { min-height: 50px; border-top: 1px solid #f0efed; gap: 30px; }
+	.rj-menu, .rj-menu-list { gap: 32px; }
+	.rj-menu-divider { display: none; }
+	.rj-menu-home, .rj-menu-item { min-height: 50px; position: relative; font-size: 12px; letter-spacing: .2px; gap: 7px; }
+	.rj-menu-home::after, .rj-menu-item::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--rj-gold); transform: scaleX(0); transition: transform 180ms; }
+	.rj-menu-home:hover::after, .rj-menu-entry.is-open .rj-menu-item::after { transform: scaleX(1); }
+	.rj-visit { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; text-decoration: none; color: #686868; white-space: nowrap; }
+	.rj-visit:hover { color: var(--rj-gold); }
+	.rj-header a:focus-visible, .rj-header button:focus-visible { outline: 2px solid var(--rj-gold); outline-offset: 4px; }
+	@media (max-width: 1100px) { .rj-header-inner { padding-inline: 25px; } .rj-row-primary { gap: 24px; } .rj-actions { gap: 16px; } .rj-menu, .rj-menu-list { gap: 25px; } }
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
+		.rj-header-inner { padding: 14px 20px; }
+		.rj-row-primary { height: auto; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'brand actions'; gap: 13px; }
+		.rj-brand { margin-left: 35px; justify-self: start; gap: 8px; }
+		.rj-brand-mark { width: 34px; height: 33px; }
+		.rj-brand-name { font-size: 22px; }
+		.rj-actions { width: auto; gap: 8px; }
+		.rj-cart-icon { width: 24px; height: 24px; }
+		.rj-account-icon { width: 22px; height: 22px; }
+		.rj-row-menu { display: none; }
+	}
+	@media (max-width: 400px) { .rj-header-inner { padding-inline: 15px; } .rj-brand-name { font-size: 18px; } .rj-brand { margin-left: 30px; gap: 6px; } }
+	@media (prefers-reduced-motion: reduce) { .rj-menu-home::after, .rj-menu-item::after { transition: none; } }
+
+
+	/* One aligned row for the brand, catalog, and account actions. */
+	.rj-header-inner { max-width: 1600px; padding-inline: 32px; }
+	.rj-row-primary { display: flex; height: 82px; gap: 28px; }
+	.rj-row-menu { display: flex; flex: 1; justify-content: center; border: 0; min-height: 0; }
+	.rj-menu, .rj-menu-list { gap: 22px; }
+	.rj-menu-home, .rj-menu-item { min-height: 82px; white-space: nowrap; }
+	.rj-brand-name { font-size: 23px; }
+	.rj-actions { flex-shrink: 0; gap: 20px; align-items: center; }
+	.rj-cart, .rj-account { align-items: center; min-width: 0; height: 44px; gap: 7px; }
+	.rj-cart-icon, .rj-account-icon { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; }
+	.rj-cart-label, .rj-account-link, .rj-account-name { line-height: 20px; }
+	.rj-account-text, .rj-account-line, .rj-account-auth { align-items: center; gap: 5px; }
+	.rj-search-toggle { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 44px; flex-shrink: 0; border: 0; padding: 0; background: transparent; color: #404040; cursor: pointer; }
+	.rj-header-search { display: flex; align-items: center; gap: 14px; width: min(680px, calc(100% - 40px)); margin: 0 auto; padding: 12px 0 18px; }
+	.rj-header-search input { width: 100%; min-width: 0; border: 0; border-bottom: 1px solid #ddd; padding: 12px 0; outline: none; font-size: 14px; background: #fff; }
+	.rj-header-search input:focus { border-color: var(--rj-gold); }
+	.rj-search-submit { border: 0; border-radius: 3px; padding: 10px 16px; background: var(--rj-gold); color: white; font-size: 12px; cursor: pointer; }
+	@media (min-width: 1101px) and (max-width: 1279px) {
+		.rj-header-inner { padding-inline: 24px; }
+		.rj-row-primary { gap: 18px; }
+		.rj-brand-name { font-size: 20px; }
+		.rj-menu, .rj-menu-list { gap: 14px; }
+		.rj-actions { gap: 12px; }
+	}
+	@media (max-width: 1100px) {
+		.rj-header-inner { padding: 10px 20px; }
+		.rj-row-primary { height: 52px; display: flex; gap: 12px; }
+		.rj-burger { display: flex; width: 24px; height: 44px; }
+		.rj-brand { margin: 0; gap: 6px; }
+		.rj-brand-mark { width: 34px; height: 33px; }
+		.rj-brand-name { font-size: 20px; }
+		.rj-row-menu { display: none; }
+		.rj-actions { margin-left: auto; width: auto; gap: 8px; }
+		.rj-account-text, .rj-cart-label { display: none; }
+		.rj-search-toggle { width: 30px; }
+	}
+	@media (max-width: 400px) {
+		.rj-header-inner { padding-inline: 12px; }
+		.rj-row-primary { gap: 7px; }
+		.rj-brand-name { font-size: 17px; }
+		.rj-actions { gap: 5px; }
+	}
+	@media (max-width: 360px) { .rj-brand-name { font-size: 15px; } .rj-row-primary { gap: 5px; } }
 </style>

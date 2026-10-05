@@ -276,13 +276,8 @@ export const rarePassion = {
 	leadStrong: 'lab-grown diamond',
 	leadAfter: ' pieces that are as ethical as they are elegant.',
 	body: 'We believe that every woman deserves the brilliance of a diamond — not just as a luxury, but as a right.',
-	image: '/ryans-jewels/home/passion-card.webp',
-	imageAlt: 'Hands wearing Ryan Jewelers emerald and diamond rings',
-	badge: {
-		shape: '/ryans-jewels/home/passion-badge.svg',
-		value: '30%',
-		label: 'Off'
-	},
+	image: '/ryans-jewels/home/minimal/halo.webp',
+	imageAlt: 'A delicate oval diamond halo ring in white gold',
 	stats: passionStats
 }
 
@@ -509,16 +504,16 @@ export const faq = {
 export const ryansJewelsHome = {
 	hero: {
 		video: '/ryans-jewels/home/hero.mp4',
-		image: '/ryans-jewels/home/hero-desktop.webp',
-		mobileImage: '/ryans-jewels/home/hero-mobile.webp',
-		imageAlt: 'Ryan Jewelers diamond engagement ring',
+		image: '/ryans-jewels/home/campaign/solitaire-studs-model-v2.webp',
+		mobileImage: '/ryans-jewels/home/campaign/solitaire-studs-model-v2-mobile.webp',
+		imageAlt: 'A simple white gold solitaire diamond ring',
 		href: '/products',
 		/** static slide counter shown in the source (1:5513 / 63:40050 / 77:106851) */
-		slideLabel: '1/4'
+		slideLabel: ''
 	},
 	trust: trustBadges,
 	perfectCut: {
-		heading: 'FIND YOUR PERFECT CUT',
+		heading: 'Find your perfect cut',
 		shapes: diamondShapes
 	},
 	passion: rarePassion,

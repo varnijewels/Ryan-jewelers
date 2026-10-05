@@ -1,452 +1,186 @@
 <script lang="ts">
-	import { page } from '$app/state'
-	import { goto } from '$app/navigation'
-	import { tick } from 'svelte'
-	import { formatPrice } from '$lib/core/utils/index.js'
-	import { getDesktopFilterState } from '$lib/core/composables/index.js'
-	import ListingGrid from '$lib/components/product-catalogue/listing-grid.svelte'
-	import RjInstagram from './RjInstagram.svelte'
-	import { facetOptions, isRyanCategoryVisible } from './product-filters.js'
-	import { canonicalProductPath } from './seo.js'
-
-	const sortOptions = [
-		['select', 'Select one'],
-		['default', 'Default Sorting'],
-		['createdAt:desc', 'Whats New Arrival'],
-		['popularity:desc', 'Sort By Popularity'],
-		['rating:desc', 'Sort By Average Rating'],
-		['updatedAt:desc', 'Sort By Latest'],
-		['price:asc', 'Sort By Price: Low To High'],
-		['price:desc', 'Sort By Price: High To Low'],
-		['title:asc', 'Alphabetically: A to Z'],
-		['title:desc', 'Alphabetically: Z to A']
-	] as const
-	const localSorts = new Set(['default', 'rating:desc', 'title:asc', 'title:desc'])
-
-	const data = $derived(page.data)
-	const filterState = getDesktopFilterState()
-	let selectedSort = $state(page.url.searchParams.get('uiSort') ?? page.url.searchParams.get('sort') ?? 'position')
-	let filterOpen = $state(false)
-	let filterHidden = $state(false)
-	let listView = $state(false)
-	let showAllCategories = $state(false)
-	let showAllQualities = $state(false)
-	let showAllFeatured = $state(false)
-	let filterButton: HTMLButtonElement
-	let filterCloseButton: HTMLButtonElement
-	let filterPanel: HTMLElement
-	let openSections = $state<Record<string, boolean>>({
-		status: true, categories: true, price: true, material: true,
-		shape: true, quality: true, weight: true, featured: true
-	})
-
-	const categoryName = $derived(
-		page.url.searchParams.get('catalog') || (page.url.searchParams.get('uiShape')
-			? `${page.url.searchParams.get('uiShape')} Shape`
-			: data.products?.categoryHierarchy?.at(-1)?.name || data.products?.category?.name || page.params.slug?.replaceAll('-', ' ') || 'All Jewellery')
-	)
-	const categories = $derived((filterState.categories || []).filter(isRyanCategoryVisible))
-	const visibleCategories = $derived(showAllCategories ? categories : categories.slice(0, 6))
-	const statuses = ['In Stock', 'Out of stock', 'Best seller', 'Top Rated', 'Featured products']
-	const materials = $derived(facetOptions(filterState.allFilters, ['attributes.Metal_Type', 'attributes.Metal_Color', 'options.Material', 'options.Metal_Type', 'options.Metal_Color'], /gold|silver|platinum|metal/i))
-	const shapes = $derived(facetOptions(filterState.allFilters, ['attributes.Stone_Shape', 'attributes.Center_Stone_Shape', 'attributes.Side_Stone_Shape', 'options.Center_Stone']))
-	const qualities = $derived(facetOptions(filterState.allFilters, ['attributes.Stone_Quality', 'options.Stone_Quality']))
-	const visibleQualities = $derived(showAllQualities ? qualities : qualities.slice(0, 5))
-	const weights = $derived(facetOptions(filterState.allFilters, ['attributes.Total_Carat_Weight_Range', 'attributes.Center_Stone_Ctw', 'options.Carat_Weight']))
-	const featuredProducts = $derived(data.products?.data || [])
-	const featured = $derived(showAllFeatured ? featuredProducts : featuredProducts.slice(0, 3))
-	const shapeIcons = new Set(['oval', 'radiant', 'pear', 'cushion', 'princess', 'asscher', 'emerald', 'marquise', 'heart'])
-	filterState.searchQuery = page.url.searchParams.get('search') ?? ''
-
-	$effect(() => {
-		filterState.searchQuery = page.url.searchParams.get('search') ?? ''
-		selectedSort = page.url.searchParams.get('uiSort') ?? page.url.searchParams.get('sort') ?? 'position'
-	})
-
-	function checked(key: string, value: string) {
-		return filterState.selectedGeneralFilters?.[key]?.includes(value) || false
-	}
-
-	function toggleFilter(key: string, value: string, event: Event) {
-		filterState.handleGeneralFiltersChange({ key, value, checked: (event.currentTarget as HTMLInputElement).checked })
-	}
-
-	function toggleSection(section: string) {
-		openSections[section] = !openSections[section]
-	}
-
-	async function handleFilterToggle() {
-		if (!window.matchMedia('(max-width: 1100px)').matches) {
-			filterHidden = !filterHidden
-			return
-		}
-
-		filterOpen = true
-		await tick()
-		filterCloseButton?.focus()
-	}
-
-	async function closeFilters() {
-		filterOpen = false
-		await tick()
-		filterButton?.focus()
-	}
-
-	async function applyMobileFilters() {
-		await filterState.handleApply()
-		await closeFilters()
-	}
-
-	async function clearMobileFilters() {
-		filterState.searchQuery = ''
-		await filterState.clearFilters()
-		await filterState.handleApply()
-		await closeFilters()
-	}
-
-	function handleFilterPanelKeydown(event: KeyboardEvent) {
-		if (event.key !== 'Tab') return
-		const controls = filterPanel?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled])')
-		if (!controls?.length) return
-		const first = controls[0]
-		const last = controls[controls.length - 1]
-		if (event.shiftKey && document.activeElement === first) {
-			event.preventDefault()
-			last.focus()
-		} else if (!event.shiftKey && document.activeElement === last) {
-			event.preventDefault()
-			first.focus()
-		}
-	}
-
-	function handleWindowKeydown(event: KeyboardEvent) {
-		if (event.key === 'Escape' && filterOpen) closeFilters()
-	}
-
-	function shapeIcon(name: string) {
-		const icon = name.toLowerCase().replace(/[^a-z]/g, '')
-		return shapeIcons.has(icon) ? icon : ''
-	}
-
-	async function selectCategory(category: Record<string, string>) {
-		const url = new URL(page.url)
-		url.searchParams.set('categories', category.slug || category.name)
-		url.searchParams.delete('page')
-		filterOpen = false
-		await goto(url, { replaceState: true })
-	}
-
-	async function applySort(event: Event) {
-		selectedSort = (event.currentTarget as HTMLSelectElement).value
-		const url = new URL(page.url)
-		url.searchParams.delete('page')
-		url.searchParams.delete('sort')
-		url.searchParams.delete('uiSort')
-		if (localSorts.has(selectedSort)) url.searchParams.set('uiSort', selectedSort)
-		else if (selectedSort !== 'position' && selectedSort !== 'select') url.searchParams.set('sort', selectedSort)
-		await goto(url, { replaceState: true })
-	}
+ import { page, navigating } from '$app/state'
+ import { goto } from '$app/navigation'
+ import { tick } from 'svelte'
+ import ListingGrid from '$lib/components/product-catalogue/listing-grid.svelte'
+ import { clientFilterKeys, selectedValues, listingFilterOptions } from './product-filters.js'
+ import { catalogNavigation } from './catalog-navigation.js'
+ import { mainCategoryForUrl, categoryBanners } from './listing-content.js'
+ import { listingImage } from './product-details.logic.js'
+ const data = $derived(page.data)
+ const mainCategory = $derived(mainCategoryForUrl(page.url))
+ const banner = $derived(mainCategory ? categoryBanners[mainCategory.name] : null)
+ const knownCategory = $derived(catalogNavigation.flatMap(item => item.children).find(item => { const target = new URL(item.href, page.url.origin); return target.searchParams.get('categories') === page.url.searchParams.get('categories') && target.searchParams.get('search') === page.url.searchParams.get('search') }))
+ const categoryName = $derived(mainCategory?.name || knownCategory?.name || data.products?.categoryHierarchy?.at(-1)?.name || data.products?.category?.name || (page.params.slug ? page.params.slug.replaceAll('-', ' ') : 'All jewelry'))
+ const groups = $derived(data.ryanFilterOptions || listingFilterOptions(data.products?.data || [], data.products?.facets?.allFilters))
+ const count = $derived(data.products?.count || 0)
+ const selectedSort = $derived(page.url.searchParams.get('uiSort') || page.url.searchParams.get('sort') || '')
+ const busy = $derived(!!navigating.to)
+ let filterOpen = $state(false)
+ let filterButton: HTMLButtonElement
+ let filterPanel: HTMLElement
+ let closeButton: HTMLButtonElement
+ let minPrice = $state('')
+ let maxPrice = $state('')
+ let priceError = $state('')
+ $effect(() => { minPrice = page.url.searchParams.get('priceFrom') || ''; maxPrice = page.url.searchParams.get('priceTo') || ''; priceError = '' })
+ const applied = $derived(clientFilterKeys.flatMap(key => selectedValues(page.url, key).map(value => ({key, value}))))
+ const hasPrice = $derived(page.url.searchParams.has('priceFrom') || page.url.searchParams.has('priceTo'))
+ function checked(key: string, value: string) { return selectedValues(page.url, key).includes(value) }
+ async function navigate(url: URL) { url.searchParams.delete('page'); await goto(url, { noScroll: true, keepFocus: true }) }
+ async function toggle(key: string, value: string) {
+  const url = new URL(page.url); const values = selectedValues(url, key); const next = values.includes(value) ? values.filter(item => item !== value) : [...values, value]
+  if(next.length) url.searchParams.set(key, next.join(',')); else url.searchParams.delete(key)
+  await navigate(url)
+ }
+ async function clearFilters() {
+  const url = new URL(page.url); [...clientFilterKeys, 'priceFrom', 'priceTo'].forEach(key => url.searchParams.delete(key)); await navigate(url)
+ }
+ async function applyPrice(event: SubmitEvent) {
+  event.preventDefault(); const low = String(minPrice ?? '').trim(); const high = String(maxPrice ?? '').trim()
+  if ((low && Number(low) < 0) || (high && Number(high) < 0) || (low && high && Number(low) > Number(high))) { priceError = 'Enter a minimum price below the maximum.'; return }
+  priceError = ''; const url = new URL(page.url)
+  for(const [key,value] of [['priceFrom',low],['priceTo',high]]) { if(value) url.searchParams.set(key,value); else url.searchParams.delete(key) }
+  await navigate(url)
+ }
+ async function sort(value: string) {
+  const url = new URL(page.url); url.searchParams.delete('sort'); url.searchParams.delete('uiSort')
+  if(value) url.searchParams.set(value.startsWith('title:') ? 'uiSort' : 'sort', value)
+  await navigate(url)
+ }
+ async function openFilters() { filterOpen = true; await tick(); closeButton?.focus() }
+ async function closeFilters() { filterOpen = false; await tick(); filterButton?.focus() }
+ function trap(event: KeyboardEvent) {
+  if(!filterOpen || event.key !== 'Tab') return
+  const controls = Array.from(filterPanel.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), summary, a[href]')).filter(el => el.getClientRects().length)
+  const first = controls[0], last = controls.at(-1)
+  if(event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
+  else if(!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+ }
+ $effect(() => {
+  if(!filterOpen) return
+  const before = document.body.style.overflow; document.body.style.overflow = 'hidden'
+  return () => { document.body.style.overflow = before }
+ })
 </script>
+<svelte:window onkeydown={(event) => { if(event.key === 'Escape' && filterOpen) closeFilters() }} />
 
-<svelte:window onkeydown={handleWindowKeydown} />
+{#if banner}
+ <section class="category-banner" aria-labelledby="rj-listing-title">
+  <div class="banner-copy"><p class="eyebrow">Ryan Jewelers</p><h1 id="rj-listing-title">{categoryName}</h1><p>{banner.copy}</p><a href="/">Home</a><span aria-hidden="true"> / </span><span>{categoryName}</span></div>
+  <div class="banner-image" class:product-photo={banner.product} class:pendant-collection={!!banner.collection}>
+   {#if banner.collection}{#each banner.collection as item}<img src={item.image} alt={item.alt} width="480" height="480" fetchpriority="high" />{/each}
+   {:else}<img src={banner.image} alt={banner.alt} width="900" height="600" fetchpriority="high" />{/if}
+  </div>
+ </section>
+{:else}
+ <section class="rj-category-hero" aria-labelledby="rj-listing-title">
+  <img class="rj-category-pattern" src="/ryans-jewels/listing/category-bg.png" alt="" aria-hidden="true" />
+  <div class="rj-plp-width rj-category-inner"><div class="rj-category-copy"><h1 id="rj-listing-title">{categoryName}</h1><p>Home / Categories / {categoryName} - {count} Designs</p></div><div class="rj-category-model" aria-hidden="true"><img src="/ryans-jewels/listing/category-model.png" alt="" /></div></div>
+ </section>
+{/if}
 
-<section class="rj-category-hero" aria-labelledby="rj-listing-title">
-	<img class="rj-category-pattern" src="/ryans-jewels/listing/category-bg.png" alt="" aria-hidden="true" />
-	<div class="rj-plp-width rj-category-inner">
-		<div class="rj-category-copy">
-			<h1 id="rj-listing-title">{categoryName}</h1>
-			<p>Home / Categories / {categoryName} - {data.products?.count ?? data.products?.data?.length ?? 0} Designs</p>
-		</div>
-		<div class="rj-category-model" aria-hidden="true">
-			<img src="/ryans-jewels/listing/category-model.png" alt="" />
-		</div>
-	</div>
+{#if data.ryanSubcategories?.length}<nav class="category-styles rj-plp-width" aria-label="Shop {mainCategory?.name || 'jewelry'} by style">{#each data.ryanSubcategories as category}<a href={category.href}><span class="subcategory-image"><img src={listingImage(category.image)} alt={category.name} width="180" height="180" loading="lazy" decoding="async" /></span><span>{category.name}</span></a>{/each}</nav>{/if}
+<section class="rj-plp-width listing-toolbar" aria-label="Product listing controls">
+ <button class="mobile-filter-button" bind:this={filterButton} type="button" aria-expanded={filterOpen} aria-controls="listing-filters" onclick={openFilters}>Filters {applied.length || hasPrice ? `(${applied.length + Number(hasPrice)})` : ''}</button>
+ <p aria-live="polite">{count.toLocaleString()} {count === 1 ? 'design' : 'designs'}</p>
+ <label>Sort by <select aria-label="Sort products" value={selectedSort} disabled={busy} onchange={event => sort(event.currentTarget.value)}><option value="">Featured</option><option value="createdAt:desc">Newest</option><option value="price:asc">Price: low to high</option><option value="price:desc">Price: high to low</option><option value="title:asc">Name: A to Z</option><option value="title:desc">Name: Z to A</option></select></label>
 </section>
-
-<section class="rj-plp-toolbar" aria-label="Product listing controls">
-	<div class="rj-plp-width rj-toolbar-row">
-		<div class="rj-toolbar-left">
-			<button
-				bind:this={filterButton}
-				class="rj-toolbar-button rj-filter-toggle"
-				class:filter-hidden={filterHidden}
-				class:filter-open={filterOpen}
-				type="button"
-				aria-expanded={filterOpen}
-				aria-controls="rj-mobile-filters"
-				onclick={handleFilterToggle}
-			>
-				<svg viewBox="0 0 24 24" aria-hidden="true">
-					<path class="rj-filter-lines" d="M4 7h16M4 17h16" />
-					<path class="rj-filter-knob rj-filter-knob--top" d="M15 4v6" />
-					<path class="rj-filter-knob rj-filter-knob--bottom" d="M7 14v6" />
-				</svg>
-				<span class="rj-hide-label">{filterHidden ? 'Show Filter' : 'Hide Filter'}</span><span class="rj-mobile-label">Filter</span>
-			</button>
-			<span class="rj-toolbar-divider"></span>
-			<label class="rj-sort"><span>Sort by:</span><select value={selectedSort} onchange={applySort} aria-label="Sort products">
-				<option value="position" hidden>Position</option>
-				{#each sortOptions as option}<option value={option[0]}>{option[1]}</option>{/each}
-			</select></label>
-			<span class="rj-toolbar-divider"></span>
-			<button class="rj-toolbar-button rj-refresh" type="button" onclick={() => location.reload()}>
-				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5M4 18v-5h5M6.1 9A7 7 0 0 1 18.5 6.5L20 11M4 13l1.5 4.5A7 7 0 0 0 18 15" /></svg>Refresh
-			</button>
-		</div>
-		<div class="rj-view-controls"><span>View as</span>
-			<button class="rj-view-grid" class:active={!listView} type="button" aria-label="Grid view" onclick={() => listView = false}>
-				<svg viewBox="0 0 28 30" aria-hidden="true"><rect x="1" y="1" width="10" height="12" rx="2"/><rect x="17" y="1" width="10" height="12" rx="2"/><rect x="1" y="17" width="10" height="12" rx="2"/><rect x="17" y="17" width="10" height="12" rx="2"/></svg>
-			</button>
-			<button class="rj-view-list" class:active={listView} type="button" aria-label="List view" onclick={() => listView = true}>
-				<svg viewBox="0 0 28 30" aria-hidden="true"><rect x="1" y="1" width="26" height="11" rx="2"/><rect x="1" y="18" width="26" height="11" rx="2"/></svg>
-			</button>
-		</div>
-	</div>
-</section>
-
-<div class="rj-plp-width rj-products-layout" class:filter-hidden={filterHidden} class:list-view={listView}>
-	{#if filterOpen}<button class="rj-filter-backdrop" aria-label="Close filters" onclick={closeFilters}></button>{/if}
-	<aside
-		bind:this={filterPanel}
-		id="rj-mobile-filters"
-		class="rj-sidebar"
-		class:open={filterOpen}
-		aria-label="Product filters"
-		aria-labelledby={filterOpen ? 'rj-filter-title' : undefined}
-		aria-modal={filterOpen ? 'true' : undefined}
-		role={filterOpen ? 'dialog' : undefined}
-		onkeydown={handleFilterPanelKeydown}
-	>
-		<div class="rj-filter-head">
-			<strong id="rj-filter-title">Filters</strong>
-			<button bind:this={filterCloseButton} class="rj-filter-close" type="button" aria-label="Close filters" onclick={closeFilters}>
-				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19" /></svg>
-			</button>
-		</div>
-		<div class="rj-sidebar-content">
-		<label class="rj-filter-search">
-			<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg>
-			<input bind:value={filterState.searchQuery} onkeydown={(event) => event.key === 'Enter' && filterState.handleApply()} placeholder="Search" />
-		</label>
-
-		<div class="rj-filter-section">
-			<h2><button class="rj-section-toggle" type="button" onclick={() => toggleSection('status')} aria-expanded={openSections.status}>Products Status <span class:closed={!openSections.status}>⌃</span></button></h2>
-			{#if openSections.status}<div class="rj-filter-options">
-				{#each statuses as item}<label><input type="checkbox" checked={checked('uiStatus', item)} onchange={(e) => toggleFilter('uiStatus', item, e)} /><span>{item}</span></label>{/each}
-			</div>{/if}
-		</div>
-
-		<div class="rj-filter-section">
-			<h2><button class="rj-section-toggle" type="button" onclick={() => toggleSection('categories')} aria-expanded={openSections.categories}>Shop by Categories <span class:closed={!openSections.categories}>⌃</span></button></h2>
-			{#if openSections.categories}<div class="rj-filter-options">
-				{#each visibleCategories as category}<button class="rj-category-filter" type="button" onclick={() => selectCategory(category)}><span class="rj-faux-check"></span><span>{category.name}</span><b>+</b></button>{/each}
-			</div>
-			{#if categories.length > 6}<button class="rj-see-more" type="button" onclick={() => showAllCategories = !showAllCategories}>{showAllCategories ? 'Show Less ↑' : 'See More ↓'}</button>{/if}{/if}
-		</div>
-
-		<div class="rj-filter-section">
-			<h2><button class="rj-section-toggle" type="button" onclick={() => toggleSection('price')} aria-expanded={openSections.price}>Filter by price <span class:closed={!openSections.price}>⌃</span></button></h2>
-			{#if openSections.price}<div class="rj-price-controls">
-				<div class="rj-range-wrap">
-					<input type="range" bind:value={filterState.minPrice} min={filterState.minPossiblePrice || 0} max={filterState.maxPossiblePrice || 10000} onchange={filterState.handleMinPriceChange} aria-label="Minimum price" />
-					<input type="range" bind:value={filterState.maxPrice} min={filterState.minPossiblePrice || 0} max={filterState.maxPossiblePrice || 10000} onchange={filterState.handleMaxPriceChange} aria-label="Maximum price" />
-				</div>
-				<button type="button" onclick={filterState.handleApply}>GO</button>
-			</div>
-			<p class="rj-price-copy">Up to $2000<br />Over $2000</p>{/if}
-		</div>
-
-		{#if materials.length}<div class="rj-filter-section">
-			<h2><button class="rj-section-toggle" type="button" onclick={() => toggleSection('material')} aria-expanded={openSections.material}>Filter by Material <span class:closed={!openSections.material}>⌃</span></button></h2>
-			{#if openSections.material}<div class="rj-filter-options">
-				{#each materials as item}<label><input type="checkbox" checked={checked('uiMaterial', item.name)} onchange={(e) => toggleFilter('uiMaterial', item.name, e)} /><span>{item.name}</span></label>{/each}
-			</div>{/if}
-		</div>{/if}
-
-		{#if shapes.length}<div class="rj-filter-section">
-			<h2><button class="rj-section-toggle" type="button" onclick={() => toggleSection('shape')} aria-expanded={openSections.shape}>Stone Shape <span class:closed={!openSections.shape}>⌃</span></button></h2>
-			{#if openSections.shape}<div class="rj-shapes">
-				{#each shapes as shape}<label><input class="sr-only" type="checkbox" checked={checked('uiShape', shape.name)} onchange={(e) => toggleFilter('uiShape', shape.name, e)} />{#if shapeIcon(shape.name)}<img src="/ryans-jewels/shapes/{shapeIcon(shape.name)}.svg" alt="" />{/if}<span>{shape.name}</span></label>{/each}
-			</div>{/if}
-		</div>{/if}
-
-		{#if qualities.length}<div class="rj-filter-section">
-			<h2><button class="rj-section-toggle" type="button" onclick={() => toggleSection('quality')} aria-expanded={openSections.quality}>Stone Quality <span class:closed={!openSections.quality}>⌃</span></button></h2>
-			{#if openSections.quality}<div class="rj-filter-options compact">
-				{#each visibleQualities as item}<label><input type="checkbox" checked={checked('uiQuality', item.name)} onchange={(e) => toggleFilter('uiQuality', item.name, e)} /><span>{item.name}</span></label>{/each}
-			</div>
-			{#if qualities.length > 5}<button class="rj-see-more" type="button" onclick={() => showAllQualities = !showAllQualities}>{showAllQualities ? 'Show Less ↑' : 'See More ↓'}</button>{/if}{/if}
-		</div>{/if}
-
-		{#if weights.length}<div class="rj-filter-section">
-			<h2><button class="rj-section-toggle" type="button" onclick={() => toggleSection('weight')} aria-expanded={openSections.weight}>Total Carat Weight <span class:closed={!openSections.weight}>⌃</span></button></h2>
-			{#if openSections.weight}<div class="rj-filter-options compact">
-				{#each weights as item}<label><input type="checkbox" checked={checked('uiWeight', item.name)} onchange={(e) => toggleFilter('uiWeight', item.name, e)} /><span>{item.name}</span><small>{item.count}</small></label>{/each}
-			</div>{/if}
-		</div>{/if}
-
-		<div class="rj-featured">
-			<h2><button class="rj-section-toggle" type="button" onclick={() => toggleSection('featured')} aria-expanded={openSections.featured}>Featured Product <span class:closed={!openSections.featured}>⌃</span></button></h2>
-			{#if openSections.featured}{#each featured as product}
-				<a href={canonicalProductPath(product)}><span class="rj-featured-image">{#if product.thumbnail || product.image_url}<img src={product.thumbnail || product.image_url} alt={product.title || product.name || ''} />{/if}</span><span><b>{product.title || product.name}</b><i>★★★★</i><small>{formatPrice(product.price, data.store?.currency?.code)}</small></span></a>
-			{/each}
-			{#if featuredProducts.length > 3}<button class="rj-see-more" type="button" onclick={() => showAllFeatured = !showAllFeatured}>{showAllFeatured ? 'Show Less ↑' : 'See More ↓'}</button>{/if}{/if}
-			</div>
-		</div>
-		<div class="rj-filter-actions">
-			<button class="rj-filter-clear" type="button" disabled={!filterState.anyFilterApplied && !filterState.searchQuery} onclick={clearMobileFilters}>Clear All</button>
-			<button class="rj-filter-apply" type="button" onclick={applyMobileFilters}>View {data.products?.count ? `${data.products.count} Results` : 'Results'}</button>
-		</div>
-	</aside>
-
-	<main class="rj-product-results">
-		<ListingGrid ryanLayout={listView ? 'list' : 'grid'} />
-	</main>
+<div class="rj-plp-width listing-layout">
+ {#if filterOpen}<button class="filter-backdrop" type="button" aria-label="Close filters" onclick={closeFilters}></button>{/if}
+ <aside id="listing-filters" class:open={filterOpen} bind:this={filterPanel} aria-label="Product filters" role={filterOpen ? 'dialog' : undefined} aria-modal={filterOpen ? 'true' : undefined} onkeydown={trap}>
+  <header><h2>Filters</h2><button class="filter-close" bind:this={closeButton} type="button" aria-label="Close filters" onclick={closeFilters}>&times;</button></header>
+  <div class="filter-content">
+   <details open><summary>Price</summary><form onsubmit={applyPrice}><div class="price-fields"><label>Min ($)<input type="number" min="0" step="0.01" bind:value={minPrice} placeholder="0" aria-label="Minimum price" /></label><label>Max ($)<input type="number" min="0" step="0.01" bind:value={maxPrice} placeholder="Any" aria-label="Maximum price" /></label></div>{#if priceError}<p class="price-error" role="alert">{priceError}</p>{/if}<button class="price-apply" disabled={busy} type="submit">Apply price</button></form></details>
+   {#each groups as group}<details open={['uiMaterial','uiKarat','uiShape','uiColor'].includes(group.key)}><summary>{group.label}</summary><div class="filter-options">{#each [...new Set([...group.values, ...selectedValues(page.url,group.key)])] as value}<label><input type="checkbox" checked={checked(group.key,value)} disabled={busy} onchange={() => toggle(group.key,value)} /><span>{value}</span></label>{/each}</div></details>{/each}
+   <details><summary>Availability</summary><div class="filter-options">{#each ['In Stock','Out of stock'] as value}<label><input type="checkbox" checked={checked('uiStatus',value)} disabled={busy} onchange={() => toggle('uiStatus',value)} /><span>{value}</span></label>{/each}</div></details>
+  </div>
+  <footer><button class="clear" type="button" disabled={busy || (!applied.length && !hasPrice)} onclick={clearFilters}>Clear filters</button><button class="filter-done" type="button" onclick={closeFilters}>Show results</button></footer>
+ </aside>
+ <main class="product-results" aria-busy={busy}>
+  {#if applied.length || hasPrice}<div class="active-filters" aria-label="Selected filters">{#each applied as item}<button type="button" disabled={busy} onclick={() => toggle(item.key,item.value)} aria-label="Remove {item.value} filter">{item.value}<span aria-hidden="true">&times;</span></button>{/each}{#if hasPrice}<button type="button" disabled={busy} onclick={async () => { const url = new URL(page.url); url.searchParams.delete('priceFrom'); url.searchParams.delete('priceTo'); await navigate(url) }} aria-label="Remove price filter">${page.url.searchParams.get('priceFrom') || '0'} - {page.url.searchParams.has('priceTo') ? '$'+page.url.searchParams.get('priceTo') : 'Any'} <span aria-hidden="true">&times;</span></button>{/if}</div>{/if}
+  <ListingGrid />
+ </main>
 </div>
 
-<RjInstagram />
-
 <style>
-	:global(body:has(.rj-category-hero)) { overflow-x: hidden; }
-	.rj-plp-width { width: min(calc(100% - clamp(40px, 8.333vw, 160px)), 1760px); margin-inline: auto; }
-	.rj-category-hero { position: relative; height: 260px; overflow: hidden; background: #fff; font-family: 'Sarala', var(--font-body, sans-serif); }
-	.rj-category-pattern { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-	.rj-category-inner { position: relative; display: flex; height: 100%; align-items: center; justify-content: space-between; }
-	.rj-category-copy { display: flex; flex-direction: column; gap: 6px; z-index: 1; }
-	.rj-category-copy h1 { margin: 0; font-family: 'Sarala', sans-serif; font-size: 28px; line-height: normal; letter-spacing: 0; color: #404040; text-transform: capitalize; }
-	.rj-category-copy p { margin: 0; font-size: 16px; line-height: normal; color: #a2a2a2; text-transform: capitalize; }
-	.rj-category-model { position: relative; width: 322px; height: 260px; overflow: hidden; flex: 0 0 322px; }
-	.rj-category-model img { position: absolute; top: -52.47%; left: 0; width: 100%; height: 152.58%; max-width: none; }
-	.rj-plp-toolbar { margin-top: 23px; border-bottom: 1px solid #d9d9d9; font-family: 'Sarala', var(--font-body, sans-serif); }
-	.rj-toolbar-row { display: flex; align-items: center; justify-content: space-between; height: 33px; padding-bottom: 23px; box-sizing: content-box; }
-	.rj-toolbar-left, .rj-toolbar-button, .rj-sort, .rj-view-controls { display: flex; align-items: center; }
-	.rj-toolbar-left { gap: 15px; }
-	.rj-toolbar-button { gap: 8px; padding: 0; border: 0; background: transparent; font: inherit; font-size: 18px; line-height: 26px; color: #505050; cursor: pointer; }
-	.rj-toolbar-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.35; }
-	.rj-filter-toggle .rj-filter-lines { transition: opacity .25s ease; }
-	.rj-filter-toggle .rj-filter-knob { transition: transform .5s cubic-bezier(.34, 1.56, .64, 1); }
-	.rj-filter-toggle.filter-hidden .rj-filter-lines { opacity: .72; }
-	.rj-filter-toggle.filter-hidden .rj-filter-knob--top { transform: translateX(-8px); }
-	.rj-filter-toggle.filter-hidden .rj-filter-knob--bottom { transform: translateX(8px); }
-	.rj-toolbar-divider { width: 1px; height: 22px; background: #d9d9d9; }
-	.rj-sort { gap: 15px; font-size: 18px; line-height: 26px; color: #202020; }
-	.rj-sort select { width: 149px; border: 0; outline: 0; background: transparent; font: inherit; color: #606060; cursor: pointer; }
-	.rj-refresh { gap: 15px; }
-	.rj-refresh svg { width: 24px; height: 24px; }
-	.rj-view-controls { gap: 12px; font-size: 18px; color: #505050; }
-	.rj-view-controls > span { margin-right: 8px; }
-	.rj-view-controls button { width: 28px; height: 31px; padding: 0; border: 0; color: #505050; background: transparent; cursor: pointer; }
-	.rj-view-controls button:first-of-type { color: #cca646; }
-	.rj-view-controls button.active { color: #cca646; }
-	.rj-view-controls button:not(.active) { color: #505050; }
-	.rj-view-controls svg { width: 100%; height: 100%; }
-	.rj-view-grid svg { fill: currentColor; }
-	.rj-view-list svg { fill: none; stroke: currentColor; stroke-width: 1.5; }
-	.rj-mobile-label { display: none; }
-	.rj-products-layout { display: grid; grid-template-columns: 307px minmax(0, 1fr); column-gap: 29px; margin-top: 26px; margin-bottom: 170px; align-items: start; transition: grid-template-columns .45s cubic-bezier(.22, 1, .36, 1), column-gap .45s cubic-bezier(.22, 1, .36, 1); }
-	.rj-products-layout.filter-hidden { grid-template-columns: 0 minmax(0, 1fr); column-gap: 0; }
-	.rj-sidebar { position: relative; width: 307px; overflow: hidden; opacity: 1; transform: translateX(0); visibility: visible; transition: width .45s cubic-bezier(.22, 1, .36, 1), opacity .22s ease, transform .45s cubic-bezier(.22, 1, .36, 1), visibility 0s; }
-	.rj-products-layout.filter-hidden .rj-sidebar { width: 0; opacity: 0; transform: translateX(-22px); visibility: hidden; pointer-events: none; transition: width .45s cubic-bezier(.22, 1, .36, 1), opacity .18s ease, transform .45s cubic-bezier(.22, 1, .36, 1), visibility 0s .45s; }
-	.rj-sidebar-content { display: flex; flex-direction: column; gap: 23px; width: 307px; font-family: 'Sarala', var(--font-body, sans-serif); color: #404040; background: #fff; }
-	.rj-filter-head, .rj-filter-actions { display: none; }
-	.rj-filter-close { display: none; }
-	.rj-filter-search { display: flex; align-items: center; gap: 10px; height: 42px; padding: 8px 10px; border: 1px solid #e1d6be; border-radius: 5px; }
-	.rj-filter-search svg { width: 18px; height: 18px; fill: none; stroke: #707070; stroke-width: 1.5; }
-	.rj-filter-search input { min-width: 0; flex: 1; border: 0; outline: 0; font: inherit; font-size: 17px; color: #707070; background: transparent; }
-	.rj-filter-section, .rj-featured { display: flex; flex-direction: column; gap: 20px; }
-	.rj-filter-section h2, .rj-featured h2 { display: flex; align-items: center; justify-content: space-between; margin: 0; font-family: 'Sarala', sans-serif; font-size: 20px; font-weight: 400; line-height: 26px; letter-spacing: 0; color: #202020; }
-	.rj-filter-section h2 span, .rj-featured h2 span { font-size: 15px; }
-	.rj-section-toggle { display: flex; width: 100%; align-items: center; justify-content: space-between; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-	.rj-section-toggle span { transition: transform .2s ease; }
-	.rj-section-toggle span.closed { transform: rotate(180deg); }
-	.rj-filter-options { display: flex; flex-direction: column; gap: 16px; padding-left: 11px; }
-	.rj-filter-options label, .rj-category-filter { display: flex; align-items: center; gap: 10px; min-height: 26px; font-size: 16px; line-height: 26px; color: #505050; cursor: pointer; }
-	.rj-filter-options input, .rj-faux-check { width: 18px; height: 18px; margin: 0; border: 1px solid #505050; border-radius: 2px; accent-color: #cca646; flex: 0 0 18px; }
-	.rj-category-filter { width: 100%; padding: 0; border: 0; background: transparent; text-align: left; font-family: inherit; }
-	.rj-category-filter b { margin-left: auto; font-size: 20px; font-weight: 400; }
-	.rj-see-more { align-self: center; padding: 0; border: 0; border-bottom: 1px solid #101010; background: transparent; font: 12px/20px 'Sarala', sans-serif; color: #101010; cursor: pointer; }
-	.rj-price-controls { display: flex; align-items: center; justify-content: space-between; width: 295px; }
-	.rj-price-controls > button { width: 70px; height: 34px; border: 1px solid #404040; border-radius: 5px; background: #fff; font: 14px 'Sarala', sans-serif; }
-	.rj-range-wrap { position: relative; width: 210px; height: 20px; }
-	.rj-range-wrap input { position: absolute; inset: 0; width: 210px; margin: 0; appearance: none; pointer-events: none; background: transparent; }
-	.rj-range-wrap input::-webkit-slider-runnable-track { height: 2px; background: #cca646; }
-	.rj-range-wrap input::-webkit-slider-thumb { width: 12px; height: 12px; margin-top: -5px; appearance: none; border: 2px solid #cca646; border-radius: 50%; background: #fff; pointer-events: auto; }
-	.rj-price-copy { margin: -5px 0 0; font-size: 14px; line-height: 29px; }
-	.rj-shapes { display: flex; flex-direction: column; gap: 10px; padding-left: 6px; }
-	.rj-shapes label { display: flex; align-items: center; gap: 10px; min-height: 36px; cursor: pointer; }
-	.rj-shapes img { width: 20px; max-height: 37px; }
-	.rj-shapes span { font-size: 16px; text-transform: capitalize; }
-	.rj-filter-options.compact label { min-height: 23px; font-size: 14px; line-height: 23px; }
-	.rj-filter-options label small { margin-left: auto; font-size: 14px; }
-	.rj-featured { padding-top: 23px; border-top: 1px solid #efefef; }
-	.rj-featured a { display: flex; gap: 15px; width: 250px; color: inherit; text-decoration: none; }
-	.rj-featured-image { width: 88px; height: 88px; border-radius: 5px; background: rgba(136,136,136,.05); flex: 0 0 88px; }
-	.rj-featured-image img { width: 100%; height: 100%; object-fit: contain; border-radius: 5px; }
-	.rj-featured a > span:last-child { display: flex; flex-direction: column; gap: 3px; padding-top: 4px; }
-	.rj-featured b { font-size: 16px; line-height: 24px; font-weight: 400; }
-	.rj-featured i { font-size: 14px; font-style: normal; letter-spacing: 1px; color: #fca01f; }
-	.rj-featured small { font-size: 13px; color: #b1b1b1; }
-	.rj-product-results { min-width: 0; }
-	.rj-filter-backdrop { display: none; }
-
-	@media (min-width: 1600px) { .rj-products-layout { column-gap: 40px; } .rj-products-layout.filter-hidden { column-gap: 0; } }
-	@media (max-width: 1100px) {
-		:global(body:has(.rj-sidebar.open)) { overflow: hidden; }
-		.rj-products-layout, .rj-products-layout.filter-hidden { grid-template-columns: minmax(0, 1fr); }
-		.rj-sidebar, .rj-products-layout.filter-hidden .rj-sidebar { position: fixed; z-index: 1002; top: 0; bottom: 0; left: 0; display: flex; box-sizing: border-box; width: min(440px, 100vw); height: 100dvh; flex-direction: column; overflow: hidden; opacity: 1; visibility: visible; pointer-events: auto; transform: translateX(-101%); transition: transform .4s cubic-bezier(.22, 1, .36, 1); border-radius: 0 10px 10px 0; background: #fff; box-shadow: 8px 0 28px rgba(0,0,0,.18); }
-		.rj-products-layout .rj-sidebar.open, .rj-products-layout.filter-hidden .rj-sidebar.open { transform: translateX(0); }
-		.rj-filter-head { display: flex; min-height: 68px; align-items: center; justify-content: space-between; padding: max(12px, env(safe-area-inset-top)) 16px 12px 22px; border-bottom: 1px solid #e8e1d2; background: #fff; flex: 0 0 auto; }
-		.rj-filter-head strong { font: 600 22px/28px 'Sarala', var(--font-body, sans-serif); color: #303030; }
-		.rj-filter-close { display: grid; width: 44px; height: 44px; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #303030; cursor: pointer; }
-		.rj-filter-close:hover, .rj-filter-close:focus-visible { background: #f5f1e8; outline: none; }
-		.rj-filter-close svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; }
-		.rj-sidebar-content { width: 100%; min-height: 0; flex: 1; gap: 24px; box-sizing: border-box; padding: 22px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
-		.rj-filter-search { min-height: 48px; box-sizing: border-box; }
-		.rj-section-toggle { min-height: 44px; }
-		.rj-filter-options label, .rj-category-filter { min-height: 44px; }
-		.rj-filter-options input, .rj-faux-check { width: 20px; height: 20px; flex-basis: 20px; }
-		.rj-price-controls { width: 100%; gap: 14px; }
-		.rj-range-wrap { min-width: 0; flex: 1; }
-		.rj-range-wrap input { width: 100%; }
-		.rj-featured { display: none; }
-		.rj-filter-actions { display: grid; grid-template-columns: minmax(110px, .75fr) minmax(180px, 1.25fr); gap: 12px; padding: 12px 18px max(12px, env(safe-area-inset-bottom)); border-top: 1px solid #e8e1d2; background: #fff; box-shadow: 0 -8px 24px rgba(0,0,0,.06); flex: 0 0 auto; }
-		.rj-filter-actions button { min-height: 48px; border: 1px solid #cca646; border-radius: 5px; font: 600 15px/20px 'Sarala', var(--font-body, sans-serif); cursor: pointer; }
-		.rj-filter-clear { background: #fff; color: #705b27; }
-		.rj-filter-clear:disabled { border-color: #ddd; color: #aaa; cursor: default; }
-		.rj-filter-apply { background: #cca646; color: #fff; }
-		.rj-filter-apply:hover, .rj-filter-apply:focus-visible { background: #b18d35; }
-		.rj-filter-toggle.filter-hidden .rj-filter-lines { opacity: 1; }
-		.rj-filter-toggle.filter-hidden .rj-filter-knob { transform: none; }
-		.rj-filter-toggle.filter-open .rj-filter-lines { opacity: .72; }
-		.rj-filter-toggle.filter-open .rj-filter-knob--top { transform: translateX(-8px); }
-		.rj-filter-toggle.filter-open .rj-filter-knob--bottom { transform: translateX(8px); }
-		.rj-filter-backdrop { position: fixed; z-index: 1001; inset: 0; display: block; padding: 0; border: 0; background: rgba(0,0,0,.44); }
-		.rj-hide-label { display: none; } .rj-mobile-label { display: inline; }
-	}
-	@media (max-width: 767px) {
-		.rj-plp-width { width: calc(100% - 28px); }
-		.rj-category-hero { height: 180px; }
-		.rj-category-copy h1 { font-size: 23px; }
-		.rj-category-copy p { max-width: 230px; font-size: 12px; }
-		.rj-category-model { width: 185px; flex-basis: 185px; height: 180px; margin-right: -35px; }
-		.rj-category-model img { top: -30%; height: 140%; }
-		.rj-toolbar-row { height: 44px; padding-bottom: 8px; }
-		.rj-plp-toolbar { margin-top: 15px; }
-		.rj-toolbar-left { gap: 9px; }
-		.rj-toolbar-divider, .rj-refresh, .rj-view-controls > span { display: none; }
-		.rj-toolbar-button, .rj-sort { font-size: 14px; gap: 6px; }
-		.rj-filter-toggle { min-height: 44px; }
-		.rj-sort select { width: 95px; font-size: 13px; }
-		.rj-view-controls { gap: 7px; }
-		.rj-view-controls button { width: 36px; height: 36px; padding: 7px; }
-		.rj-products-layout { margin-top: 20px; margin-bottom: 80px; }
-	}
-	@media (max-width: 430px) {
-		.rj-sidebar, .rj-products-layout.filter-hidden .rj-sidebar { border-radius: 0; }
-		.rj-category-model { width: 145px; flex-basis: 145px; }
-		.rj-category-copy p { max-width: 190px; }
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.rj-products-layout, .rj-sidebar, .rj-filter-toggle .rj-filter-lines, .rj-filter-toggle .rj-filter-knob { transition: none; }
-	}
+ .rj-plp-width { width: min(calc(100% - 80px), 1440px); margin-inline: auto; }
+ .category-banner { display: grid; grid-template-columns: 1fr 1fr; height: 260px; background: #f5f1e9; overflow: hidden; }
+ .banner-copy { align-self: center; padding: 28px max(40px, calc((100vw - 1440px) / 2)); padding-right: 24px; }
+ .eyebrow { margin: 0 0 12px; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8d7137; }
+ .banner-copy h1 { margin: 0 0 14px; font-size: 40px; line-height: 1.15; }
+ .banner-copy > p:not(.eyebrow) { max-width: 330px; font-size: 15px; line-height: 1.6; color: #6e675b; margin: 0 0 23px; }
+ .banner-copy a, .banner-copy > span { font-size: 11px; color: #756d61; text-decoration: none; }
+ .banner-image { min-width: 0; overflow: hidden; }
+ .banner-image img { width: 100%; height: 100%; object-fit: cover; object-position: center 45%; }
+ .banner-image.product-photo { background: #faf8f3; } .product-photo img { object-fit: contain; mix-blend-mode: multiply; }
+ .banner-image.pendant-collection { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: center; gap: 8px; padding: 20px; background: #f5f1e9; }
+ .pendant-collection img { height: auto; aspect-ratio: 1; }
+ .pendant-collection img:nth-child(2) { transform: translateY(16px); }
+ .category-styles { display: flex; justify-content: safe center; gap: 18px; overflow-x: auto; padding-block: 24px 10px; scrollbar-width: thin; scroll-snap-type: x proximity; }
+ .category-styles a { display: flex; flex-direction: column; gap: 10px; flex: 0 0 150px; color: #514b40; font-size: 12px; line-height: 1.4; text-align: center; text-decoration: none; scroll-snap-align: start; }
+ .subcategory-image { display: block; aspect-ratio: 1; overflow: hidden; border: 1px solid #eee9df; border-radius: 4px; background: #faf9f6; }
+ .subcategory-image img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; transition: transform .2s ease; }
+ .category-styles a:hover { color: #987428; } .category-styles a:hover img { transform: scale(1.04); }
+ .listing-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding-block: 23px; border-bottom: 1px solid #e8e3da; font-size: 13px; }
+ .listing-toolbar p { margin: 0; color: #6c655a; }
+ .listing-toolbar label { display: flex; align-items: center; gap: 12px; }
+ select { border: 1px solid #ded8cc; border-radius: 3px; padding: 10px 30px 10px 12px; background: white; font-size: 13px; color: #38332a; }
+ .listing-layout { display: grid; grid-template-columns: 235px minmax(0,1fr); gap: 34px; margin-top: 26px; margin-bottom: 65px; align-items: start; }
+ aside { min-width: 0; }
+ aside header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+ aside h2 { font-size: 23px; margin: 0; }
+ details { border-bottom: 1px solid #e8e3da; padding: 17px 0; }
+ summary { cursor: pointer; font-size: 14px; font-weight: 500; list-style: none; display: flex; justify-content: space-between; }
+ summary::after { content: '+'; color: #8b7952; } details[open] > summary::after { content: '-'; }
+ summary::-webkit-details-marker { display: none; }
+ .filter-options { display: flex; flex-direction: column; gap: 13px; margin-top: 18px; max-height: 245px; overflow-y: auto; padding: 1px; }
+ .filter-options label { display: flex; gap: 10px; align-items: center; font-size: 13px; color: #5c554a; cursor: pointer; }
+ input[type='checkbox'] { width: 16px; height: 16px; accent-color: #aa8536; flex-shrink: 0; }
+ .price-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+ .price-fields label { font-size: 11px; color: #777064; }
+ .price-fields input { box-sizing: border-box; display: block; width: 100%; min-width: 0; margin-top: 6px; padding: 9px; border: 1px solid #ddd6c9; border-radius: 3px; font-size: 13px; }
+ button { cursor: pointer; }
+ button:disabled { opacity: .55; cursor: default; }
+ .price-apply { background: #fff; border: 1px solid #ad8a3e; color: #715722; padding: 9px 14px; font-size: 12px; width: 100%; margin-top: 12px; border-radius: 3px; }
+ .price-error { font-size: 12px; color: #9b2424; }
+ aside footer { padding-top: 20px; }
+ .clear { border: 0; background: transparent; padding: 0; text-decoration: underline; text-underline-offset: 3px; font-size: 12px; }
+ .active-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+ .active-filters button { display: inline-flex; align-items: center; gap: 12px; padding: 8px 12px; border: 1px solid #e5dac4; background: #faf7ef; border-radius: 3px; font-size: 12px; }
+ .product-results { min-width: 0; }
+ .mobile-filter-button, .filter-close, .filter-done { display: none; }
+ .filter-backdrop { position: fixed; inset: 0; background: #0005; border: 0; z-index: 99; }
+ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #a17d2f; outline-offset: 3px; }
+ /* Preserve the existing banner for subcategories. */
+ .rj-category-hero { position: relative; height: 260px; overflow: hidden; background: #fff; }
+ .rj-category-pattern { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+ .rj-category-inner { position: relative; display: flex; height: 100%; align-items: center; justify-content: space-between; }
+ .rj-category-copy h1 { margin: 0 0 6px; font-size: 28px; text-transform: capitalize; }
+ .rj-category-copy p { margin: 0; font-size: 16px; color: #a2a2a2; }
+ .rj-category-model { position: relative; width: 322px; height: 260px; overflow: hidden; flex: 0 0 322px; }
+ .rj-category-model img { position: absolute; top: -52.47%; left: 0; width: 100%; height: 152.58%; max-width: none; }
+ @media (max-width: 1000px) {
+  .rj-plp-width { width: calc(100% - 40px); } .banner-copy { padding-left: 25px; }
+  .listing-layout { grid-template-columns: minmax(0,1fr); }
+  .mobile-filter-button { display: block; background: white; border: 1px solid #ded8cc; border-radius: 3px; padding: 10px 16px; font-size: 13px; }
+  aside { position: fixed; inset: 0 auto 0 0; width: min(360px, 90vw); background: white; z-index: 100; padding: 24px; box-sizing: border-box; display: none; flex-direction: column; }
+  aside.open { display: flex; } .filter-content { overflow-y: auto; flex: 1; min-height: 0; padding-right: 4px; }
+  .filter-close { display: block; font-size: 28px; background: transparent; border: 0; padding: 3px 10px; }
+  aside footer { display: flex; justify-content: space-between; align-items: center; padding-top: 18px; gap: 16px; }
+  .filter-done { display: block; border: 0; border-radius: 3px; padding: 12px 20px; background: #a88538; color: white; font-size: 13px; }
+ }
+ @media (max-width: 639px) {
+  .rj-plp-width { width: calc(100% - 30px); }
+  .category-banner { height: 225px; grid-template-columns: 52% 48%; }
+  .category-banner:has(.pendant-collection) { height: auto; grid-template-columns: 1fr; }
+  .banner-image.pendant-collection { padding: 0 16px 18px; gap: 0; }
+  .pendant-collection img:nth-child(2) { transform: translateY(8px); }
+  .banner-copy { padding: 20px 15px; } .banner-copy h1 { font-size: 28px; } .banner-copy > p:not(.eyebrow) { font-size: 12px; line-height: 1.5; margin-bottom: 16px; }
+  .eyebrow { font-size: 9px; } .banner-image img { object-position: 65% center; }
+  .category-styles { padding-top: 16px; gap: 12px; } .category-styles a { flex-basis: 112px; font-size: 11px; }
+  .listing-toolbar { flex-wrap: wrap; padding-block: 17px; gap: 10px; } .listing-toolbar label { margin-left: auto; font-size: 11px; gap: 6px; } select { max-width: 145px; font-size: 11px; padding: 10px 20px 10px 8px; } .listing-toolbar p { font-size: 11px; }
+  .listing-layout { margin-top: 20px; margin-bottom: 35px; }
+  .rj-category-hero { height: 155px; } .rj-category-model { width: 135px; height: 155px; flex-basis: 135px; } .rj-category-copy h1 { font-size: 23px; } .rj-category-copy p { font-size: 11px; }
+ }
 </style>

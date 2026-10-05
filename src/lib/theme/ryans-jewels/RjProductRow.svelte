@@ -70,7 +70,7 @@
 	{:else if visible.length}
 		<div class="rj-row-track" bind:this={track} onscroll={updateScrollState}>
 			{#each visible as product (product?.id || product?.slug)}
-				<RjProductCard {product} />
+				<RjProductCard {product} showSwatches={false} />
 			{/each}
 		</div>
 	{:else}

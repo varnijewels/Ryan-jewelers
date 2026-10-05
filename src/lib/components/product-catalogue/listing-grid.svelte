@@ -5,11 +5,16 @@
 	import Skeleton from '$lib/components/ui/skeleton/skeleton.svelte'
 	import { SearchService } from '$lib/core/services/index.js'
 	import RjProductCard from '$lib/theme/ryans-jewels/RjProductCard.svelte'
-	import { realCatalogUrl } from '$lib/theme/ryans-jewels/product-filters.js'
+	import { realCatalogUrl, clientFilterKeys } from '$lib/theme/ryans-jewels/product-filters.js'
 
 	const data = $derived(page.data)
 	let { ryanLayout = 'grid' }: { ryanLayout?: 'grid' | 'list' } = $props()
 	const isRyan = $derived(page.data?.theme?.name === 'ryans-jewels')
+	const clearFilterHref = $derived.by(() => {
+		const url = new URL(page.url)
+		;[...clientFilterKeys, 'priceFrom', 'priceTo', 'page'].forEach(key => url.searchParams.delete(key))
+		return url.pathname + url.search
+	})
 	const searchService = new SearchService(fetch)
 
 	let products = $state<any[]>([])
@@ -61,13 +66,13 @@
 			<p class="mt-2 text-center text-sm text-gray-500">New designs are being prepared for this category.</p>
 		{:else}
 			<p class="text-md uppercase text-gray-500">No products found</p>
-			<a href="/products" class="text-sm font-bold uppercase tracking-widest text-primary underline underline-offset-4">Clear all filters</a>
+			<a href={isRyan ? clearFilterHref : '/products'} class="text-sm font-bold uppercase tracking-widest text-primary underline underline-offset-4">Clear all filters</a>
 		{/if}
 	</div>
 {:else}
 	<div class="intra-gap grid auto-rows-auto grid-cols-2 lg:grid-cols-3" class:rj-listing-grid={isRyan} class:rj-listing-list={isRyan && ryanLayout === 'list'}>
 		{#each products as product (product.id)}
-			{#if isRyan}<RjProductCard {product} size="listing" />{:else}<ProductCard {product} />{/if}
+			{#if isRyan}<RjProductCard {product} size="listing" showSwatches={false} />{:else}<ProductCard {product} />{/if}
 		{/each}
 	</div>
 

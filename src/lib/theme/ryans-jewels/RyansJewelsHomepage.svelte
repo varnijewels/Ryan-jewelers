@@ -11,23 +11,16 @@
 	 */
 	import RjHero from './RjHero.svelte'
 	import RjChatWidget from './RjChatWidget.svelte'
-	import RjTrustRow from './RjTrustRow.svelte'
 	import RjDiamondShapes from './RjDiamondShapes.svelte'
 	import RjProductRow from './RjProductRow.svelte'
-	import RjMarquee from './RjMarquee.svelte'
-	import RjRarePassion from './RjRarePassion.svelte'
 	import RjBestSellers from './RjBestSellers.svelte'
-	import RjNamePlate from './RjNamePlate.svelte'
-	import RjLookbook from './RjLookbook.svelte'
 	import RjWideBanner from './RjWideBanner.svelte'
-	import RjTrending from './RjTrending.svelte'
+	import RjJewelryEdit from './RjJewelryEdit.svelte'
+	import RjSocial from './RjSocial.svelte'
+	import RjStore from './RjStore.svelte'
+	import RjServices from './RjServices.svelte'
 	import RjEnquiry from './RjEnquiry.svelte'
-	import RjFaq from './RjFaq.svelte'
-	import RjInstagram from './RjInstagram.svelte'
-	import { onMount } from 'svelte'
-	import { reveal } from '$lib/core/actions/reveal.js'
 
-	let homepage: HTMLDivElement
 
 	let {
 		featuredProducts = [],
@@ -47,20 +40,9 @@
 		aspectHeight?: string
 	} = $props()
 
-	onMount(() => {
-		const cleanups = Array.from(homepage.children)
-			.slice(1)
-			.map((node, index) => {
-				const element = node as HTMLElement
-				element.style.setProperty('--rj-reveal-delay', `${Math.min(index, 4) * 55}ms`)
-				const action = reveal(element)
-				return () => action.destroy?.()
-			})
-		return () => cleanups.forEach((cleanup) => cleanup())
-	})
 </script>
 
-<div bind:this={homepage} class="rj-home">
+<div class="rj-home">
 	<!-- 2 — hero (1:5755 / 63:40034 / 77:106848) -->
 	<div class="rj-hero-wrap">
 		<RjHero />
@@ -68,11 +50,6 @@
 	</div>
 
 	<!-- 3 — trust badges + slide counter (1:5497 / 63:40035 / 77:106850) -->
-	<div class="rj-band rj-band--trust">
-		<div class="rj-band-inner">
-			<RjTrustRow />
-		</div>
-	</div>
 
 	<!-- 4 — FIND YOUR PERFECT CUT (1:5518 / 63:40058 / 77:106871) -->
 	<div class="rj-band rj-band--cut">
@@ -86,40 +63,27 @@
 		</div>
 	</div>
 
-	<!-- 6 — shape marquee (1:5756 / 63:40435 / 77:107113) -->
-	<RjMarquee variant="shapes" duration={55} />
-
 	<!-- 7 — designed with rare passion (1:5871 / 63:40291 / 77:107227) -->
-	<RjRarePassion />
+	<RjStore />
 
 	<!-- 8 — best sellers carousel (1:6003 / 63:40324 / 77:107262) -->
 	<RjBestSellers products={featuredProducts} {loading} />
 
-	<!-- 9 — personalised name plate + top rated collection (1:6110 / 63:40549 / 77:107373) -->
-	<RjNamePlate products={featuredProducts} />
 
-	<!-- 10 — tagline marquee (1:5870 / 63:40616 / 77:107438) -->
-	<RjMarquee variant="taglines" duration={45} />
 
-	<!-- 11 — lookbook + countdown (1:6474 / 63:40805 / 77:107447) -->
-	<RjLookbook products={trendingProducts.length ? trendingProducts : featuredProducts} {loading} />
 
 	<!-- 12 — wide "Glamorous Gifts" banner (1:6201 / 63:40625 / 77:107518) -->
-	<RjWideBanner />
+	<RjJewelryEdit />
+	<RjWideBanner campaign />
 
-	<!-- 13 — trending collection (1:6213 / 63:40637 / 77:107530) -->
-	<RjTrending products={trendingProducts.length ? trendingProducts : featuredProducts} {loading} />
 
 	<!-- 14 — enquiry form (1:6426 / 63:40742 / 77:107636) -->
 	<RjEnquiry />
+	<RjServices />
 
 	<!-- 15 — FAQ accordion (1:6431 / 63:40782 / 77:107676) -->
-	<RjFaq />
+	<RjSocial />
 
-	<!-- 16a — Instagram strip (1:6323 / 63:40958 / 77:107699).
-	     16b — the footer itself is global; see RyansJewelsFooter, wired from
-	     src/lib/components/common/footer.svelte. -->
-	<RjInstagram />
 </div>
 
 <style>
@@ -146,8 +110,8 @@
 	}
 
 	.rj-band--cut {
-		padding-top: 55px;
-		padding-bottom: 45px;
+		padding-top: 38px;
+		padding-bottom: 32px;
 	}
 
 	/* Desktop: divider at 1310, filter row 1350, grid ends 1805. The divider

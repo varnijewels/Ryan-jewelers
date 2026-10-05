@@ -5,11 +5,10 @@
 	import { setUserState } from '$lib/core/stores/index.js'
 	import { UserService } from '$lib/core/services/index.js'
 	import { GoogleAnalytics } from '$lib/core/components/index.js'
-	import { navigating } from '$app/stores'
+	import RjPageLoader from '$lib/theme/ryans-jewels/RjPageLoader.svelte'
 	import { page } from '$app/state'
 	import { updated } from '$app/state'
 	import { afterNavigate, beforeNavigate, disableScrollHandling } from '$app/navigation'
-	import { Loader } from '@lucide/svelte'
 	import { onMount, type Snippet } from 'svelte'
 	import type { StoreData } from '$lib/core/types/index.js'
   import { ColorPalette } from '$lib/core/components/index.js'
@@ -76,13 +75,17 @@
 	})
 
 	function resetScroll() {
+		const scrollToDestination = () => {
+			const anchor = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null
+			if (anchor) { anchor.scrollIntoView({ block: 'start', behavior: 'instant' }); return }
+			document.documentElement.scrollTop = 0
+			document.body.scrollTop = 0
+		}
 		document.documentElement.style.setProperty('scroll-behavior', 'auto', 'important')
-		document.documentElement.scrollTop = 0
-		document.body.scrollTop = 0
+		scrollToDestination()
 		requestAnimationFrame(() => {
 			requestAnimationFrame(() => {
-				document.documentElement.scrollTop = 0
-				document.body.scrollTop = 0
+				scrollToDestination()
 				document.documentElement.style.removeProperty('scroll-behavior')
 			})
 		})
@@ -135,6 +138,7 @@
 
 <ColorPalette />
 <GoogleAnalytics />
+{#if data?.theme?.name === 'ryans-jewels'}<RjPageLoader />{/if}
 
 <!-- <ThemeProvider /> -->
 

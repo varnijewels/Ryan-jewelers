@@ -1,13 +1,14 @@
-export const clientFilterKeys = ['uiStatus', 'uiMaterial', 'uiShape', 'uiQuality', 'uiWeight']
+export const clientFilterKeys = ['uiStatus', 'uiMaterial', 'uiShape', 'uiQuality', 'uiWeight', 'uiKarat', 'uiColor']
 export const clientSorts = new Set(['rating:desc', 'title:asc', 'title:desc'])
 
 const categoryCatalogFilters: Record<string, [string, string]> = {
 	'lab-grown-diamond': ['search', 'lab grown diamond'],
-	rings: ['categories', 'engagement'],
+	rings: ['categories', 'engagement,mens-rings-679,fancy-rings,color-stone-rings,religious-rings,eternity-bands'],
 	engagement: ['categories', 'engagement'],
-	bracelets: ['search', 'bracelets'],
-	earrings: ['search', 'earrings'],
-	pendants: ['search', 'pendants']
+	bracelets: ['categories', 'bracelets'],
+	earrings: ['categories', 'women'],
+	pendants: ['categories', 'pendants'],
+	necklaces: ['search', 'Necklaces']
 }
 
 export function realCatalogUrl(url: URL) {
@@ -29,7 +30,8 @@ export function realCatalogUrl(url: URL) {
 		filteredUrl.pathname = '/products'
 	}
 	filteredUrl.searchParams.delete('catalog')
-	filteredUrl.searchParams.set('tags', 'JewelWeSell')
+	// Product provenance is not a storefront requirement. New Ryan uploads use
+	// their own tags; preserve explicit shopper filters without adding a brand tag.
 	return filteredUrl
 }
 
@@ -92,7 +94,7 @@ export function facetOptions(allFilters: Record<string, Record<string, number>> 
 	return [...options].map(([name, count]) => ({ name, count }))
 }
 
-function selectedValues(url: URL, key: string) {
+export function selectedValues(url: URL, key: string) {
 	const value = url.searchParams.get(key)
 	if (!value) return []
 	try {
@@ -127,6 +129,54 @@ function matchesMetadata(product: any, values: string[]) {
 	)
 }
 
+export const listingFilterDefinitions = [
+	{ key: 'uiMaterial', label: 'Metal color', pattern: /^(metal type|metal color|material)$/i, fallback: /^(white gold|yellow gold|rose gold|platinum|sterling silver|silver)$/i },
+	{ key: 'uiKarat', label: 'Gold purity', pattern: /^(metal stamp|karat|purity)$/i, fallback: /^\d{2}k(?: gold)?$/i },
+	{ key: 'uiShape', label: 'Diamond shape', pattern: /^(diamond shape|center stone shape|stone shape|center stone)$/i, fallback: /^(round|oval|pear|princess|emerald|cushion|radiant|asscher|marquise|heart|baguette)$/i },
+	{ key: 'uiWeight', label: 'Carat weight', pattern: /^(total carat weight|total carat weight range|carat weight|center stone ctw)$/i },
+	{ key: 'uiColor', label: 'Diamond color', pattern: /^(diamond color|stone color|diamonf color)$/i },
+	{ key: 'uiQuality', label: 'Diamond clarity', pattern: /^(diamond clarity|stone quality)$/i }
+]
+
+function attributeName(value: string) { return value.replace(/^(attributes|options?)\./, '').replaceAll('_', ' ').trim() }
+
+export function productFilterValues(product: any, key: string): string[] {
+	const definition = listingFilterDefinitions.find((item) => item.key === key)
+	if (!definition) return []
+	const values: string[] = []
+	for (const attr of product.attributes || []) {
+		if (definition.pattern.test(attributeName(attr.name || attr.title || ''))) values.push(String(attr.value))
+	}
+	if (!values.length) for (const option of product.options || []) {
+		if (definition.pattern.test(attributeName(option.title || option.type || ''))) values.push(...(option.values || []).map((item: any) => String(item.value ?? item)))
+	}
+	if (!values.length) for (const [name, value] of Object.entries(product)) {
+		if (/^(attributes|options?)\./.test(name) && definition.pattern.test(attributeName(name))) values.push(...(Array.isArray(value) ? value : [value]).map(String))
+	}
+	if (!values.length && definition.fallback) values.push(...(product.tags || []).map((tag: any) => String(tag.name ?? tag)).filter((name: string) => definition.fallback!.test(name)))
+	return [...new Set(values.filter((value) => value && value !== 'null' && value !== 'undefined').map(value => key === 'uiKarat' ? value.replace(/\s*gold$/i, '').trim().toUpperCase() : value))]
+}
+
+export function listingFilterOptions(products: any[], facets: Record<string, Record<string, number>> = {}) {
+	return listingFilterDefinitions.map((definition) => {
+		const names = new Set(products.flatMap((product) => productFilterValues(product, definition.key)))
+		for (const [key, values] of Object.entries(facets)) {
+			if (definition.pattern.test(attributeName(key))) Object.keys(values).forEach((name) => names.add(name))
+		}
+		if (definition.fallback) Object.keys(facets['tags.name'] || {}).filter((name) => definition.fallback!.test(name)).forEach((name) => names.add(name))
+		const choices = [...new Set([...names].map(value => definition.key === 'uiKarat' ? value.replace(/\s*gold$/i, '').trim().toUpperCase() : value))].filter(value => definition.key !== 'uiMaterial' || !/^\d+\s*k\s*gold$/i.test(value))
+		return { key: definition.key, label: definition.label, values: choices.sort((a, b) => a.localeCompare(b, undefined, { numeric: true })) }
+	}).filter((group) => group.values.length)
+}
+
+function matchesDimension(product: any, url: URL, key: string) {
+	const selected = selectedValues(url, key)
+	if (!selected.length) return true
+	const values = productFilterValues(product, key)
+	if (values.length) return selected.some((item) => values.some((value) => normalized(value) === normalized(item)))
+	return matchesMetadata(product, selected)
+}
+
 export function applyClientFilters(products: any[], url: URL) {
 	const statuses = selectedValues(url, 'uiStatus')
 	const filtered = products.filter((product) => {
@@ -134,8 +184,8 @@ export function applyClientFilters(products: any[], url: URL) {
 		const statusMatches =
 			!statuses.length ||
 			statuses.some((status) => {
-				if (status === 'In Stock') return Number(product.stock) > 0
-				if (status === 'Out of stock') return Number(product.stock) <= 0
+				if (status === 'In Stock') return product.manageInventory === false || Number(product.stock) > 0 || product.variants?.some((variant: any) => Number(variant.stock) > 0)
+				if (status === 'Out of stock') return product.manageInventory !== false && Number(product.stock || 0) <= 0 && !product.variants?.some((variant: any) => Number(variant.stock) > 0)
 				if (status === 'Best seller') return Number(product.popularity) > 0 || text.includes('best seller')
 				if (status === 'Top Rated') return productRating(product) >= 4
 				return Boolean(product.isFeatured || product.featured || text.includes('featured'))
@@ -143,10 +193,7 @@ export function applyClientFilters(products: any[], url: URL) {
 
 		return (
 			statusMatches &&
-			matchesMetadata(product, selectedValues(url, 'uiMaterial')) &&
-			matchesMetadata(product, selectedValues(url, 'uiShape')) &&
-			matchesMetadata(product, selectedValues(url, 'uiQuality')) &&
-			matchesMetadata(product, selectedValues(url, 'uiWeight'))
+			clientFilterKeys.filter((key) => key !== 'uiStatus').every((key) => matchesDimension(product, url, key))
 		)
 	})
 

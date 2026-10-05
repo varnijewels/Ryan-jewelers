@@ -23,11 +23,13 @@
 		product,
 		aspectRatio = '272:250',
 		size = 'default',
+		showSwatches = true,
 		imageOverride = ''
 	}: {
 		product: any
 		aspectRatio?: string
 		size?: 'default' | 'wide' | 'listing'
+		showSwatches?: boolean
 		imageOverride?: string
 	} = $props()
 
@@ -96,13 +98,13 @@
 			</div>
 
 			<div class="rj-card-info">
-				<ul class="rj-card-swatches">
+				{#if showSwatches}<ul class="rj-card-swatches">
 					{#each swatches as choice (choice.key)}
 						<li>
 							<button class="rj-card-swatch" class:selected={choice.value === selectedMetal} type="button" title={choice.value} aria-label="Select {choice.value}" aria-pressed={choice.value === selectedMetal} onclick={() => selectMetal(choice)} style="background-image: {metalSwatchFills[choice.key]};"></button>
 						</li>
 					{/each}
-				</ul>
+				</ul>{/if}
 
 				<div class="rj-card-text">
 					<a class="rj-card-name" {href}>{title}</a>

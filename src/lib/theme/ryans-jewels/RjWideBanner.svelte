@@ -17,6 +17,7 @@
 	import { wideBanner } from './home-content.js'
 
 	interface Props {
+		campaign?: boolean
 		eyebrow?: string
 		heading?: string
 		subheading?: string
@@ -30,6 +31,7 @@
 	}
 
 	const {
+		campaign = false,
 		eyebrow = wideBanner.eyebrow,
 		heading = wideBanner.heading,
 		subheading = wideBanner.subheading,
@@ -43,6 +45,22 @@
 	}: Props = $props()
 </script>
 
+{#if campaign}
+<section class="rj-campaign" aria-labelledby="rj-campaign-heading">
+	<picture>
+		<source media="(max-width: 639px)" type="image/avif" srcset="/ryans-jewels/home/campaign/split-shank-eternity-v2-mobile.avif" />
+		<source media="(max-width: 639px)" type="image/webp" srcset="/ryans-jewels/home/campaign/split-shank-eternity-v2-mobile.webp" />
+		<source type="image/avif" srcset="/ryans-jewels/home/campaign/split-shank-eternity-v2.avif" />
+		<img src="/ryans-jewels/home/campaign/split-shank-eternity-v2.webp" alt="A white gold split-shank diamond ring paired with a diamond eternity band" width="1800" height="1005" loading="lazy" decoding="async" />
+	</picture>
+	<div class="rj-campaign-copy">
+		<p class="rj-campaign-eyebrow">Rings made to pair</p>
+		<h2 id="rj-campaign-heading">Better<br />together</h2>
+		<p>Find your ring. Make it yours with a diamond band.</p>
+		<a href="/products?categories=engagement%2Ceternity-bands">Explore rings <span aria-hidden="true">↗</span></a>
+	</div>
+</section>
+{:else}
 <section class="rj-banner" class:is-centered={centered} class:is-product-image={containImage} aria-labelledby="rj-banner-heading">
 	<div class="rj-banner-card" style="background-image: url({background})">
 		<div class="rj-banner-row" class:is-centered={centered}>
@@ -69,8 +87,27 @@
 		</div>
 	</div>
 </section>
+{/if}
 
 <style>
+	.rj-campaign { position: relative; margin: 40px auto; width: calc(100% - 96px); max-width: 1440px; background: #f4f0e9; color: #292724; }
+	.rj-campaign picture { display: block; }
+	.rj-campaign picture img { display: block; width: 100%; height: clamp(360px, 33vw, 480px); object-fit: cover; object-position: center; }
+	.rj-campaign-copy { position: absolute; top: 50%; left: 5%; width: 36%; transform: translateY(-50%); }
+	.rj-campaign-eyebrow { margin: 0 0 18px; font: 500 11px/1.5 var(--font-body, sans-serif); letter-spacing: .14em; text-transform: uppercase; }
+	.rj-campaign-copy h2 { margin: 0; font: 400 clamp(32px, 3.4vw, 50px)/1.12 var(--font-heading, serif); letter-spacing: -.02em; }
+	.rj-campaign-copy > p:not(.rj-campaign-eyebrow) { margin: 20px 0 24px; font: 400 14px/1.7 var(--font-body, sans-serif); }
+	.rj-campaign-copy a { display: inline-flex; gap: 24px; align-items: center; padding-bottom: 7px; border-bottom: 1px solid currentColor; color: inherit; text-decoration: none; font: 500 13px/1.5 var(--font-body, sans-serif); }
+	.rj-campaign-copy a:hover { color: #977626; }
+	.rj-campaign-copy a:focus-visible { outline: 2px solid #977626; outline-offset: 4px; }
+	@media (max-width: 900px) { .rj-campaign { width: calc(100% - 40px); } }
+	@media (max-width: 639px) {
+		.rj-campaign { width: 100%; margin: 24px 0; }
+		.rj-campaign picture img { height: auto; aspect-ratio: 1.2; }
+		.rj-campaign-copy { position: static; width: auto; transform: none; padding: 26px 22px 30px; }
+		.rj-campaign-copy h2 { font-size: 34px; }
+		.rj-campaign-eyebrow { margin-bottom: 12px; }
+	}
 	/* The card is inset 60 from both page edges (1:6201 sits at x60, w1320). */
 	.rj-banner {
 		width: 100%;

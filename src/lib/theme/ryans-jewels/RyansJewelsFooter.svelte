@@ -14,6 +14,7 @@
 	 */
 	import { NewsletterRenderer } from '$lib/core/composables/index.js'
 	import { ryansJewelsFooter } from './footer-content.js'
+	import { ryanContact } from './contact-content.js'
 
 	let {
 		description = ryansJewelsFooter.description,
@@ -67,6 +68,11 @@
 							<span class="rj-foot-brand-name">{brandName}</span>
 						</a>
 						<p class="rj-foot-brand-text">{description}</p>
+						<address class="rj-foot-contact">
+							<a href={ryanContact.phoneHref}>{ryanContact.phone}</a>
+							<a href={ryanContact.directionsHref} target="_blank" rel="noopener noreferrer">{ryanContact.address}<br />{ryanContact.city}</a>
+							<a href="/contact-us">Store hours & directions →</a>
+						</address>
 					</div>
 
 					{#each columns as column (column.title)}
@@ -156,6 +162,9 @@
 </footer>
 
 <style>
+	.rj-foot-contact { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; font: normal 13px/1.6 var(--font-body); }
+	.rj-foot-contact a { color: inherit; text-decoration: none; }
+	.rj-foot-contact a:hover { text-decoration: underline; }
 	/* 1:6336 — the footer body shares the #fafafa band with the Instagram strip. */
 	.rj-foot {
 		width: 100%;

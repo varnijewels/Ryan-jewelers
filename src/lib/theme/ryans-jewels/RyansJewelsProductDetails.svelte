@@ -9,14 +9,14 @@
 	import { useProductState } from '$lib/core/composables/index.js'
 	import LoginModal from '$lib/components/auth/login-modal.svelte'
 	import RjCarousel from './RjCarousel.svelte'
-	import RjProductCustomizer from './RjCustomizeModal.svelte'
 	import RjProductCard from './RjProductCard.svelte'
 	import { productRating, withoutDemoProducts } from './product-filters.js'
-	import RjInstagram from './RjInstagram.svelte'
+	import type { Component } from 'svelte'
 	import { instagramStrip } from './footer-content.js'
 	import { ryansSeoText } from './seo.js'
 	import RjWideBanner from './RjWideBanner.svelte'
-	import { adjacentProductImage, customizationOptions, diamondImageForShape, discountPercent, groupedProductForAttribute, groupedProductForSelections, groupedValuesForAttribute, metalColorImage, metalColorTone, productAttributeValue, productDetailParagraphs, productImages, toggleStoredId, variantForOption, variantForSelections } from './product-details.logic.js'
+	import RjImageViewer from './RjImageViewer.svelte'
+	import { adjacentProductImage, variationControls, nonVariationAttributes, diamondImageForShape, discountPercent, groupedProductForAttribute, groupedProductForSelections, groupedValuesForAttribute, metalColorImage, metalColorTone, productAttributeValue, productDetailParagraphs, productImages, toggleStoredId, variantForOption, variantForSelections } from './product-details.logic.js'
 
 	const COMPARE_STORAGE_KEY = 'ryans-jewels-compare-products'
 	const productState = useProductState()
@@ -27,13 +27,15 @@
 	const variants = $derived(product?.variants || [])
 	const currency = $derived(data?.store?.currency?.code || 'USD')
 	let selectedVariant = $state<any>(null)
+	let selectionKey = $state('')
 	let activeImage = $state('')
+	let viewerIndex = $state<number | null>(null)
+	let galleryTrack: HTMLDivElement
+	let mobileImageIndex = $state(0)
 	let relatedProducts = $state<any[]>([])
 	let relatedLoading = $state(false)
 	let wishlistLoading = $state(false)
 	let compared = $state(false)
-	let postalCode = $state('')
-	let locating = $state(false)
 	let activeTab = $state<'details' | 'reviews'>('details')
 	let visibleReviewCount = $state(2)
 	let customizationRequest = 0
@@ -48,7 +50,9 @@
 	})
 
 	$effect(() => {
-		if (!selectedVariant || !variants.some((variant: any) => variant.id === selectedVariant.id)) {
+		const nextKey = `${product.id || ''}:${page.url.searchParams.get('variant_id') || ''}`
+		if (selectionKey !== nextKey || !selectedVariant || !variants.some((variant: any) => variant.id === selectedVariant.id)) {
+			selectionKey = nextKey
 			const requestedVariant = variants.find((variant: any) => variant.id === page.url.searchParams.get('variant_id'))
 			selectedVariant = requestedVariant || variants.find((variant: any) => variant.stock > 0) || variants[0] || product
 		}
@@ -107,7 +111,19 @@
 	const diamondInfo = $derived([stoneQuality, caratWeight, stoneShape].filter(Boolean).join(' · ') || 'Diamond details unavailable')
 	const diamondMeta = $derived([stoneSetting ? `${stoneSetting} setting` : '', ringSize ? `Size ${ringSize}` : ''].filter(Boolean).join(' · '))
 	const productOptions = $derived(Array.isArray(product?.options) ? product.options : productState.productOptions || [])
-	const optionCards = $derived(customizationOptions(productOptions, attributes))
+	const optionCards = $derived(variationControls(product))
+	const otherAttributes = $derived(nonVariationAttributes(product))
+	let Social = $state<Component | null>(null)
+	let changingVariation = $state(false)
+	function lazySocial(node: HTMLElement) {
+		const observer = new IntersectionObserver(async ([entry]) => {
+			if (!entry.isIntersecting) return
+			observer.disconnect()
+			Social = (await import('./RjSocial.svelte')).default
+		}, { rootMargin: '300px' })
+		observer.observe(node)
+		return { destroy: () => observer.disconnect() }
+	}
 	const metalColorOption = $derived(productOptions.find((option: any) => /\bmetal\s*color\b/i.test(option.title || option.type || '')))
 	const caratWeightOption = $derived(productOptions.find((option: any) => /(carat|diamond).*weight|weight.*(carat|diamond)/i.test(option.title || option.type || '')))
 	const ringSizeOption = $derived(productOptions.find((option: any) => /ring\s*size|^size$/i.test(option.title || option.type || '')))
@@ -143,15 +159,28 @@
 	const instagramHref = $derived(data?.store?.plugins?.socialSharingButtons?.instagram || instagramStrip.href)
 
 	function selectedValue(option: any) {
-		if (!option) return ''
-		return selectedVariant?.options?.find((item: any) => item.optionId === option.id)?.value || option.values?.[0]?.value || ''
+		return option.grouped
+			? currentGroupedProduct?.[option.title] || attributes.find((item: any) => item.name === option.title)?.value || ''
+			: selectedVariant?.options?.find((item: any) => item.optionId === option.id)?.value || ''
 	}
 
-	function selectOption(option: any, event: Event) {
-		if (option.readonly) return
-		const nextVariant = variantForOption(variants, selectedVariant, option.id, (event.currentTarget as HTMLSelectElement).value)
+	async function selectOption(option: any, value: string) {
+		if (option.grouped) {
+			const target = groupedProductForAttribute(groupedProducts, currentGroupedProduct, option.title, value)
+				|| groupedProducts.find((item: any) => item[option.title] === value)
+			if (!target?.slug || target.slug === product.slug) return
+			changingVariation = true
+			try { await goto('/products/' + target.slug + (target.variantId ? '?variant_id=' + encodeURIComponent(target.variantId) : ''), { noScroll: true, keepFocus: true }) }
+			catch { toast.error('Unable to load this variation. Please try again.') }
+			finally { changingVariation = false }
+			return
+		}
+		const nextVariant = variantForOption(variants, selectedVariant, option.id, value)
 		selectedVariant = nextVariant
 		activeImage = productImages(product, nextVariant)[0] || ''
+		const url = new URL(page.url)
+		url.searchParams.set('variant_id', nextVariant.id)
+		await goto(url, { replaceState: true, noScroll: true, keepFocus: true })
 	}
 
 	function groupedMetalColorProduct(value: string) {
@@ -279,36 +308,6 @@
 		setTimeout(() => document.querySelector('.rj-gallery')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
 	}
 
-	async function locateMe() {
-		if (!navigator.geolocation) return toast.error('Location is not supported by this browser')
-		locating = true
-		try {
-			const position = await new Promise<GeolocationPosition>((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: false, timeout: 10000 }))
-			const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${position.coords.latitude}&lon=${position.coords.longitude}&format=json`)
-			if (!response.ok) throw new Error('Location lookup failed')
-			const result = await response.json()
-			postalCode = result?.address?.postcode || ''
-			if (postalCode) toast.success(`Postal code ${postalCode} located`)
-			else toast.error('Postal code was not found for this location')
-		} catch (error: any) {
-			toast.error(error?.code === 1 ? 'Location permission was denied' : 'Unable to locate your postal code')
-		} finally {
-			locating = false
-		}
-	}
-
-	async function checkPostalCode() {
-		const value = postalCode.trim()
-		if (!/^[a-z\d][a-z\d -]{2,9}$/i.test(value)) return toast.error('Please enter a valid postal code')
-		try {
-			const response = await fetch(`https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(value)}&format=json&limit=1`)
-			const result = await response.json()
-			toast[result?.length ? 'success' : 'error'](result?.length ? 'Postal code found. Delivery availability is confirmed at checkout.' : 'Postal code not found')
-		} catch {
-			toast.error('Postal code lookup failed')
-		}
-	}
-
 	async function shareProduct() {
 		try {
 			if (navigator.share) await navigator.share({ title: product.title, url: location.href })
@@ -359,6 +358,7 @@
 	})
 </script>
 
+{#if viewerIndex !== null}<RjImageViewer {images} initialIndex={viewerIndex} title={product.title} onclose={() => viewerIndex = null} />{/if}
 <div class="rj-pdp">
 	<nav class="rj-breadcrumb" aria-label="Breadcrumb">
 		<a href="/">Home</a><span>/</span>
@@ -370,29 +370,20 @@
 
 	<section class="rj-product" aria-label={product.title}>
 		<div class="rj-gallery">
-			<div class="rj-main-image">
-				{#if activeImage}<img src={activeImage} alt={product.title} fetchpriority="high" decoding="async" />{:else}<span class="rj-image-empty"></span>{/if}
-				{#if images.length > 1}
-					<div class="rj-image-navigation">
-						<button class="previous" type="button" aria-label="Previous product image" onclick={() => showAdjacentImage(-1)}><img src="/ryans-jewels/product/arrow-right.svg" alt="" /></button>
-						<button type="button" aria-label="Next product image" onclick={() => showAdjacentImage(1)}><img src="/ryans-jewels/product/arrow-right.svg" alt="" /></button>
-					</div>
-				{/if}
-				<div class="rj-image-actions">
-					<button class="rj-wishlist" class:is-active={wishlisted} type="button" disabled={wishlistLoading} onclick={toggleWishlist} aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'} aria-pressed={wishlisted} aria-busy={wishlistLoading}><img src="/ryans-jewels/product/heart.svg" alt="" /></button>
-					<button class="rj-compare" class:is-active={compared} type="button" onclick={toggleCompare} aria-label={compared ? 'Remove from compare' : 'Add to compare'} aria-pressed={compared}><img src="/ryans-jewels/product/compare.svg" alt="" /></button>
-					<a href={activeImage} target="_blank" aria-label="View full product image"><img src="/ryans-jewels/product/eye.svg" alt="" /></a>
-				</div>
-				{#if relatedProducts.length}<button class="rj-similar" type="button" onclick={() => document.querySelector('#rj-related')?.scrollIntoView({ behavior: 'smooth' })}><img src="/ryans-jewels/product/view-similar.svg" alt="" />View Similar</button>{/if}
+			<div class="rj-gallery-toolbar">
+				<button type="button" class:is-active={wishlisted} disabled={wishlistLoading} onclick={toggleWishlist} aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'} aria-pressed={wishlisted}><img src="/ryans-jewels/product/heart.svg" alt="" /></button>
+				<button type="button" class:is-active={compared} onclick={toggleCompare} aria-label={compared ? 'Remove from compare' : 'Add to compare'} aria-pressed={compared}><img src="/ryans-jewels/product/compare.svg" alt="" /></button>
 			</div>
-
-			{#if images.length > 1}
-				<div class="rj-thumbnails">
-					{#each images.slice(0, 6) as image}
-						<button class:active={image === activeImage} type="button" onclick={() => activeImage = image}><img src={image} alt="View {product.title}" loading="lazy" decoding="async" /></button>
-					{/each}
-				</div>
-			{/if}
+			<div class="rj-gallery-grid" bind:this={galleryTrack} onscroll={() => { mobileImageIndex = Math.round(galleryTrack.scrollLeft / (galleryTrack.clientWidth + 12)) }}>
+				{#each images as image, index}
+					<button type="button" class="rj-gallery-image" aria-label="View full product image {index + 1}" onclick={() => { activeImage = image; viewerIndex = index }}>
+						<img src={image} alt="{product.title} - view {index + 1}" loading={index < 2 ? 'eager' : 'lazy'} fetchpriority={index === 0 ? 'high' : 'auto'} decoding="async" />
+					</button>
+				{/each}
+			</div>
+			{#if images.length > 1}<div class="rj-gallery-pages" aria-label="Product images">
+				{#each images as _, index}<button type="button" class:active={mobileImageIndex === index} aria-label="Show image {index + 1}" aria-current={mobileImageIndex === index ? 'true' : undefined} onclick={() => galleryTrack.scrollTo({ left: index * (galleryTrack.clientWidth + 12), behavior: 'instant' })}><span></span></button>{/each}
+			</div>{/if}
 		</div>
 
 		<div class="rj-details">
@@ -400,15 +391,38 @@
 				<h1>{product.title}</h1>
 			</div>
 
+			{#if optionCards.length}
+				<div class="rj-variation-controls" aria-label="Product variations" aria-busy={changingVariation}>
+					{#each optionCards as option}
+						<fieldset>
+							<legend>{option.title.replaceAll('_', ' ')}</legend>
+							<div class="rj-variation-values">
+								{#if /ring\s*size|^size$/i.test(option.title.replaceAll('_', ' '))}
+									<select aria-label={option.title.replaceAll('_', ' ')} value={selectedValue(option)} disabled={changingVariation} onchange={(event) => selectOption(option, event.currentTarget.value)}>
+										{#each [...option.values].sort((a, b) => String(a.value).localeCompare(String(b.value), undefined, { numeric: true })) as value}<option value={value.value}>{value.value}</option>{/each}
+									</select>
+								{:else}
+								{#each option.values as value}
+									<button type="button" class:selected={selectedValue(option) === value.value} class:metal-stamp={/metal[\s_]*stamp|purity|karat/i.test(option.title)} aria-pressed={selectedValue(option) === value.value} disabled={changingVariation || option.values.length < 2} onclick={() => selectOption(option, value.value)}>
+										{#if /(?:white|yellow|rose)\s*gold/i.test(String(value.value))}<span class="metal-swatch" data-metal={metalColorTone(value.value)} aria-hidden="true"></span>{/if}
+										{value.value}
+									</button>
+								{/each}
+								{/if}
+							</div>
+						</fieldset>
+					{/each}
+				</div>
+			{/if}
+
 			<div class="rj-price-row">
 				<strong>{formatPrice(price, currency)}</strong>
 				{#if mrp > price}<s>{formatPrice(mrp, currency)}</s>{/if}
 				{#if priceGapPercent}<span>({priceGapPercent}% Off Making Charge)</span>{/if}
 			</div>
 
-			<div class="rj-product-meta">
+			{#if reviewCount > 0}<div class="rj-product-meta">
 				<div class="rj-meta-summary">
-					{#if category}<span class="rj-category">{category}</span>{/if}
 					{#if reviewCount > 0}<span class="rj-stars"><img src="/ryans-jewels/product/star.svg" alt="" /><img src="/ryans-jewels/product/star.svg" alt="" />{rating.toFixed(1)}</span>{/if}
 				</div>
 				{#if reviewCount > 0}
@@ -416,56 +430,7 @@
 					<span class="rj-rating-copy">{rating.toFixed(1)} out of 5 ratings <span class="rj-review-count">{reviewCount} {reviewCount === 1 ? 'review' : 'reviews'}</span></span>
 					<i aria-hidden="true"></i>
 				{/if}
-				<span class:available={inStock} class="rj-stock">{#if inStock}<span class="rj-stock-icon"><img src="/ryans-jewels/product/stock-tick.svg" alt="" /></span>{/if}{inStock ? 'Stock Available' : 'Out Of Stock'}</span>
-			</div>
-
-			<div class="rj-description">
-				<p class="rj-label">Description</p>
-				<div class="rj-description-copy">{@html productDescription}</div>
-			</div>
-
-			<hr />
-
-			<div class="rj-config">
-				{#if optionCards.length}
-					<div class="rj-custom-section">
-						<div class="rj-custom-head"><h2><img src="/ryans-jewels/product/customize.svg" alt="" />Your Selected Product Details</h2></div>
-						<div class="rj-options">
-							{#each optionCards as option, index}
-								<label class="rj-option rj-option-{index}">
-									<span class="rj-option-title">
-										{#if index === 0}
-											<img class="rj-diamond-icon" src="/ryans-jewels/product/diamond-quality.svg" alt="" />
-										{:else if index === 1}
-											<img class="rj-metal-icon" src="/ryans-jewels/product/metal-type.svg" alt="" />
-										{:else}
-											<span class="rj-ring-icon" aria-hidden="true">
-												<span class="rj-ring-rotate"><span class="rj-ring-object">
-													{#each Array.from({ length: 16 }, (_, item) => item + 1) as part}<img class="rj-ring-part rj-ring-part-{part}" src="/ryans-jewels/product/ring-{String(part).padStart(2, '0')}.svg" alt="" />{/each}
-												</span></span>
-											</span>
-										{/if}
-										<small>{['Diamond Quality & Color', 'Metal type', 'Ring Size'][index]}</small>
-									</span>
-									<span class="rj-option-value">{#if index === 1}<i class="rj-metal-swatch"></i>{/if}<b>{selectedValue(option)}</b></span>
-									{#if !option.readonly}
-										<select value={selectedValue(option)} onchange={(event) => selectOption(option, event)} aria-label={option.title}>
-											{#each option.values || [] as value}<option value={value.value}>{value.value}</option>{/each}
-										</select>
-									{/if}
-								</label>
-							{/each}
-						</div>
-					</div>
-				{/if}
-
-				{#if ringSizeValues.length}<a class="rj-size-guide" href="#rj-specifications"><span>Not sure about your ring size?</span><b><img src="/ryans-jewels/product/size-guide.svg" alt="" />Size Guide</b></a>{/if}
-				{#if metalColorValues.length || caratWeightValues.length || ringSizeValues.length || stoneShapeValues.length || stoneType}
-					<RjProductCustomizer initial={customizationInitial} {metalType} metalOptions={metalColorValues} caratOptions={caratWeightValues} sizeOptions={ringSizeValues} cutOptions={stoneShapeValues} stoneOptions={stoneTypeValues.length > 1 ? stoneTypeValues : []} onchange={applyCustomization} onringview={showRingView} />
-				{/if}
-			</div>
-
-			<hr />
+			</div>{/if}
 
 			<div class="rj-purchase">
 				<div class="rj-purchase-actions">
@@ -480,10 +445,6 @@
 					</div>
 					<button class="rj-buy-now" type="button" disabled={!inStock || productState.cartState?.isUpdatingCart} onclick={buyNow}><img src="/ryans-jewels/product/cart.svg" alt="" />Buy Now : {formatPrice(price, currency)}</button>
 				</div>
-			</div>
-
-			<div class="rj-delivery">
-				<label><span>Check ZIP Code for Delivery</span><span class="rj-zip-input"><span><img src="/ryans-jewels/product/routing.svg" alt="" /><input bind:value={postalCode} inputmode="text" placeholder="Enter ZIP code" onkeydown={(event) => event.key === 'Enter' && checkPostalCode()} /></span><button type="button" disabled={locating} onclick={locateMe}>{locating ? 'Locating...' : 'Locate Me'}</button></span></label>
 			</div>
 
 			<div class="rj-service-row">
@@ -505,35 +466,19 @@
 				<button class:active={activeTab === 'details'} type="button" role="tab" aria-selected={activeTab === 'details'} onclick={() => activeTab = 'details'}>Product Details</button>
 				<button class:active={activeTab === 'reviews'} type="button" role="tab" aria-selected={activeTab === 'reviews'} onclick={() => activeTab = 'reviews'}>Reviews</button>
 			</div>
-			<div class="rj-style-copy"><span>Style No. <b>{detailSku}</b></span><button type="button" onclick={() => copyDetail(detailSku)} aria-label="Copy style number"><img src="/ryans-jewels/product/detail-copy.svg" alt="" />Copy</button></div>
+			<div class="rj-style-copy"><span>Style No. <b>{detailSku}</b></span></div>
 		</div>
 		{#if activeTab === 'details'}
 			<div class="rj-detail-body" role="tabpanel">
+				{#if otherAttributes.length}
+					<div class="rj-other-attributes">
+						<h2>Specifications</h2>
+						<dl>{#each otherAttributes as attribute}<div><dt>{String(attribute.name || attribute.title).replaceAll('_', ' ')}</dt><dd>{attribute.value}</dd></div>{/each}</dl>
+					</div>
+				{/if}
 				<div class="rj-detail-description">
 					<p><b>Description</b> : <span>{product.title}</span></p>
-					<div>{#each detailParagraphs as paragraph}<p>{paragraph}</p>{/each}</div>
-				</div>
-
-				<div class="rj-detail-main">
-					<div class="rj-detail-visual">
-						{#if detailImage}<img class="rj-detail-product-image" src={detailImage} alt="Side view of {product.title}" loading="lazy" decoding="async" />{/if}
-						<div class="rj-detail-height-label"><i></i><span>{ringHeight ? `${ringHeight} ${dimensionUnit} (Height)` : ringSize ? `Ring Size ${ringSize}` : 'Ring Height'}</span><i></i></div>
-						<img class="rj-detail-height-guide" src="/ryans-jewels/product/detail-height-guide.svg?v=6" alt="" />
-						<img class="rj-detail-stone-guide" src="/ryans-jewels/product/detail-stone-guide.svg?v=6" alt="" />
-						<div class="rj-detail-stone"><span>{#if diamondImage}<img class="is-shape" src={diamondImage} alt="{stoneShape} diamond" />{:else if activeImage}<img class="is-crop" src={activeImage} alt="{stoneShape || 'Center'} diamond detail" />{/if}</span><small>{stoneShape || 'Center'} Diamond{#if caratWeight}<b>{caratWeight}</b>{/if}</small></div>
-					</div>
-
-					<div class="rj-detail-card">
-						<header><strong>{product.title}</strong><div><span>SKU {detailSku}</span><button type="button" onclick={() => copyDetail(detailSku)} aria-label="Copy SKU"><img src="/ryans-jewels/product/detail-copy.svg" alt="" />Copy</button></div></header>
-						<div class="rj-detail-card-body">
-							<p>Set in {[metalType, metalColor].filter(Boolean).join(' ') || 'premium metal'}{caratWeight ? ` with ${caratWeight}` : ''}{stoneQuality ? ` ${stoneQuality}` : ''} diamonds</p>
-							<div class="rj-detail-facts">
-								<div class="rj-detail-fact"><h3><img src="/ryans-jewels/product/detail-gold.svg" alt="" />Gold Info <img class="rj-detail-info-icon" src="/ryans-jewels/product/detail-info.svg" alt="" /></h3><p>{goldInfo}</p></div>
-								<div class="rj-detail-fact"><h3><img src="/ryans-jewels/product/detail-dimension.svg" alt="" />Dimension Info</h3><p>{dimensionInfo}</p></div>
-								<div class="rj-detail-fact"><h3><img src="/ryans-jewels/product/detail-diamond.svg" alt="" />Diamond Info <img class="rj-detail-info-icon" src="/ryans-jewels/product/detail-info.svg" alt="" /></h3><p>{diamondInfo}{#if diamondMeta}<br />{diamondMeta}{/if}</p></div>
-							</div>
-						</div>
-					</div>
+					<div class="rj-description-copy">{@html productDescription}</div>
 				</div>
 			</div>
 		{:else}
@@ -602,7 +547,7 @@
 	{/if}
 
 	<div class="rj-pdp-extras">
-		<RjWideBanner />
+		<RjWideBanner campaign />
 
 		{#if dazzlingProducts.length}
 			<section class="rj-related rj-dazzling" id="rj-dazzling">
@@ -667,7 +612,7 @@
 			</section>
 		{/if}
 
-		<RjInstagram href={instagramHref} />
+		<div class="rj-lazy-social" use:lazySocial>{#if Social}<Social />{/if}</div>
 	</div>
 
 </div>
@@ -675,12 +620,55 @@
 <LoginModal bind:show={productState.showLoginModal} />
 
 <style>
+	.rj-variation-controls { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; margin: 0; }
+	.rj-variation-controls fieldset { min-width: 0; padding: 0; border: 0; margin: 0; }
+	.rj-variation-controls legend { font-size: 13px; color: #666; margin-bottom: 8px; }
+	.rj-variation-values { display: flex; flex-wrap: wrap; gap: 6px; }
+	.rj-variation-values select { width: 100%; max-width: 240px; min-height: 40px; padding: 8px 32px 8px 11px; border: 1px solid #c8a446; border-radius: 2px; background: #fcf8ed; color: #333; font-size: 14px; }
+	.rj-variation-values select:focus-visible { outline: 2px solid #9c771c; outline-offset: 3px; }
+	.rj-variation-values button { display: inline-flex; align-items: center; gap: 9px; min-height: 42px; border: 1px solid #ddd; background: white; color: #333; padding: 8px 11px; font-size: 13px; border-radius: 2px; cursor: pointer; }
+	.rj-variation-values button.metal-stamp { border-radius: 999px; min-width: 62px; justify-content: center; padding-inline: 17px; }
+	.metal-swatch { width: 23px; height: 23px; flex-shrink: 0; border-radius: 50%; border: 1px solid rgb(0 0 0 / 12%); box-shadow: inset 0 0 0 2px rgb(255 255 255 / 35%); }
+	.metal-swatch[data-metal='white'] { background: linear-gradient(135deg, #b9bdc2 0%, #fafafa 42%, #d7dadf 63%, #aeb3b9 100%); }
+	.metal-swatch[data-metal='yellow'] { background: linear-gradient(135deg, #b99545 0%, #f6e5a4 42%, #d8b65f 65%, #aa8035 100%); }
+	.metal-swatch[data-metal='rose'] { background: linear-gradient(135deg, #b97f70 0%, #f5d4c7 42%, #d9a38f 65%, #b47b69 100%); }
+	.rj-variation-values button.selected { border-color: #c8a446; background: #fcf8ed; }
+	.rj-variation-values button:disabled { opacity: 1; cursor: default; }
+	.rj-variation-values button:focus-visible { outline: 2px solid #9c771c; outline-offset: 3px; }
+	.rj-other-attributes { border-top: 1px solid #eee; margin-top: 24px; padding-top: 20px; }
+	.rj-other-attributes h2 { font-size: 22px; margin: 0 0 16px; }
+	.rj-other-attributes dl { margin: 0; }
+	.rj-other-attributes dl div { display: grid; grid-template-columns: minmax(100px, 1fr) 2fr; gap: 16px; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; }
+	.rj-other-attributes dt { color: #777; }
+	.rj-other-attributes dd { margin: 0; }
+	.rj-lazy-social { min-height: 200px; }
+
 	.rj-pdp { color: #404040; font-family: 'Sarala', var(--font-body, sans-serif); }
 	.rj-breadcrumb, .rj-product, .rj-info, .rj-related { width: min(calc(100% - clamp(120px, 8.333vw, 160px)), 1760px); margin-inline: auto; }
 	.rj-breadcrumb { display: flex; gap: 8px; align-items: center; min-height: 63px; overflow: hidden; font-size: 14px; color: #a2a2a2; white-space: nowrap; }
 	.rj-breadcrumb a { color: inherit; } .rj-breadcrumb .current { overflow: hidden; text-overflow: ellipsis; color: #505050; }
-	.rj-product { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(24px, 1.667vw, 32px); align-items: start; margin-top: 30px; }
-	.rj-gallery { min-width: 0; }
+	.rj-product { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: clamp(24px, 1.667vw, 32px); align-items: start; margin-top: 30px; }
+	.rj-gallery { position: relative; min-width: 0; }
+	.rj-gallery-toolbar { position: absolute; top: 12px; right: 12px; z-index: 1; display: flex; justify-content: flex-end; gap: 8px; }
+	.rj-gallery-toolbar button { display: grid; place-items: center; width: 38px; height: 38px; padding: 8px; border: 1px solid #eee; border-radius: 50%; background: white; cursor: pointer; }
+	.rj-gallery-toolbar button.is-active { border-color: #c8a446; background: #fcf8ed; }
+	.rj-gallery-toolbar img { width: 100%; height: 100%; object-fit: contain; }
+	.rj-gallery-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+	.rj-gallery-image { display: block; width: 100%; padding: 0; aspect-ratio: 1; overflow: hidden; border: 1px solid #f2f2f2; background: #fff; cursor: zoom-in; }
+	.rj-gallery-image img { width: 100%; height: 100%; object-fit: contain; }
+	.rj-gallery-image:focus-visible { outline: 2px solid #c8a446; outline-offset: 3px; }
+	.rj-gallery-pages { display: none; }
+	@media (max-width: 639px) {
+		.rj-gallery-grid { display: grid; grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 100%; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+		.rj-gallery-grid::-webkit-scrollbar { display: none; }
+		.rj-gallery-image { scroll-snap-align: start; }
+		.rj-gallery-pages { display: flex; justify-content: center; gap: 2px; margin-top: 3px; }
+		.rj-gallery-pages button { display: grid; place-items: center; width: 44px; height: 44px; border: 0; padding: 0; background: transparent; }
+		.rj-gallery-pages span { width: 6px; height: 6px; background: #d5d1c9; border-radius: 50%; }
+		.rj-gallery-pages button.active span { background: #ac8735; }
+		.rj-gallery-pages button:focus-visible { outline: 2px solid #ac8735; outline-offset: -3px; }
+	}
+
 	.rj-main-image { position: relative; width: 100%; aspect-ratio: 1; border: 1.5px solid #f4f4f4; border-radius: 5px; overflow: hidden; }
 	.rj-main-image > img { width: 100%; height: 100%; object-fit: cover; }
 	.rj-image-empty { display: block; width: 100%; height: 100%; background: #f9f9f9; }
@@ -968,7 +956,9 @@
 	}
 	@media (max-width: 639px) {
 		.rj-breadcrumb, .rj-product, .rj-info, .rj-related { width: calc(100% - 40px); }
-		.rj-info { width: calc(100% - 30px); margin-top: 65px; }
+		.rj-info { width: calc(100% - 40px); margin-top: 32px; }
+		.rj-product { margin-top: 12px; gap: 16px; }
+		.rj-details { gap: 16px; }
 		.rj-breadcrumb { min-height: 50px; font-size: 12px; }
 		.rj-main-image { aspect-ratio: 1; }
 		.rj-image-actions { top: 10px; left: 10px; gap: 6px; } .rj-image-actions button, .rj-image-actions a { width: 44px; height: 44px; } .rj-image-actions img { max-width: 22px; max-height: 22px; }
@@ -1034,11 +1024,11 @@
 			padding: 15px;
 		}
 		.rj-payments a { color: var(--rj-gold, #cca646); }
-		.rj-detail-tabs { height: 58px; padding: 12px 15px; }
+		.rj-detail-tabs { height: auto; min-height: 58px; padding: 12px 0; flex-wrap: wrap; gap: 14px; }
 		.rj-detail-tabs > div:first-child { gap: 12px; }
 		.rj-detail-tabs > div:first-child button { padding-bottom: 4px; font-size: 12px; line-height: 18px; }
 		.rj-style-copy { gap: 10px; padding: 2px 5px; font-size: 11px; line-height: 15px; }
-		.rj-style-copy > span { display: none; }
+		.rj-style-copy > span { display: block; overflow-wrap: anywhere; }
 		.rj-style-copy button { width: 76px; height: 30px; padding: 5px 10px; font-size: 11px; }
 		.rj-style-copy button img { width: 20px; height: 20px; }
 		.rj-detail-body { gap: 22px; padding: 22px 10px 10px; }

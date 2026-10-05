@@ -89,8 +89,18 @@
 	onMount(async () => {
 		if (activeTheme !== 'ryans-jewels' || storefrontProducts.length) return
 		try {
-			const result = await searchService.searchWithUrl(realCatalogUrl(new URL('/products?sort=createdAt%3Adesc', sveltePage.url.origin)))
-			storefrontProducts = withoutDemoProducts(result.data || [])
+			const results = await Promise.allSettled([
+				'/products?categories=engagement',
+				'/products?sort=createdAt%3Adesc'
+			].map((path) => searchService.searchWithUrl(realCatalogUrl(new URL(path, sveltePage.url.origin)))))
+			const products = withoutDemoProducts(results.flatMap((result) => result.status === 'fulfilled' ? result.value.data || [] : []))
+			const isWhiteGold = (product: any) => /white gold|\bWG\b/i.test([
+				product.sku, product.title, ...(product.tags || []).map((tag: any) => tag.name),
+				...(product.attributes || []).map((attribute: any) => attribute.value)
+			].join(' '))
+			storefrontProducts = products
+				.filter((product, index) => products.findIndex((candidate) => candidate.id === product.id) === index)
+				.sort((a, b) => Number(isWhiteGold(b)) - Number(isWhiteGold(a)))
 		} catch {
 			storefrontProducts = []
 		} finally {

@@ -15,7 +15,7 @@ export function variantForOption(variants, current, optionId, value) {
 	const selectedOptions = /** @type {any[]} */ (current?.options || [])
 	const wanted = new Map(selectedOptions.map((option) => [option.optionId, option.value]))
 	wanted.set(optionId, value)
-	return variants.find((variant) => /** @type {any[]} */ (variant.options || []).every((option) => wanted.get(option.optionId) === option.value))
+	return variants.find((variant) => [...wanted].every(([id, selected]) => (variant.options || []).some((option) => option.optionId === id && option.value === selected)))
 		|| variants.find((variant) => /** @type {any[]} */ (variant.options || []).some((option) => option.optionId === optionId && option.value === value))
 		|| current
 }
@@ -151,6 +151,30 @@ export function customizationOptions(options, attributes) {
 	const patterns = [/\b(diamond|stone).*quality|quality.*(diamond|stone)\b/i, /\bmetal\s*type\b/i, /\bring\s*size\b/i]
 	const picked = patterns.map((pattern) => source.find((option) => pattern.test(option.title || option.type || ''))).filter(Boolean)
 	return [...picked, ...source.filter((option) => !picked.includes(option))].slice(0, 3)
+}
+
+/** All real option dimensions, including separately stored grouped products. @param {any} product */
+function productDimensions(product) {
+	const options = (product?.options || []).map((option) => ({ ...option, title: String(option.title || option.type || '').replaceAll('_', ' '), values: [...new Set([...(option.values || []).map((item) => item.value), ...(product.variants || []).flatMap((variant) => (variant.options || []).filter((item) => item.optionId === option.id).map((item) => item.value))].filter(Boolean))].map((value) => ({ value })) }))
+	const names = new Set(options.map((option) => option.title.toLowerCase()))
+	const keys = [...new Set([...Object.keys(product?.ag || {}), ...(product?.attributes || []).filter((item) => item.isGrouped).map((item) => item.name)])]
+	return [...options, ...keys.filter((key) => !names.has(key.replaceAll('_', ' ').toLowerCase())).map((key) => ({
+		id: `group-${key}`, title: key, grouped: true,
+		values: [...new Set([...(product?.ag?.[key] || []), ...(product?.pg || []).map((item) => item[key]), ...(product?.attributes || []).filter((item) => item.name === key).map((item) => item.value)].filter(Boolean))].map((value) => ({ value }))
+	}))].filter((option) => option.values.length)
+}
+
+/** Only dimensions with a real choice belong in the variation controls. @param {any} product */
+export function variationControls(product) {
+	return productDimensions(product).filter((option) => option.values.length > 1)
+}
+
+/** @param {any} product */
+export function nonVariationAttributes(product) {
+	const names = new Set(variationControls(product).map((option) => option.title.replaceAll('_', ' ').toLowerCase()))
+	const attributes = (product?.attributes || []).filter((item) => !names.has(String(item.name || item.title || '').replaceAll('_', ' ').toLowerCase()) && item.value !== null && item.value !== undefined && item.value !== '')
+	const existing = new Set(attributes.map((item) => String(item.name || item.title || '').replaceAll('_', ' ').toLowerCase()))
+	return [...attributes, ...productDimensions(product).filter((option) => option.values.length === 1 && !existing.has(option.title.replaceAll('_', ' ').toLowerCase())).map((option) => ({ name: option.title, value: option.values[0].value }))]
 }
 
 /** @param {unknown} storedIds @param {string} id @param {number} limit */

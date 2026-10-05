@@ -48,9 +48,9 @@ export const ryansJewelsNavContent: RyansJewelsNavContent = {
 		countryCode: 'US',
 		language: 'English'
 	},
-	searchPlaceholder: 'Search here',
+	searchPlaceholder: 'Search diamonds, rings, and more',
 	orderReturn: { top: 'Order', bottom: '& Return', href: '/shipping-policy' },
-	cartLabel: 'Add to Cart',
+	cartLabel: 'Bag',
 	account: {
 		greeting: 'Hello!',
 		greetingLoggedIn: 'Hello! Good Morning',

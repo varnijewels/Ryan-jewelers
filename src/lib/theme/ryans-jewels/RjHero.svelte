@@ -1,120 +1,45 @@
 <script lang="ts">
-	/**
-	 * Full-bleed hero video.
-	 * Source: 1:6861 (desktop 1440x745) · 63:40034 (tablet 744x434) · 77:106848 (mobile 412x290).
-	 * The same media is rendered edge-to-edge with a per-breakpoint aspect ratio.
-	 */
-	import { ryansJewelsHome } from './home-content.js'
-
-	const { hero } = ryansJewelsHome
-	const desktopAvif = hero.image.replace(/\.webp$/i, '.avif')
-	const mobileAvif = hero.mobileImage.replace(/\.webp$/i, '.avif')
+ import { catalogNavigation } from './catalog-navigation.js'
+ const model = '/ryans-jewels/home/campaign/solitaire-stud-closeup-v3'
+ const ring = '/ryans-jewels/home/campaign/oval-halo-hand-v1'
+ const earringsHref = catalogNavigation.find((category) => category.name === 'Earrings')!.href
+ const ringsHref = catalogNavigation.find((category) => category.name === 'Rings')!.href
 </script>
-
 <svelte:head>
-	<link
-		rel="preload"
-		as="image"
-		type="image/avif"
-		href={mobileAvif}
-		media="(max-width: 639px)"
-		fetchpriority="high"
-	/>
-	<link
-		rel="preload"
-		as="image"
-		type="image/avif"
-		href={desktopAvif}
-		media="(min-width: 640px)"
-		fetchpriority="high"
-	/>
+ <link rel="preload" as="image" type="image/avif" href={`${model}.avif`} fetchpriority="high" />
 </svelte:head>
-
-<section class="rj-hero">
-	<a class="rj-hero-link" href={hero.href} aria-label={hero.imageAlt}>
-		<div class="rj-hero-media">
-			<picture class="rj-hero-picture">
-				<source media="(min-width: 640px)" type="image/avif" srcset={desktopAvif} />
-				<source media="(min-width: 640px)" srcset={hero.image} />
-				<source type="image/avif" srcset={mobileAvif} />
-				<img
-					class="rj-hero-img"
-					src={hero.mobileImage}
-					alt=""
-					width="824"
-					height="580"
-					fetchpriority="high"
-					decoding="sync"
-				/>
-			</picture>
-			<video class="rj-hero-video" autoplay muted loop playsinline preload="none" aria-hidden="true">
-				<source src={hero.video} type="video/mp4" media="(min-width: 640px)" />
-			</video>
-		</div>
-	</a>
+<section class="rj-hero" aria-label="Discover diamond earrings and rings">
+ <article class="rj-hero-panel rj-hero-panel--studs">
+  <picture><source type="image/avif" srcset={`${model}.avif`} /><img src={`${model}.webp`} alt="Close-up of a white gold solitaire diamond stud worn on the ear" width="1100" height="1100" fetchpriority="high" /></picture>
+  <div class="rj-hero-copy"><p class="rj-hero-eyebrow">Everyday diamonds</p><h1>A little brilliance.</h1><a href={earringsHref}>Shop diamond studs <span aria-hidden="true">&nearr;</span></a></div>
+ </article>
+ <article class="rj-hero-panel rj-hero-panel--ring">
+  <picture><source type="image/avif" srcset={`${ring}.avif`} /><img src={`${ring}.webp`} alt="Oval halo diamond ring in white gold, worn on the hand" width="1100" height="1375" loading="eager" /></picture>
+  <div class="rj-hero-copy"><p class="rj-hero-eyebrow">The ring collection</p><h2>For your forever.</h2><a href={ringsHref}>Explore halo rings <span aria-hidden="true">&nearr;</span></a></div>
+ </article>
 </section>
-
 <style>
-	.rj-hero {
-		width: 100%;
-		background: var(--rj-surface, #f4f4f4);
-	}
-
-	/* Full-bleed: the hero art stretches to the viewport at any width. */
-	.rj-hero-link {
-		display: block;
-		width: 100%;
-		margin: 0 auto;
-	}
-
-	.rj-hero-media {
-		position: relative;
-	}
-
-	.rj-hero-picture {
-		display: block;
-	}
-
-	.rj-hero-img {
-		display: block;
-		width: 100%;
-		height: auto;
-		/* 1440 x 745 */
-		aspect-ratio: 1440 / 745;
-		object-fit: cover;
-	}
-
-	.rj-hero-video {
-		position: absolute;
-		inset: 0;
-		display: block;
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-	}
-
-	/* tablet 63:40034 — 744 x 434 */
-	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
-		.rj-hero-img {
-			aspect-ratio: 744 / 434;
-		}
-	}
-
-	/* tablet landscape 114:58590 — 1024 x 588 */
-	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
-		.rj-hero-img {
-			aspect-ratio: 1024 / 588;
-		}
-	}
-
-	/* mobile 77:106848 — 412 x 290 */
-	@media (max-width: 639px) {
-		.rj-hero-img {
-			aspect-ratio: 412 / 290;
-		}
-
-		.rj-hero-video {
-			display: none;
-		}
-	}
+ .rj-hero { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; background: #fff; color: #29251e; }
+ .rj-hero-panel { position: relative; min-width: 0; height: clamp(450px, 42vw, 650px); overflow: hidden; background: #f2ede4; }
+ picture, img { display: block; width: 100%; height: 100%; }
+ img { object-fit: cover; }
+ .rj-hero-panel--studs img { object-position: 50% 28%; }
+ .rj-hero-panel--ring img { object-position: 50% 45%; }
+ .rj-hero-panel::after { content: ''; position: absolute; inset: 42% 0 0; background: linear-gradient(transparent, rgb(249 244 234 / 94%)); pointer-events: none; }
+ .rj-hero-copy { position: absolute; z-index: 1; bottom: 34px; left: 7%; right: 7%; }
+ .rj-hero-eyebrow { margin: 0 0 12px; font-size: 11px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; }
+ h1, h2 { margin: 0 0 21px; font: 400 clamp(29px, 3vw, 46px)/1.1 var(--font-heading, serif); }
+ a { display: inline-flex; align-items: center; gap: 24px; padding: 12px 20px; background: #ac8735; color: #fff; font-size: 13px; text-decoration: none; }
+ a:hover { background: #8b6b29; }
+ a:focus-visible { outline: 2px solid #8b6b29; outline-offset: 4px; }
+ @media (max-width: 639px) {
+  .rj-hero { grid-template-columns: 1fr; gap: 2px; }
+  .rj-hero-panel { height: auto; }
+  picture { height: auto; aspect-ratio: 1.35; }
+  .rj-hero-panel--ring img { object-position: 50% 36%; }
+  .rj-hero-panel::after { display: none; }
+  .rj-hero-copy { position: static; padding: 20px 22px 24px; }
+  .rj-hero-eyebrow { font-size: 10px; margin-bottom: 9px; }
+  h1, h2 { font-size: 29px; margin-bottom: 16px; }
+ }
 </style>
