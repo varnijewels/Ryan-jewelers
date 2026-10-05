@@ -9,6 +9,7 @@
 	import { catalogMegaMenu } from './catalog-navigation.js'
 	import RjAdminMegaMenu from './RjAdminMegaMenu.svelte'
 	import RjProfileDropdown from './RjProfileDropdown.svelte'
+	import RjCartDrawer from './RjCartDrawer.svelte'
 	import { menuChildren, menuHref, menuLabel, resolveAdminMenu } from './admin-menu.js'
 
 	let {
@@ -125,10 +126,10 @@
 				<button bind:this={searchToggle} class="rj-search-toggle" type="button" aria-label="Search products" aria-expanded={searchOpen} aria-controls="rj-header-search" onclick={toggleSearch}><Search size={21} strokeWidth={1.5} /></button>
 
 
-				<a class="rj-cart" href="/checkout/cart" aria-label="Open cart">
+				<button type="button" class="rj-cart" onclick={() => cartState.isOpen = true} aria-label="Open cart">
 					<span class="rj-cart-icon"><ShoppingBag size={21} strokeWidth={1.5} />{#if (cartState.cart?.qty || 0) > 0}<span class="rj-bag-badge">{cartState.cart.qty}</span>{/if}</span>
 					<span class="rj-cart-label">{nav.cartLabel}</span>
-				</a>
+				</button>
 
 				{#if isLoggedIn}
 					<RjProfileDropdown onSignOut={navModule.handleSignOut}>
@@ -218,6 +219,8 @@
 		</form>
 	{/if}
 </header>
+
+{#if cartState.isOpen}<RjCartDrawer />{/if}
 
 <style>
 	/* ------------------------------------------------------------------ *

@@ -16,6 +16,8 @@
 	import { ryansSeoText } from './seo.js'
 	import RjWideBanner from './RjWideBanner.svelte'
 	import RjImageViewer from './RjImageViewer.svelte'
+	import { addSelectionToCart } from './cart-flow.js'
+	let addingToCart = $state(false)
 	import { adjacentProductImage, variationControls, nonVariationAttributes, diamondImageForShape, discountPercent, groupedProductForAttribute, groupedProductForSelections, groupedValuesForAttribute, metalColorImage, metalColorTone, productAttributeValue, productDetailParagraphs, productImages, toggleStoredId, variantForOption, variantForSelections } from './product-details.logic.js'
 
 	const COMPARE_STORAGE_KEY = 'ryans-jewels-compare-products'
@@ -209,20 +211,13 @@
 	async function addToBag() {
 		const cartState = productState.cartState
 		if (!cartState) return toast.error('Cart is not available')
-		if (cartState.showCheckout) return goto('/checkout/cart')
 		if (!selectedVariant?.id || !product?.id) return toast.error('Please select a product variation')
-		await cartState.addOrUpdate({ productId: product.id, variantId: selectedVariant.id, qty: productState.qty })
-		if (cartState.showCheckout) toast.success('Added to bag')
-	}
-
-	async function buyNow() {
-		const cartState = productState.cartState
-		if (!cartState) return toast.error('Cart is not available')
-		if (!selectedVariant?.id || !product?.id) return toast.error('Please select a product variation')
-		const previousCartId = cartState.cart?.id
-		await cartState.createSingleItemCheckoutSession({ productId: product.id, variantId: selectedVariant.id, qty: productState.qty })
-		if (!cartState.cart?.id || cartState.cart.id === previousCartId) return toast.error('Unable to start checkout. Please try again.')
-		await goto('/checkout/address?step=shipping')
+		if (addingToCart || changingVariation) return
+		addingToCart = true
+		try {
+			await addSelectionToCart(cartState, { productId: product.id, variantId: selectedVariant.id, qty: productState.qty })
+		} catch { toast.error('Unable to add this item. Please try again.') }
+		finally { addingToCart = false }
 	}
 
 	async function toggleWishlist() {
@@ -440,10 +435,9 @@
 							<span>{productState.qty}</span>
 							<button type="button" onclick={productState.decrementQuantity} aria-label="Decrease quantity"><img src="/ryans-jewels/product/minus.svg" alt="" /></button>
 						</div>
-						<button class="rj-add" type="button" disabled={!inStock || productState.cartState?.isUpdatingCart} onclick={addToBag}>{productState.cartState?.showCheckout ? 'Go To Bag' : inStock ? 'Add To Bag' : 'Out Of Stock'}</button>
+						<button class="rj-add" type="button" disabled={!inStock || addingToCart || changingVariation || productState.cartState?.isUpdatingCart} aria-busy={addingToCart} onclick={addToBag}>{addingToCart ? 'Adding…' : inStock ? 'Add to Cart' : 'Out of Stock'}</button>
 						<button class="rj-share" type="button" onclick={shareProduct}><img src="/ryans-jewels/product/share.svg" alt="" />Share</button>
 					</div>
-					<button class="rj-buy-now" type="button" disabled={!inStock || productState.cartState?.isUpdatingCart} onclick={buyNow}><img src="/ryans-jewels/product/cart.svg" alt="" />Buy Now : {formatPrice(price, currency)}</button>
 				</div>
 			</div>
 

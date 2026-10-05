@@ -8,7 +8,7 @@ export default defineConfig({
 		environment: 'jsdom',
 		setupFiles: ['./tests/test-setup.ts'],
 		include: ['tests/**/*.{test,spec}.{js,ts}'],
-		exclude: ['node_modules', '.svelte-kit', 'src'],
+		exclude: ['node_modules', '.svelte-kit', 'src', 'tests/ryans-checkout-ui.test.ts'],
 		coverage: {
 			provider: 'v8',
 			reporter: ['text', 'json', 'html'],

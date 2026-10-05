@@ -41,6 +41,7 @@
 		"test": "bun test:wrapper",
 		"test:ui": "bun test:wrapper --ui",
 		"test:unit": "vitest",
+		"test:checkout": "vitest run --config vitest.checkout.config.ts",
 		"test:coverage": "vitest --coverage",
 		"test:watch": "vitest --watch"
 	},

@@ -46,6 +46,8 @@ describe('Ryan checkout authentication', () => {
 	})
 
 	it('allows guest checkout when the store enables it', async () => {
-		await expect(load(event('/checkout/address', undefined, undefined, true))).resolves.toEqual({})
+		for (const path of ['/checkout/address', '/checkout/payment']) {
+			await expect(load(event(path, undefined, undefined, true))).resolves.toEqual({})
+		}
 	})
 })

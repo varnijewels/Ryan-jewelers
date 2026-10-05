@@ -16,7 +16,7 @@
 	import CheckoutHeader from '$lib/components/checkout/checkout-header.svelte'
 	import { appendOneTimeCartId } from '$lib/core/utils/index.js'
 	import CheckoutButton from '$lib/components/buttons/checkout-button.svelte'
-	import RyansJewelsCheckoutOverview from '$lib/theme/ryans-jewels/RyansJewelsCheckoutOverview.svelte'
+	import RjCheckoutAddress from '$lib/theme/ryans-jewels/RjCheckoutAddress.svelte'
 
 	const addressModule = new AddressModule()
 	const cartState = addressModule.cartState
@@ -32,7 +32,7 @@
 </svelte:head>
 
 {#if isRyansJewels}
-	<RyansJewelsCheckoutOverview {addressModule} {cartState} />
+	<RjCheckoutAddress {addressModule} {cartState} />
 {:else}
 <div class="min-h-screen py-8">
 	<div class="container mx-auto px-4">

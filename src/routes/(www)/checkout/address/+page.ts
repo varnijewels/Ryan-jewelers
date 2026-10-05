@@ -1,7 +1,2 @@
-import { wwwProductsLoad } from '$lib/core/load-functions/index.js'
-import { realCatalogUrl } from '$lib/theme/ryans-jewels/product-filters.js'
-
-export const load = async (event: any) => {
-	const catalog = await wwwProductsLoad({ ...event, url: realCatalogUrl(new URL('/products', event.url)) })
-	return { checkoutProducts: catalog.products?.data || [] }
-}
+// Checkout uses the active cart; no unrelated catalog request is needed.
+export const load = () => ({})
