@@ -27,6 +27,7 @@ export default defineConfig({
 		}
 	},
 	resolve: {
+		conditions: ['browser'],
 		alias: {
 			'$env/dynamic/private': resolve('./tests/mocks/private-env.ts'),
 			'$app/environment': resolve('./tests/mocks/app-environment.ts'),
