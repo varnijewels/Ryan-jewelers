@@ -25,7 +25,7 @@ describe('Ryan Ring Studio UI', () => {
 
 		expect(screen.getByText('Twist · Pavé · Solitaire')).toBeInTheDocument()
 		expect(screen.getByText('Oval · 2.00 ct · Lab grown')).toBeInTheDocument()
-		expect(screen.getByText('18K rose gold')).toBeInTheDocument()
+		expect(within(screen.getByRole('button', { name: 'Edit metal' }).parentElement!).getByText('18K rose gold')).toBeInTheDocument()
 		expect(screen.getByText('FOREVER', { exact: true })).toBeInTheDocument()
 		expect(screen.getByTestId('ring-estimate')).toHaveTextContent('$2,690')
 		expect(screen.getByRole('button', { name: 'Download your design' })).toBeEnabled()
