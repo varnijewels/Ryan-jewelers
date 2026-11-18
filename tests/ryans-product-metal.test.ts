@@ -21,3 +21,21 @@ it('matches a card metal swatch to the same or closest grouped product configura
 	expect(choices.find((choice) => choice.key === 'rose')?.product?.slug).toBe('rose-3-12')
 	expect(choices.find((choice) => choice.key === 'silver')?.product?.slug).toBe('white-5-12')
 })
+
+it('uses the real catalog Metal Type field for color choices and grouped products', () => {
+	const choices = metalVariantChoices({
+		id: 'white', slug: 'white', ag: { 'Metal Type': ['White Gold', 'Rose Gold', 'Yellow Gold'] },
+		pg: [
+			{ id: 'white', slug: 'white', 'Metal Type': 'White Gold', 'Ring Size': '7' },
+			{ id: 'rose', slug: 'rose', 'Metal Type': 'Rose Gold', 'Ring Size': '7' },
+			{ id: 'yellow', slug: 'yellow', 'Metal Type': 'Yellow Gold', 'Ring Size': '7' }
+		]
+	})
+	expect(choices.map((choice) => choice.key)).toEqual(['silver', 'rose', 'gold'])
+	expect(choices.find((choice) => choice.key === 'rose')?.product?.slug).toBe('rose')
+})
+
+it('prefers explicit Metal Color to a separate Metal Type field', () => {
+	const choices = metalVariantChoices({ ag: { 'Metal Color': ['White Gold', 'Rose Gold'], 'Metal Type': ['14K Gold'] } })
+	expect(choices.map((choice) => choice.value)).toEqual(['White Gold', 'Rose Gold'])
+})

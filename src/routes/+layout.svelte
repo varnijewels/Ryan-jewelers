@@ -6,6 +6,8 @@
 	import { UserService } from '$lib/core/services/index.js'
 	import { GoogleAnalytics } from '$lib/core/components/index.js'
 	import RjPageLoader from '$lib/theme/ryans-jewels/RjPageLoader.svelte'
+	import { enableSmoothPageScroll } from '$lib/theme/ryans-jewels/page-scroll.js'
+	import 'lenis/dist/lenis.css'
 	import { page } from '$app/state'
 	import { updated } from '$app/state'
 	import { afterNavigate, beforeNavigate, disableScrollHandling } from '$app/navigation'
@@ -74,9 +76,18 @@
 		}
 	})
 
+	let smoothPageScroll: ReturnType<typeof enableSmoothPageScroll> | undefined
+	$effect(() => {
+		if (data?.theme?.name !== 'ryans-jewels') return
+		const controller = enableSmoothPageScroll()
+		smoothPageScroll = controller
+		return () => { controller.destroy(); smoothPageScroll = undefined }
+	})
+
 	function resetScroll() {
 		const scrollToDestination = () => {
 			const anchor = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null
+			if (smoothPageScroll?.reset(anchor || 0)) return
 			if (anchor) { anchor.scrollIntoView({ block: 'start', behavior: 'instant' }); return }
 			document.documentElement.scrollTop = 0
 			document.body.scrollTop = 0

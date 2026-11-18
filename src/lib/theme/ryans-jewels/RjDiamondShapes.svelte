@@ -1,287 +1,66 @@
 <script lang="ts">
-	/**
-	 * "FIND YOUR PERFECT CUT" — diamond cut shortcuts.
-	 * Source: 1:5518 (desktop, one row gap 55, items-end)
-	 *         63:40058 (tablet, one row gap 25)
-	 *         77:106876 (mobile, two rows with space between items)
-	 * Per-shape geometry lives in home-content.ts so the markup stays one loop.
-	 */
 	import RjRuleHeading from './RjRuleHeading.svelte'
 	import { ryansJewelsHome } from './home-content.js'
 
 	const { heading, shapes } = ryansJewelsHome.perfectCut
-	const rowOne = shapes.slice(0, 5)
-	const rowTwo = shapes.slice(5)
-	const mobileRowOne = shapes.slice(1, 6)
-	const mobileRowTwo = shapes.slice(6)
 </script>
-
-{#snippet shapeLink(shape: (typeof shapes)[number])}
-	<a
-		class="rj-shape"
-		href={shape.href}
-		style="--dgap:{shape.d.gap}px; --tgap:{shape.t.gap}px; --mgap:{shape.m.gap}px;"
-	>
-		<span
-			class="rj-shape-box"
-			style="--dpx:{shape.d.px}px; --dpy:{shape.d.py}px; --tpx:{shape.t.px}px; --tpy:{shape.t.py}px; --mpx:{shape.m.px}px; --mpy:{shape.m.py}px; {shape.box
-				? `--dbw:${shape.box.w}px; --dbh:${shape.box.h}px;`
-				: ''} {shape.boxSm ? `--tbw:${shape.boxSm.w}px; --tbh:${shape.boxSm.h}px;` : ''}"
-			class:rj-shape-box--fixed={!!shape.box}
-		>
-			<img
-				class="rj-shape-img"
-				src="/ryans-jewels/shapes/{shape.key}.svg"
-				alt=""
-				style="--dw:{shape.d.w}px; --dh:{shape.d.h}px; --tw:{shape.t.w}px; --th:{shape.t.h}px; --mw:{shape.m.w}px; --mh:{shape.m.h}px; {shape.rot
-					? `--rot:${shape.rot}deg;`
-					: ''}"
-			/>
-		</span>
-		<span class="rj-shape-label">{shape.label}</span>
-	</a>
-{/snippet}
 
 <section class="rj-cut" aria-labelledby="rj-cut-heading">
 	<div class="rj-cut-inner">
 		<RjRuleHeading text={heading} id="rj-cut-heading" />
-
-		<div class="rj-cut-rows rj-cut-rows--default">
-			<div class="rj-cut-row rj-cut-row--one">
-				{#each rowOne as shape (shape.key)}
-					{@render shapeLink(shape)}
-				{/each}
-			</div>
-			<div class="rj-cut-row rj-cut-row--two">
-				{#each rowTwo as shape (shape.key)}
-					{@render shapeLink(shape)}
-				{/each}
-			</div>
-		</div>
-
-		<div class="rj-cut-rows rj-cut-rows--mobile">
-			<div class="rj-cut-row rj-cut-row--one">
-				{#each mobileRowOne as shape (shape.key)}
-					{@render shapeLink(shape)}
-				{/each}
-			</div>
-			<div class="rj-cut-row rj-cut-row--two">
-				{#each mobileRowTwo as shape (shape.key)}
-					{@render shapeLink(shape)}
-				{/each}
-			</div>
+		<div class="rj-cut-grid">
+			{#each shapes as shape (shape.key)}
+				<a class="rj-shape" href={shape.href}>
+					<img
+						class="rj-shape-img"
+						src="/ryans-jewels/shapes/real/{shape.key}.jpg"
+						alt=""
+						width="80"
+						height="80"
+						loading="lazy"
+						decoding="async"
+					/>
+					<span class="rj-shape-label">{shape.label}</span>
+				</a>
+			{/each}
 		</div>
 	</div>
 </section>
 
 <style>
-	.rj-cut {
-		width: 100%;
-		background: #fff;
-	}
-
-	.rj-cut-inner {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 45px;
-		margin: 0 auto;
-		padding: 0 61px;
-	}
-
-	/* Desktop keeps all cuts in a single row (1:5523, items-end). */
-	.rj-cut-rows {
-		display: flex;
-		align-items: flex-end;
-		justify-content: center;
-		gap: 55px;
-	}
-
-	.rj-cut-row {
-		display: contents;
-	}
-
-	.rj-cut-rows--mobile {
-		display: none;
-	}
-
-	.rj-shape {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--dgap);
-		flex-shrink: 0;
-		text-decoration: none;
-	}
-
-	.rj-shape-box {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: var(--dpy) var(--dpx);
-		overflow: clip;
-	}
-
-	.rj-shape-box--fixed {
-		width: var(--dbw);
-		height: var(--dbh);
-		padding: 0;
-	}
-
-	.rj-shape-img {
-		display: block;
-		width: var(--dw);
-		height: var(--dh);
-		flex-shrink: 0;
-		max-width: none;
-		transform: rotate(var(--rot, 0deg));
-		transition: transform 0.25s var(--rj-ease, cubic-bezier(0.22, 0.61, 0.36, 1));
-	}
-
-	.rj-shape:hover .rj-shape-img {
-		transform: rotate(var(--rot, 0deg)) scale(1.08);
-	}
-
-	.rj-shape-label {
-		font-family: 'Sarala', var(--font-body, sans-serif);
-		font-size: 16px;
-		line-height: normal;
-		text-align: center;
-		text-transform: capitalize;
-		color: var(--rj-ink, #404040);
-		transition: color 0.18s ease;
-	}
-
-	.rj-shape:hover .rj-shape-label {
-		color: var(--rj-gold, #cca646);
-	}
-
-	/* Tablet source frames start with Oval; desktop keeps the complete cut list. */
-	@media (min-width: 640px) and (max-width: 1100px) {
-		.rj-cut-row--one .rj-shape:first-child {
-			display: none;
-		}
-	}
-
+	.rj-cut { width: 100%; background: #fff; }
+	.rj-cut-inner { display: flex; flex-direction: column; align-items: center; gap: 45px; margin: 0 auto; padding: 0 61px; }
+	.rj-cut-grid { display: grid; width: 100%; grid-template-columns: repeat(10, minmax(0, 1fr)); align-items: start; gap: 24px; }
+	.rj-shape { position: relative; display: flex; min-width: 0; flex-direction: column; align-items: center; gap: 14px; text-decoration: none; }
+	.rj-shape-img { display: block; width: 80px; max-width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; transition: transform 250ms var(--rj-ease, ease); }
+	.rj-shape:hover .rj-shape-img, .rj-shape:focus-visible .rj-shape-img { transform: translateY(-3px) scale(1.035); animation: rj-diamond-float 1.2s ease-in-out both; }
+	.rj-shape::after { position: absolute; top: 8px; right: calc(50% - 32px); width: 10px; height: 10px; background: var(--rj-gold, #cca646); clip-path: polygon(50% 0, 61% 37%, 100% 50%, 61% 63%, 50% 100%, 39% 63%, 0 50%, 39% 37%); opacity: 0; pointer-events: none; content: ''; }
+	.rj-shape:hover::after, .rj-shape:focus-visible::after { animation: rj-diamond-sparkle 1.2s ease-out both; }
+	@keyframes rj-diamond-float { 0% { transform: translateY(0) rotate(0) scale(1); } 40% { transform: translateY(-5px) rotate(-2deg) scale(1.04); } 70% { transform: translateY(-2px) rotate(1deg) scale(1.035); } 100% { transform: translateY(-3px) rotate(0) scale(1.035); } }
+	@keyframes rj-diamond-sparkle { 0%, 80%, 100% { opacity: 0; transform: scale(.4) rotate(0); } 35% { opacity: .8; transform: scale(1) rotate(45deg); } 60% { opacity: .2; transform: scale(.6) rotate(90deg); } }
+	.rj-shape-label { color: var(--rj-ink, #404040); font-size: 16px; line-height: 1.4; text-align: center; }
+	.rj-shape:hover .rj-shape-label { color: #8b6b29; }
+	.rj-shape:focus-visible { outline: 2px solid var(--rj-ink, #404040); outline-offset: 4px; }
 	@media (max-width: 1279px) {
-		.rj-cut-inner {
-			padding: 0 40px;
-		}
-
-		.rj-cut-rows {
-			gap: 32px;
-		}
+		.rj-cut-inner { padding-inline: 40px; }
+		.rj-cut-grid { gap: 18px; }
 	}
-
-	/* Tablet 744 — still one row, gap 25, smaller icons, 14px labels. */
-	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
-		.rj-cut-inner {
-			gap: 25px;
-			padding: 0 44px;
-		}
-
-		.rj-cut-inner :global(.rj-rule-heading) {
-			width: calc(100% + 4px);
-		}
-
-		.rj-cut-rows {
-			gap: 20px;
-			width: 100%;
-			justify-content: space-between;
-		}
-
-		.rj-shape {
-			gap: var(--tgap);
-		}
-
-		.rj-shape-box {
-			padding: var(--tpy) var(--tpx);
-		}
-
-		.rj-shape-box--fixed {
-			width: var(--tbw);
-			height: var(--tbh);
-			padding: 0;
-		}
-
-		.rj-shape-img {
-			width: var(--tw);
-			height: var(--th);
-		}
-
-		.rj-shape-label {
-			font-size: 14px;
-		}
+	@media (max-width: 1100px) {
+		.rj-cut-inner { gap: 30px; }
+		.rj-cut-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 24px 16px; }
+		.rj-shape-img { width: 60px; }
+		.rj-shape-label { font-size: 14px; }
 	}
-
-	@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
-		.rj-cut-inner {
-			gap: 40px;
-			padding: 0 24px;
-		}
-
-		.rj-cut-rows {
-			gap: 30px;
-		}
-	}
-
-	/* Mobile 412 — two rows, each justify-between (77:106877 / 77:106952). */
 	@media (max-width: 639px) {
-		.rj-cut-rows--default {
-			display: none;
-		}
-
-		.rj-cut-rows--mobile {
-			display: flex;
-		}
-
-		.rj-cut-inner {
-			gap: 25px;
-			padding: 0 15px;
-		}
-
-		.rj-cut-rows {
-			flex-direction: column;
-			align-items: stretch;
-			gap: 19px;
-			width: 100%;
-		}
-
-		.rj-cut-row {
-			display: flex;
-			align-items: flex-end;
-			justify-content: space-between;
-		}
-
-		.rj-cut-row--one {
-			height: 79px;
-			padding: 0 15px;
-		}
-
-		.rj-cut-row--two {
-			height: 75px;
-			padding: 0 45px;
-		}
-
-		.rj-shape {
-			height: 100%;
-			justify-content: space-between;
-			gap: 0;
-		}
-
-		.rj-shape-box {
-			padding: var(--mpy) var(--mpx);
-		}
-
-		.rj-shape-box--fixed {
-			width: var(--tbw);
-			height: var(--tbh);
-			padding: 0;
-		}
-
-		.rj-shape-img {
-			width: var(--mw);
-			height: var(--mh);
-		}
+		.rj-cut-inner { gap: 25px; padding-inline: 24px; }
+		.rj-cut-grid { gap: 22px 12px; }
+		.rj-shape { gap: 10px; }
+		.rj-shape-img { width: 48px; }
+		.rj-shape-label { font-size: 12px; }
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.rj-shape-img { transition: none; }
+		.rj-shape:hover .rj-shape-img, .rj-shape:focus-visible .rj-shape-img { animation: none; transform: none; }
+		.rj-shape:hover::after, .rj-shape:focus-visible::after { animation: none; opacity: 0; }
 	}
 </style>

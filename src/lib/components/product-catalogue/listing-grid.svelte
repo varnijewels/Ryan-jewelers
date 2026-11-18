@@ -72,7 +72,7 @@
 {:else}
 	<div class="intra-gap grid auto-rows-auto grid-cols-2 lg:grid-cols-3" class:rj-listing-grid={isRyan} class:rj-listing-list={isRyan && ryanLayout === 'list'}>
 		{#each products as product (product.id)}
-			{#if isRyan}<RjProductCard {product} size="listing" showSwatches={false} />{:else}<ProductCard {product} />{/if}
+			{#if isRyan}<RjProductCard {product} size="listing" />{:else}<ProductCard {product} />{/if}
 		{/each}
 	</div>
 

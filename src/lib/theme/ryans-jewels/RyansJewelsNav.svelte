@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ChevronRight, Gem, Heart, Menu, Search, ShoppingBag, UserRound } from '@lucide/svelte'
+	import { ChevronRight, CircleHelp, Gem, Heart, MapPin, Menu, MessageCircle, PackageCheck, Search, ShoppingBag, UserRound } from '@lucide/svelte'
 	import { page } from '$app/state'
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu'
 	import { AuthButton } from '$lib/core/components/index.js'
@@ -9,6 +9,7 @@
 	import { ryansJewelsNavContent as nav } from './nav-content.js'
 	import { catalogMegaMenu } from './catalog-navigation.js'
 	import RjAdminMegaMenu from './RjAdminMegaMenu.svelte'
+	import RjAnnouncementBar from './RjAnnouncementBar.svelte'
 	import RjProfileDropdown from './RjProfileDropdown.svelte'
 	import RjCartDrawer from './RjCartDrawer.svelte'
 	import { menuChildren, menuHref, menuLabel, resolveAdminMenu } from './admin-menu.js'
@@ -53,6 +54,17 @@
 		if (event.key === 'Escape') openMega = null
 	}}
 >
+	<div class="rj-utility">
+		<div class="rj-utility-links">
+			<a href={nav.utility.findStore.href}><MapPin size={14} strokeWidth={1.4} aria-hidden="true" /><span>{nav.utility.findStore.label}</span></a>
+			<a href={nav.utility.help.href}><CircleHelp size={14} strokeWidth={1.4} aria-hidden="true" /><span>{nav.utility.help.label}</span></a>
+		</div>
+		<a class="rj-utility-feature" href={nav.utility.dailyDeals.href}>{nav.utility.dailyDeals.label}</a>
+		<div class="rj-utility-links rj-utility-right">
+			<a href={nav.utility.trackOrder.href}><PackageCheck size={14} strokeWidth={1.4} aria-hidden="true" /><span>{nav.utility.trackOrder.label}</span></a>
+			<a href={nav.utility.helpContact.href}><MessageCircle size={14} strokeWidth={1.4} aria-hidden="true" /><span>{nav.utility.helpContact.label}</span></a>
+		</div>
+	</div>
 	<div class="rj-header-inner">
 		<!-- Row 1 -->
 		<div class="rj-row-primary" onmouseenter={() => (openMega = null)}>
@@ -61,70 +73,72 @@
 			</button>
 
 			<a class="rj-brand" href="/" aria-label="{nav.brandName} home">
-				<span class="rj-brand-mark">
-					<img src={nav.logo} alt="" />
-				</span>
 				<span class="rj-brand-name">{nav.brandName}</span>
 			</a>
-
-			<MsSearchRenderer bind:search>
-				{#snippet content({ searchResults, showSearchResults, loading, searchPlugin, closeSearch, handleKeyDown, handleResultClick, toggleSearchResults })}
-					<form class="rj-search" action="/products" method="GET" onsubmit={() => toggleSearchResults(false)}>
-						<input
-							class="rj-search-input"
-							type="search"
-							name="search"
-							bind:value={search}
-							placeholder={searchPlugin?.placeholder || nav.searchPlaceholder}
-							aria-label={searchPlugin?.placeholder || nav.searchPlaceholder}
-							autocomplete="off"
-							enterkeyhint="search"
-							onfocus={() => toggleSearchResults(true)}
-							onkeydown={(event) => {
-								if (event.key !== 'Enter') handleKeyDown(event)
-							}}
-						/>
-						<button class="rj-search-submit" type="submit" aria-label="Search products"><Search size={21} strokeWidth={1.25} aria-hidden="true" /></button>
-
-						{#if showSearchResults && search}
-							<div class="rj-search-results">
-								{#if loading}
-									{#each Array(4) as _}
-										<div class="rj-search-skeleton"></div>
-									{/each}
-								{:else if searchResults.length > 0}
-									<ul>
-										{#each searchResults as result}
-											<li>
-												<button type="button" onclick={() => handleResultClick(result)}>
-													<span class="rj-search-thumb">
-														{#if result.thumbnail}<img src={result.thumbnail} alt="" />{/if}
-													</span>
-													<span class="rj-search-meta">
-														<span class="rj-search-title">{result.name || result.title}</span>
-														{#if result.price}
-															<span class="rj-search-price">{priceRoundUp(result?.price, page?.data?.store?.currency?.code)}</span>
-														{/if}
-													</span>
-												</button>
-											</li>
-										{/each}
-									</ul>
-								{:else}
-									<p class="rj-search-empty">No products found for “{search}”.</p>
-								{/if}
-							</div>
-							<button type="button" class="rj-search-backdrop" tabindex="-1" aria-label="Close search" onclick={closeSearch}></button>
-						{/if}
-					</form>
-				{/snippet}
-			</MsSearchRenderer>
 
 			<div class="rj-tools">
 				<div class="rj-shortcuts">
 					<a class="rj-shortcut rj-ring-builder" href="/ring-builder" title="Create your ring">
 						<Gem size={20} aria-hidden="true" /><span>Ring Builder</span>
 					</a>
+
+					<details class="rj-search-toggle">
+						<summary aria-label="Search products"><Search size={19} strokeWidth={1.25} aria-hidden="true" /><span>{nav.searchLabel}</span></summary>
+						<div class="rj-search-panel">
+							<MsSearchRenderer bind:search>
+								{#snippet content({ searchResults, showSearchResults, loading, searchPlugin, closeSearch, handleKeyDown, handleResultClick, toggleSearchResults })}
+									<form class="rj-search" action="/products" method="GET" onsubmit={() => toggleSearchResults(false)}>
+										<input
+											class="rj-search-input"
+											type="search"
+											name="search"
+											bind:value={search}
+											placeholder={searchPlugin?.placeholder || nav.searchPlaceholder}
+											aria-label={searchPlugin?.placeholder || nav.searchPlaceholder}
+											autocomplete="off"
+											enterkeyhint="search"
+											onfocus={() => toggleSearchResults(true)}
+											onkeydown={(event) => {
+												if (event.key !== 'Enter') handleKeyDown(event)
+											}}
+										/>
+										<button class="rj-search-submit" type="submit" aria-label="Search products"><Search size={21} strokeWidth={1.25} aria-hidden="true" /></button>
+
+										{#if showSearchResults && search}
+											<div class="rj-search-results">
+												{#if loading}
+													{#each Array(4) as _}
+														<div class="rj-search-skeleton"></div>
+													{/each}
+												{:else if searchResults.length > 0}
+													<ul>
+														{#each searchResults as result}
+															<li>
+																<button type="button" onclick={() => handleResultClick(result)}>
+																	<span class="rj-search-thumb">
+																		{#if result.thumbnail}<img src={result.thumbnail} alt="" />{/if}
+																	</span>
+																	<span class="rj-search-meta">
+																		<span class="rj-search-title">{result.name || result.title}</span>
+																		{#if result.price}
+																			<span class="rj-search-price">{priceRoundUp(result?.price, page?.data?.store?.currency?.code)}</span>
+																		{/if}
+																	</span>
+																</button>
+															</li>
+														{/each}
+													</ul>
+												{:else}
+													<p class="rj-search-empty">No products found for “{search}”.</p>
+												{/if}
+											</div>
+											<button type="button" class="rj-search-backdrop" tabindex="-1" aria-label="Close search" onclick={closeSearch}></button>
+										{/if}
+									</form>
+								{/snippet}
+							</MsSearchRenderer>
+						</div>
+					</details>
 				</div>
 
 				<div class="rj-actions">
@@ -187,7 +201,6 @@
 				<a class="rj-menu-home" href={homeHref} aria-current={pathname === homeHref ? 'page' : undefined} onmouseenter={() => (openMega = null)}>
 					{homeLabel}
 				</a>
-				<span class="rj-menu-divider"></span>
 				<div class="rj-menu-list">
 					{#each resolvedMenu.items as item, index}
 						{@const label = menuLabel(item)}
@@ -228,62 +241,112 @@
 
 		</div>
 	</div>
+	<RjAnnouncementBar />
 </header>
 
 {#if cartState.isOpen}<RjCartDrawer />{/if}
 
 <style>
 	.rj-header {
+		--rj-header-accent: #2c3543;
+		--rj-header-promo: #fff;
 		position: sticky;
 		top: 0;
 		z-index: 50;
 		width: 100%;
-		border-top: 3px solid var(--rj-gold, #cca646);
+		border-top: 3px solid var(--rj-header-accent);
 		background: #fff;
 		color: var(--rj-ink, #404040);
-		font-family: 'Sarala', var(--font-body, sans-serif);
-		box-shadow: 0 2px 8px #40351d0a;
+		font-family: var(--font-body, sans-serif);
 	}
-	.rj-row-primary {
+	.rj-utility {
+		background: #ac8735;
+		color: #fff;
 		display: grid;
-		grid-template-columns: minmax(290px, 1fr) minmax(140px, 800px) minmax(290px, 1fr);
+		grid-template-columns: 1fr auto 1fr;
 		align-items: center;
-		gap: 22px;
-		min-height: 80px;
-		padding: 14px 3.2%;
+		min-height: 32px;
+		padding: 0 40px;
+		border-bottom: 1px solid var(--rj-line, #e5e5e5);
+		font-size: 12px;
 	}
-	.rj-brand {
+	.rj-utility-links {
 		display: flex;
 		align-items: center;
-		gap: 9px;
-		flex-shrink: 0;
+		gap: 18px;
+	}
+	.rj-utility-right {
+		justify-content: flex-end;
+	}
+	.rj-utility a {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		min-height: 32px;
+		color: inherit;
+		text-decoration: none;
+		white-space: nowrap;
+	}
+	.rj-utility a:hover {
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+	.rj-header-inner {
+		position: relative;
+		z-index: 1;
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		align-items: center;
+		gap: 16px;
+		min-height: 56px;
+		padding: 0 40px;
+	}
+	.rj-row-primary {
+		display: contents;
+	}
+	.rj-brand {
+		grid-column: 1;
+		grid-row: 1;
+		display: flex;
+		align-items: center;
+		min-width: 0;
 		text-decoration: none;
 	}
-	.rj-brand-mark {
-		position: relative;
-		display: block;
-		width: 44px;
-		height: 42px;
-		overflow: hidden;
-		flex-shrink: 0;
-	}
-	.rj-brand-mark img {
-		position: absolute;
-		left: -59.69%;
-		top: -39%;
-		width: 206.72%;
-		height: 221.3%;
-		max-width: none;
-	}
 	.rj-brand-name {
-		color: #947320;
-		font:
-			400 23px/1.2 'Inria Serif',
-			var(--font-heading, serif);
+		color: #ac8735;
+		font: 400 20px/1.2 'Inria Serif', Georgia, serif;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
 		white-space: nowrap;
 	}
 	.rj-burger {
 		display: none;
+	}
+	.rj-search-toggle > summary {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 40px;
+		min-height: 40px;
+		list-style: none;
+		cursor: pointer;
+	}
+	.rj-search-toggle > summary::-webkit-details-marker {
+		display: none;
+	}
+	.rj-search-toggle > summary span {
+		display: none;
+	}
+	.rj-search-panel {
+		position: absolute;
+		top: 100%;
+		right: 40px;
+		z-index: 90;
+		width: min(620px, calc(100% - 80px));
+		padding: 16px;
+		border: 1px solid var(--rj-line, #e5e5e5);
+		background: #fff;
+		box-shadow: 0 12px 30px #40351d1f;
 	}
 	.rj-search {
 		position: relative;
@@ -330,10 +393,12 @@
 		cursor: pointer;
 	}
 	.rj-tools {
+		grid-column: 3;
+		grid-row: 1;
 		display: flex;
 		align-items: center;
 		justify-content: flex-end;
-		gap: 22px;
+		gap: 16px;
 	}
 	.rj-shortcuts {
 		display: flex;
@@ -347,17 +412,17 @@
 		justify-content: center;
 		gap: 8px;
 		min-height: 42px;
-		padding: 8px 12px;
-		border: 1px solid var(--rj-line-2, #d9d9d9);
-		border-radius: 6px;
-		color: #6b521a;
+		padding: 8px 0;
+		border: 0;
+		color: inherit;
 		font-size: 12px;
 		white-space: nowrap;
 		text-decoration: none;
 		transition: background 0.15s ease;
 	}
 	.rj-shortcut:hover {
-		background: #f3e8ca;
+		text-decoration: underline;
+		text-underline-offset: 4px;
 	}
 	.rj-actions {
 		display: flex;
@@ -415,22 +480,13 @@
 		cursor: pointer;
 	}
 	.rj-row-menu {
+		grid-column: 2;
+		grid-row: 1;
 		display: flex;
-		align-items: center;
 		justify-content: center;
-		gap: 24px;
-		min-height: 48px;
-		padding: 0 3.2%;
-		border-top: 1px solid var(--rj-line, #e5e5e5);
-		background: #fff;
-		color: var(--rj-ink, #404040);
-	}
-	.rj-menu {
-		display: flex;
-		align-items: center;
-		gap: 22px;
 		min-width: 0;
 	}
+	.rj-menu,
 	.rj-menu-list {
 		display: flex;
 		align-items: center;
@@ -440,12 +496,6 @@
 	.rj-menu-entry {
 		display: flex;
 		align-items: center;
-		flex-shrink: 0;
-	}
-	.rj-menu-divider {
-		width: 1px;
-		height: 17px;
-		background: #352a1633;
 		flex-shrink: 0;
 	}
 	.rj-menu-home,
@@ -470,9 +520,9 @@
 		flex-shrink: 0;
 		transition: transform 0.16s ease;
 	}
-	.rj-header :is(a, button, input):focus-visible,
+	.rj-header :is(a, button, input, summary):focus-visible,
 	.rj-header :global(button:focus-visible) {
-		outline: 2px solid #806321;
+		outline: 2px solid var(--rj-heading, #202020);
 		outline-offset: 3px;
 	}
 	.rj-search-backdrop {
@@ -640,32 +690,27 @@
 		stroke-width: 1.2;
 	}
 
-	@media (max-width: 1279px) and (min-width: 1024px) {
-		.rj-row-primary {
-			gap: 14px;
-		}
-		.rj-brand-name {
-			display: none;
+	@media (max-width: 1399px) and (min-width: 1200px) {
+		.rj-header-inner {
+			gap: 12px;
 		}
 		.rj-menu,
 		.rj-menu-list {
 			gap: 16px;
 		}
-		.rj-menu-home,
-		.rj-menu-item {
-			font-size: 12px;
+		.rj-actions {
+			gap: 4px;
 		}
 	}
-	@media (max-width: 1023px) {
+	@media (max-width: 1199px) {
+		.rj-header-inner {
+			grid-template-columns: 40px minmax(0, 1fr) auto;
+			grid-template-areas: 'menu brand actions' 'shortcuts shortcuts shortcuts';
+			gap: 8px 12px;
+			padding: 10px 40px;
+		}
 		.rj-tools {
 			display: contents;
-		}
-		.rj-row-primary {
-			display: grid;
-			grid-template-columns: 40px minmax(0, 1fr) auto;
-			grid-template-areas: 'menu brand actions' 'search search search' 'shortcuts shortcuts shortcuts';
-			gap: 12px;
-			padding: 12px 24px;
 		}
 		.rj-burger {
 			grid-area: menu;
@@ -675,62 +720,75 @@
 			height: 40px;
 			padding: 0;
 			border: 0;
-			border-radius: 50%;
 			background: none;
-			color: #806321;
+			color: inherit;
 			cursor: pointer;
 		}
 		.rj-brand {
 			grid-area: brand;
 		}
-		.rj-brand-mark {
-			width: 34px;
-			height: 32px;
+		.rj-search-toggle > summary {
+			justify-content: flex-start;
+			gap: 10px;
+			width: 100%;
+			font-size: 13px;
 		}
-		.rj-brand-name {
-			font-size: 22px;
-		}
-		.rj-search {
-			grid-area: search;
-			min-width: 0;
-			max-width: none;
+		.rj-search-toggle > summary span {
+			display: inline;
 		}
 		.rj-shortcuts {
 			grid-area: shortcuts;
+			justify-content: space-between;
 		}
 		.rj-shortcut {
-			flex: 1;
-			min-height: 36px;
-			padding: 5px 12px;
+			min-height: 40px;
+			padding: 5px 0;
 		}
 		.rj-actions {
 			grid-area: actions;
+			gap: 0;
 		}
 		.rj-row-menu {
 			display: none;
 		}
 	}
 	@media (max-width: 639px) {
-		.rj-row-primary {
-			gap: 10px 6px;
-			padding: 10px 16px 12px;
-		}
-		.rj-brand {
-			gap: 6px;
-		}
 		.rj-brand-name {
 			font-size: 18px;
 		}
-		.rj-actions {
-			gap: 0;
+		.rj-utility {
+			grid-template-columns: 1fr auto;
+			padding: 0 24px;
+			font-size: 11px;
 		}
+		.rj-utility-links {
+			gap: 12px;
+		}
+		.rj-utility-right {
+			display: none;
+		}
+		.rj-header-inner {
+			grid-template-columns: 32px minmax(0, 1fr) auto;
+			column-gap: 6px;
+			padding: 8px 24px;
+		}
+		.rj-burger {
+			width: 32px;
+		}
+		.rj-account,
+		.rj-wishlist,
+		.rj-cart {
+			width: 32px;
+		}
+		.rj-search-panel {
+			right: 24px;
+			width: calc(100% - 48px);
+		}
+
 	}
 	@media (max-width: 389px) {
 		.rj-brand-name {
 			font-size: 16px;
-		}
-		.rj-brand-mark {
-			display: none;
 		}
 	}
 </style>

@@ -12,7 +12,10 @@
 	import RjProductCard from './RjProductCard.svelte'
 	import RjRule from './RjRule.svelte'
 	import { filterProductsByCategory } from './product-filters.js'
-	import { tick } from 'svelte'
+	import { onMount, tick } from 'svelte'
+	import emblaCarouselSvelte from 'embla-carousel-svelte'
+	import AutoScroll from 'embla-carousel-auto-scroll'
+	import type { EmblaCarouselType } from 'embla-carousel'
 
 	let {
 		products = [],
@@ -29,37 +32,86 @@
 	} = $props()
 
 	let activeCategory = $state('All')
+	let carouselApi = $state<EmblaCarouselType>()
 	let track = $state<HTMLDivElement>()
+	const autoScroll = AutoScroll({ speed: 1, startDelay: 1500, playOnInit: false, stopOnMouseEnter: true, stopOnInteraction: true })
+	const carouselConfig = { options: { loop: true, align: 'start' as const }, plugins: [autoScroll] }
 	let atStart = $state(true)
 	let atEnd = $state(false)
+	let paused = $state(false)
+	let hovered = $state(false)
+	let focused = $state(false)
+	let touching = $state(false)
+	let reducedMotion = $state(false)
 	const visible = $derived(filterProductsByCategory(products || [], activeCategory))
 
+	onMount(() => {
+		const preference = window.matchMedia('(prefers-reduced-motion: reduce)')
+		const updatePreference = () => {
+			reducedMotion = preference.matches
+			if (reducedMotion) paused = true
+		}
+		updatePreference()
+		preference.addEventListener('change', updatePreference)
+		return () => preference.removeEventListener('change', updatePreference)
+	})
+
+	$effect(() => {
+		const api = carouselApi
+		if (!api) return
+		const refresh = () => { updateScrollState(); syncPlayback() }
+		api.on('select', updateScrollState).on('reInit', refresh)
+		document.addEventListener('visibilitychange', syncPlayback)
+		refresh()
+		return () => {
+			api.off('select', updateScrollState).off('reInit', refresh)
+			document.removeEventListener('visibilitychange', syncPlayback)
+		}
+	})
+
+	$effect(syncPlayback)
+
+	function syncPlayback() {
+		if (!carouselApi) return
+		if (paused || hovered || focused || touching || document.hidden || (!carouselApi.canScrollNext() && !carouselApi.canScrollPrev())) autoScroll.stop()
+		else autoScroll.play()
+	}
+
 	function updateScrollState() {
-		if (!track) return
-		atStart = track.scrollLeft <= 1
-		atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 1
+		atStart = !carouselApi?.canScrollPrev()
+		atEnd = !carouselApi?.canScrollNext()
 	}
 
 	function scrollProducts(direction: -1 | 1) {
-		track?.scrollBy({ left: direction * Math.max(track.clientWidth * .8, 280), behavior: 'smooth' })
+		autoScroll.stop()
+		if (direction < 0) carouselApi?.scrollPrev(reducedMotion)
+		else carouselApi?.scrollNext(reducedMotion)
+		syncPlayback()
 	}
 
 	async function changeCategory(category: string) {
 		activeCategory = category
 		await tick()
-		track?.scrollTo({ left: 0 })
-		updateScrollState()
+		if (track?.childElementCount) carouselApi?.reInit({ startIndex: 0 })
 	}
 </script>
 
-<section class="rj-row">
+<section
+	class="rj-row"
+	aria-label="Featured products"
+	onmouseenter={() => hovered = true}
+	onmouseleave={() => hovered = false}
+	ontouchstart={() => touching = true}
+	ontouchend={() => touching = false}
+	ontouchcancel={() => touching = false}
+>
 	{#if showRule}
 		<span class="rj-row-divider">
 			<RjRule />
 		</span>
 	{/if}
 
-	<RjFilterBar active={activeCategory} onchange={changeCategory} onprevious={() => scrollProducts(-1)} onnext={() => scrollProducts(1)} previousDisabled={atStart || !visible.length} nextDisabled={atEnd || !visible.length} />
+	<RjFilterBar active={activeCategory} onchange={changeCategory} onprevious={() => scrollProducts(-1)} onnext={() => scrollProducts(1)} previousDisabled={atStart || !visible.length} nextDisabled={atEnd || !visible.length} {paused} ontoggleautoplay={() => { paused = !paused; if (!paused) focused = false }} />
 
 	{#if loading && !visible.length}
 		<div class="rj-row-track" aria-busy="true">
@@ -68,10 +120,18 @@
 			{/each}
 		</div>
 	{:else if visible.length}
-		<div class="rj-row-track" bind:this={track} onscroll={updateScrollState}>
-			{#each visible as product (product?.id || product?.slug)}
-				<RjProductCard {product} showSwatches={false} />
-			{/each}
+		<div
+			class="rj-row-viewport"
+			use:emblaCarouselSvelte={carouselConfig}
+			onemblaInit={(event) => carouselApi = event.detail}
+			onfocusin={() => focused = true}
+			onfocusout={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) focused = false }}
+		>
+			<div class="rj-row-track" bind:this={track}>
+				{#each visible as product (product?.id || product?.slug)}
+					<RjProductCard {product} />
+				{/each}
+			</div>
 		</div>
 	{:else}
 		<p class="rj-row-empty">{activeCategory === 'All' ? emptyText : `No ${activeCategory.toLowerCase()} are available yet.`}</p>
@@ -98,18 +158,18 @@
 		margin-bottom: 5px;
 	}
 
-	.rj-row-track {
-		display: flex;
-		align-items: center;
-		justify-content: safe center;
-		gap: min(4.628%, 61px);
-		width: 100%;
-		overflow-x: auto;
-		scroll-snap-type: x mandatory;
-		scrollbar-width: none;
-	}
+	.rj-row-viewport { width: 100%; overflow: hidden; }
 
-	.rj-row-track::-webkit-scrollbar { display: none; }
+	.rj-row-track {
+		--rj-row-gap: 20px;
+		touch-action: pan-y pinch-zoom;
+		will-change: transform;
+		display: flex;
+		align-items: flex-start;
+		justify-content: flex-start;
+		gap: var(--rj-row-gap);
+		width: 100%;
+	}
 
 	/*
 	 * Cards share the available row and cap at the source's 272px width.
@@ -119,8 +179,9 @@
 		flex: 0 0 272px;
 		max-width: 272px;
 		min-width: 0;
-		scroll-snap-align: start;
 	}
+
+	.rj-row-track > :global(:last-child) { margin-right: var(--rj-row-gap, 20px); }
 
 	.rj-row-track :global(.rj-card) {
 		width: 100%;
@@ -184,19 +245,9 @@
 
 		.rj-row-track {
 			justify-content: flex-start;
-			gap: 61px;
-			overflow-x: auto;
-			scroll-snap-type: x mandatory;
-			scrollbar-width: none;
+			gap: 20px;
+
 			padding-left: 10px;
-		}
-
-		.rj-row-track::-webkit-scrollbar {
-			display: none;
-		}
-
-		.rj-row-track > :global(*) {
-			scroll-snap-align: start;
 		}
 
 		.rj-row-skeleton {
@@ -217,7 +268,7 @@
 
 		.rj-row-track {
 			justify-content: flex-start;
-			gap: 22px;
+			--rj-row-gap: 22px;
 			width: calc(100% + 30px);
 		}
 
@@ -229,16 +280,6 @@
 
 		.rj-row-track :global(.rj-card) {
 			width: 235px;
-		}
-
-		.rj-row-track :global(.rj-card-media) {
-			height: 250px;
-			aspect-ratio: auto;
-		}
-
-		.rj-row-track :global(.rj-card-info) {
-			width: 203px;
-			min-height: 136px;
 		}
 
 		.rj-row-track :global(.rj-card-swatch) {
@@ -254,6 +295,13 @@
 		}
 	}
 
+	@media (min-width: 1600px) {
+		.rj-row-track > :global(*) {
+			flex-basis: calc((100% - 80px) / 5);
+			max-width: none;
+		}
+	}
+
 	@media (max-width: 639px) {
 		.rj-row {
 			gap: 20px;
@@ -264,7 +312,7 @@
 		}
 
 		.rj-row-track {
-			gap: 26px;
+			gap: 20px;
 		}
 
 		.rj-row-skeleton {

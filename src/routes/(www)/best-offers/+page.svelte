@@ -209,8 +209,6 @@
 		.rj-offers-edit { padding: 65px 20px 75px; }
 		.rj-offers-edit > header { align-items: flex-start; flex-direction: column; }
 		.rj-offers-grid { gap: 18px 12px; }
-		.rj-offers-grid li :global(.rj-tile) { height: 285px; }
-		.rj-offers-grid li :global(.rj-tile-media) { height: 178px; }
 		.rj-offers-banner { min-height: 0; margin: 0 20px; }
 		.rj-offers-banner > div { padding: 30px 22px; }
 		.rj-offers-banner h2 { font-size: 36px; }

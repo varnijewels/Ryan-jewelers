@@ -874,15 +874,6 @@
 	.rj-related-head h2 { margin: 0; color: #202020; font: 600 18px/22px 'Sarala', sans-serif; letter-spacing: 0; }
 	.rj-related-head p { margin: 0; color: #707070; font: 8px/12px 'Lato', sans-serif; }
 	.rj-related-item { flex: 0 0 calc((100% - 72px) / 4); min-width: 0; }
-	.rj-related-item :global(.rj-card--listing .rj-card-info) { gap: 5px; }
-	.rj-related-item :global(.rj-card--listing .rj-card-swatch) { width: 18px; height: 18px; border-radius: 5px; }
-	.rj-related-item :global(.rj-card--listing .rj-card-name) { font-size: 12px; line-height: 17px; }
-	.rj-related-item :global(.rj-card--listing .rj-card-category) { font-size: 9px; }
-	.rj-related-item :global(.rj-card--listing .rj-card-star) { width: 11px; height: 11px; }
-	.rj-related-item :global(.rj-card--listing .rj-card-rating-value) { height: 11px; font-size: 10px; line-height: 11px; transform: none; }
-	.rj-related-item :global(.rj-card--listing .rj-card-price) { font-size: 16px; }
-	.rj-related-item :global(.rj-card-wish) { padding: 7px; }
-	.rj-related-item :global(.rj-card-heart), .rj-related-item :global(.rj-card-spinner) { width: 18px; height: 18px; }
 	.rj-related :global(.rj-carousel-track) { gap: 24px; }
 	.rj-related :global(.rj-carousel-rail) { height: 4px; margin-top: 28px; border-radius: 4px; background: #f5f5f5; }
 	.rj-related :global(.rj-carousel-thumb) { height: 4px; background: #cca646; }

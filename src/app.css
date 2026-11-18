@@ -260,6 +260,7 @@
 		--font-body: 'Figtree', Arial, sans-serif;
 		--font-primary: 'Figtree', Arial, sans-serif;
 		--rj-gold: #cca646;
+		--rj-card-border: color-mix(in srgb, var(--rj-gold) 20%, #fff);
 		--rj-ink: #404040;
 		--rj-ink-2: #606060;
 		--rj-cream: #faf6ea;
@@ -465,4 +466,8 @@ body:has([data-theme='ryans-jewels']) :is(.rj-brand-name, .rj-foot-brand-name) {
 /* Keep phone form controls readable and prevent iOS focus zoom. */
 @media (max-width: 767px) {
 	body:has([data-theme='ryans-jewels']) :is(input:not([type='checkbox']):not([type='radio']):not([type='range']), select, textarea) { font-size: 16px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html:has([data-theme='ryans-jewels']) { scroll-behavior: auto; }
 }

@@ -93,9 +93,14 @@ export function metalVariantChoices(product) {
 	const variants = /** @type {any[]} */ (Array.isArray(product?.variants) ? product.variants : [])
 	const options = /** @type {any[]} */ (product?.options || [])
 	const groupedProducts = /** @type {any[]} */ (product?.pg || [])
-	const option = options.find((item) => /\bmetal\s*color\b/i.test(item.title || item.type || ''))
-	const aggregationKey = Object.keys(product?.ag || {}).find((key) => /\bmetal\s*color\b/i.test(key))
-	const attributeValues = /** @type {any[]} */ (product?.['attributes.Metal_Color'] || (product?.attributes || []).filter((/** @type {any} */ item) => /\bmetal\s*color\b/i.test(item.name || item.title || '')).map((/** @type {any} */ item) => item.value))
+	const colorPattern = /\bmetal[\s_]*colou?r\b/i
+	const typePattern = /\bmetal[\s_]*type\b/i
+	const option = options.find((item) => colorPattern.test(item.title || item.type || '')) || options.find((item) => typePattern.test(item.title || item.type || ''))
+	const aggregationKeys = Object.keys(product?.ag || {})
+	const aggregationKey = aggregationKeys.find((key) => colorPattern.test(key)) || aggregationKeys.find((key) => typePattern.test(key))
+	const colorAttributes = (product?.attributes || []).filter((/** @type {any} */ item) => colorPattern.test(item.name || item.title || ''))
+	const typeAttributes = (product?.attributes || []).filter((/** @type {any} */ item) => typePattern.test(item.name || item.title || ''))
+	const attributeValues = /** @type {any[]} */ (product?.['attributes.Metal_Color']?.length ? product['attributes.Metal_Color'] : product?.['attributes.Metal_Type'] || (colorAttributes.length ? colorAttributes : typeAttributes).map((/** @type {any} */ item) => item.value))
 	const values = /** @type {any[]} */ ([...(option?.values || []).map((/** @type {any} */ item) => item.value), ...((aggregationKey && product.ag[aggregationKey]) || []), ...attributeValues])
 	if (!values.length && option?.id) variants.forEach((variant) => values.push(...(variant.options || []).filter((/** @type {any} */ item) => item.optionId === option.id).map((/** @type {any} */ item) => item.value)))
 

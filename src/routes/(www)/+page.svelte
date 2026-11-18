@@ -91,7 +91,9 @@
 		try {
 			const results = await Promise.allSettled([
 				'/products?categories=engagement',
-				'/products?sort=createdAt%3Adesc'
+				'/products?sort=createdAt%3Adesc',
+				'/categories/pendants',
+				'/categories/earrings'
 			].map((path) => searchService.searchWithUrl(realCatalogUrl(new URL(path, sveltePage.url.origin)))))
 			const products = withoutDemoProducts(results.flatMap((result) => result.status === 'fulfilled' ? result.value.data || [] : []))
 			const isWhiteGold = (product: any) => /white gold|\bWG\b/i.test([

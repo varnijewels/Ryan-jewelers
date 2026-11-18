@@ -1,27 +1,16 @@
 <script lang="ts">
-	/**
-	 * Ryan Jewelers product card.
-	 * Source: 1:5663 (desktop 272 / media 250) · 63:40199 (tablet 226 / media 208)
-	 *         · 77:107021 (mobile 190 / media 174)
-	 *
-	 * Product content is live API data; the three swatches follow the source frame.
-	 */
+	import { ChevronLeft, ChevronRight, Heart, LoaderCircle } from '@lucide/svelte'
+	import { onMount } from 'svelte'
 	import { page } from '$app/state'
 	import { formatPrice } from '$lib/core/utils/index.js'
 	import { metalSwatchFills } from './home-content.js'
-	import { listingImage, metalColorImage, metalVariantChoices } from './product-details.logic.js'
+	import { adjacentProductImage, discountPercent, listingImage, metalVariantChoices, productImages } from './product-details.logic.js'
 	import { productRating } from './product-filters.js'
 	import { canonicalProductPath } from './seo.js'
 
-	/**
-	 * `size` picks the two card boxes the source uses for this card:
-	 *   default — 272 / 226 / 190  (section 5, 1:5663)
-	 *   wide    — 272 / 272 / 190  (section 13, 1:6226 — tablet keeps the
-	 *             desktop box instead of shrinking)
-	 */
 	let {
 		product,
-		aspectRatio = '272:250',
+		aspectRatio = '1:1',
 		size = 'default',
 		showSwatches = true,
 		imageOverride = ''
@@ -36,427 +25,204 @@
 	const currencyCode = $derived(page?.data?.store?.currency?.code || '')
 	let selectedMetal = $state('')
 	let loadedMetalProducts = $state<Record<string, any>>({})
+	let productDetails = $state<any>(null)
 	let productDetailsPromise: Promise<any> | undefined
+	let detailsLoaded = $state(false)
+	let detailsLoading = $state(false)
+	let metalLoading = $state('')
+	let activeImage = $state('')
+	let mediaMessage = $state('')
+	let mediaElement: HTMLDivElement
 
-	const title = $derived(product?.title || product?.name || '')
-	const metalChoices = $derived(metalVariantChoices(product))
-	const swatches = $derived([
-		metalChoices.find((choice) => choice.key === 'gold') || { value: 'Yellow Gold', key: 'gold', variant: null, product: null },
-		metalChoices.find((choice) => choice.key === 'rose') || { value: 'Rose Gold', key: 'rose', variant: null, product: null },
-		metalChoices.find((choice) => choice.key === 'silver') || { value: 'White Gold', key: 'silver', variant: null, product: null }
-	])
+	onMount(() => {
+		if (!showSwatches || !globalThis.IntersectionObserver) return
+		const observer = new IntersectionObserver((entries) => {
+			if (entries.some((entry) => entry.isIntersecting)) {
+				observer.disconnect()
+				void ensureDetails()
+			}
+		}, { rootMargin: '100px' })
+		observer.observe(mediaElement)
+		return () => observer.disconnect()
+	})
+
+	const detailedProduct = $derived(productDetails || product)
+	const swatches = $derived(metalVariantChoices(detailedProduct))
 	const selectedChoice = $derived(swatches.find((choice) => choice.value === selectedMetal))
 	const loadedMetalProduct = $derived(selectedChoice ? loadedMetalProducts[selectedChoice.key] : null)
-	const selectedProduct = $derived(loadedMetalProduct || selectedChoice?.product || product)
-	const href = $derived(canonicalProductPath(selectedProduct || product))
-	const image = $derived(
-		imageOverride || loadedMetalProduct?.thumbnail || loadedMetalProduct?.img || selectedChoice?.variant?.thumbnail || selectedChoice?.variant?.img || selectedChoice?.product?.thumbnail || (selectedMetal ? metalColorImage(product?.thumbnail || product?.img || product?.image || product?.image_url || '', selectedMetal) : product?.thumbnail || product?.img || product?.image || product?.image_url || '')
-	)
+	const selectedProduct = $derived(loadedMetalProduct || selectedChoice?.product || detailedProduct)
+	const title = $derived(selectedProduct?.title || selectedProduct?.name || product?.title || product?.name || '')
+	const href = $derived(canonicalProductPath(selectedProduct || product) + (selectedChoice?.variant?.id ? `?variant_id=${encodeURIComponent(selectedChoice.variant.id)}` : ''))
+	const variantImages = $derived(selectedChoice?.variant ? productImages({}, selectedChoice.variant) : [])
+	const image = $derived(imageOverride || variantImages[0] || selectedProduct?.thumbnail || selectedProduct?.img || selectedProduct?.image || selectedProduct?.image_url || '')
+	const images = $derived([...new Set([image, ...(variantImages.length ? variantImages : productImages(selectedProduct, null))].filter(Boolean))])
+	const displayedImage = $derived(images.includes(activeImage) ? activeImage : images[0] || '')
+	const canBrowse = $derived(images.length > 1 || (!!image && !!product?.slug && !detailsLoaded))
 	const category = $derived(product?.category?.name || product?.categoryName || product?.collection?.name || '')
-	const price = $derived(selectedChoice?.variant?.price ?? selectedProduct?.price ?? product?.price)
+	const price = $derived(selectedChoice?.variant?.price ?? selectedProduct?.price ?? detailedProduct?.price)
+	const mrp = $derived(Number(selectedChoice?.variant?.mrp ?? selectedProduct?.mrp ?? detailedProduct?.mrp))
+	const hasPrice = $derived(price != null && String(price).trim() !== '' && Number.isFinite(Number(price)) && Number(price) >= 0)
+	const hasCompare = $derived(hasPrice && Number.isFinite(mrp) && mrp > Number(price))
+	const discount = $derived(hasCompare ? discountPercent(Number(price), mrp) : 0)
 	const rating = $derived(productRating(product))
 
 	async function loadProduct(slug: string) {
 		try {
-			const response = await fetch(`/api/products/${slug}`, {
-				headers: { 'x-litekart-store': page?.data?.store?.id || '' }
-			})
-			return response.ok ? await response.json() : null
+			const response = await fetch(`/api/products/${slug}`, { headers: { 'x-litekart-store': page?.data?.store?.id || '' } })
+			if (!response.ok) return null
+			const details = await response.json()
+			return details && typeof details === 'object' && (details.id || details.slug) ? details : null
 		} catch {
 			return null
 		}
 	}
 
-	async function selectMetal(choice: (typeof swatches)[number]) {
-		selectedMetal = choice.value
-		if (loadedMetalProducts[choice.key] || !product?.slug) return
-
-		const details = product?.pg?.length ? product : await (productDetailsPromise ||= loadProduct(product.slug))
-		const detailedChoice = metalVariantChoices(details).find((item) => item.key === choice.key)
-		const targetSlug = detailedChoice?.product?.slug
-		if (!targetSlug) return
-
-		const selectedProductDetails = targetSlug === details.slug ? details : await loadProduct(targetSlug)
-		if (selectedProductDetails) loadedMetalProducts = { ...loadedMetalProducts, [choice.key]: selectedProductDetails }
+	async function ensureDetails() {
+		if (detailsLoaded || !product?.slug) return productDetails || product
+		if (productDetailsPromise) return productDetailsPromise
+		detailsLoading = true
+		productDetailsPromise = loadProduct(product.slug).then((details) => {
+			if (details) {
+				productDetails = details
+				detailsLoaded = true
+			}
+			return details
+		}).finally(() => {
+			detailsLoading = false
+			productDetailsPromise = undefined
+		})
+		return productDetailsPromise
 	}
 
+	async function moveImage(direction: -1 | 1) {
+		mediaMessage = ''
+		if (images.length < 2 && !detailsLoaded && product?.slug) {
+			if (!await ensureDetails()) {
+				mediaMessage = 'Could not load more photos. Try again.'
+				return
+			}
+		}
+		activeImage = adjacentProductImage(images, displayedImage, direction)
+	}
+
+	async function selectMetal(choice: (typeof swatches)[number]) {
+		if (metalLoading) return
+		metalLoading = choice.key
+		mediaMessage = ''
+		try {
+			const details = choice.variant || choice.product ? detailedProduct : await ensureDetails()
+			if (!details) {
+				mediaMessage = 'Could not load this metal. Try again.'
+				return
+			}
+			const resolvedChoice = metalVariantChoices(details).find((item) => item.key === choice.key) || choice
+			if (!resolvedChoice.variant && !resolvedChoice.product && metalVariantChoices(details).length > 1) {
+				mediaMessage = 'This metal is not available for this product.'
+				return
+			}
+			const targetSlug = resolvedChoice.product?.slug
+			if (targetSlug && !loadedMetalProducts[choice.key]) {
+				const selectedDetails = targetSlug === details.slug ? details : await loadProduct(targetSlug)
+				if (!selectedDetails) {
+					mediaMessage = 'Could not load this metal. Try again.'
+					return
+				}
+				loadedMetalProducts = { ...loadedMetalProducts, [choice.key]: selectedDetails }
+			}
+			selectedMetal = resolvedChoice.value
+			activeImage = ''
+		} finally {
+			metalLoading = ''
+		}
+	}
 </script>
 
-	<article class="rj-card rj-card--{size}" data-testid="product-card-{product?.id}">
-			<div class="rj-card-media">
-				<a class="rj-card-media-link" {href} aria-label={title || 'View product'}>
-					{#if image}
-						<img src={listingImage(image)} alt={title} loading="lazy" decoding="async" fetchpriority="low" />
-					{:else}
-						<span class="rj-card-media-empty" aria-hidden="true"></span>
-					{/if}
-				</a>
-
-				<span class="rj-card-wish rj-card-wish--static" aria-hidden="true">
-					<img class="rj-card-heart" src="/ryans-jewels/home/heart.svg" alt="" />
-				</span>
+<article class="rj-card rj-card--{size}" data-testid="product-card-{product?.id}">
+	<div bind:this={mediaElement} class="rj-card-media" role="group" aria-label="{title} images" aria-busy={detailsLoading || !!metalLoading} onmouseenter={() => { void ensureDetails() }} onfocusin={() => { void ensureDetails() }}>
+		<a class="rj-card-media-link" {href} aria-label={title || 'View product'}>
+			{#if displayedImage}
+				<img src={listingImage(displayedImage)} alt={title} loading="lazy" decoding="async" fetchpriority="low" />
+			{:else}
+				<span class="rj-card-media-empty" aria-hidden="true"></span>
+			{/if}
+		</a>
+		<span class="rj-card-wish rj-card-wish--static" aria-hidden="true"><Heart size={16} strokeWidth={1.25} aria-hidden="true" /></span>
+		{#if canBrowse}
+			<button class="rj-card-gallery-control is-previous" type="button" aria-label="Previous image of {title}" disabled={detailsLoading || !!metalLoading} onclick={(event) => { event.preventDefault(); event.stopPropagation(); void moveImage(-1) }}>{#if detailsLoading || metalLoading}<LoaderCircle size={14} class="animate-spin" aria-hidden="true" />{:else}<ChevronLeft size={18} strokeWidth={1.5} aria-hidden="true" />{/if}</button>
+			<button class="rj-card-gallery-control is-next" type="button" aria-label="Next image of {title}" disabled={detailsLoading || !!metalLoading} onclick={(event) => { event.preventDefault(); event.stopPropagation(); void moveImage(1) }}>{#if detailsLoading || metalLoading}<LoaderCircle size={14} class="animate-spin" aria-hidden="true" />{:else}<ChevronRight size={18} strokeWidth={1.5} aria-hidden="true" />{/if}</button>
+		{/if}
+		{#if detailsLoading || metalLoading}
+			<span class="rj-card-media-status" role="status"><LoaderCircle size={12} class="animate-spin" aria-hidden="true" />{metalLoading ? 'Updating metal…' : 'Loading photos…'}</span>
+		{:else if mediaMessage}
+			<span class="rj-card-media-status" role="status">{mediaMessage}</span>
+		{/if}
+	</div>
+	<div class="rj-card-info">
+		<div class="rj-card-text">
+			<a class="rj-card-name" {href} title={title}>{title}</a>
+			<div class="rj-card-meta">
+				{#if category}<span class="rj-card-category">{category}</span>{/if}
+				{#if rating}<span class="rj-card-rating" aria-label="Rating {rating} out of 5"><img class="rj-card-star" src="/ryans-jewels/home/star.svg" alt="" aria-hidden="true" /><img class="rj-card-star" src="/ryans-jewels/home/star.svg" alt="" aria-hidden="true" /><span class="rj-card-rating-value">{rating}</span></span>{/if}
 			</div>
-
-			<div class="rj-card-info">
-				{#if showSwatches}<ul class="rj-card-swatches">
+		</div>
+		<div class="rj-card-price-row">
+			{#if hasPrice}
+				<p class="rj-card-price"><span data-testid="product-card-selling-price">{formatPrice(price, currencyCode)}</span>{#if hasCompare}<s class="rj-card-mrp" data-testid="product-card-mrp">{formatPrice(mrp, currencyCode)}</s>{/if}</p>
+			{/if}
+			{#if showSwatches && swatches.length}
+				<ul class="rj-card-swatches" aria-label="Metal colors">
 					{#each swatches as choice (choice.key)}
-						<li>
-							<button class="rj-card-swatch" class:selected={choice.value === selectedMetal} type="button" title={choice.value} aria-label="Select {choice.value}" aria-pressed={choice.value === selectedMetal} onclick={() => selectMetal(choice)} style="background-image: {metalSwatchFills[choice.key]};"></button>
-						</li>
+						<li><button class="rj-card-swatch" class:selected={choice.value === selectedMetal} type="button" title={choice.value} aria-label="Select {choice.value}" aria-pressed={choice.value === selectedMetal} disabled={!!metalLoading} onclick={(event) => { event.stopPropagation(); void selectMetal(choice) }} style="background-image: {metalSwatchFills[choice.key]};">{#if metalLoading === choice.key}<LoaderCircle size={14} class="animate-spin" aria-hidden="true" />{/if}</button></li>
 					{/each}
-				</ul>{/if}
-
-				<div class="rj-card-text">
-					<a class="rj-card-name" {href}>{title}</a>
-
-					<div class="rj-card-meta">
-						{#if category}<span class="rj-card-category">{category}</span>{/if}
-						{#if rating}
-							<span class="rj-card-rating" aria-label="Rating {rating} out of 5">
-								<img class="rj-card-star" src="/ryans-jewels/home/star.svg" alt="" aria-hidden="true" />
-								<img class="rj-card-star" src="/ryans-jewels/home/star.svg" alt="" aria-hidden="true" />
-								<span class="rj-card-rating-value">{rating}</span>
-							</span>
-						{/if}
-					</div>
-				</div>
-
-				{#if price != null}
-					<p class="rj-card-price" data-testid="product-card-selling-price">
-						{formatPrice(price, currencyCode)}
-					</p>
-				{/if}
-			</div>
-		</article>
+				</ul>
+			{/if}
+		</div>
+		{#if discount > 0}<p class="rj-card-discount" data-testid="product-card-discount">{discount}% off on product</p>{/if}
+	</div>
+</article>
 
 <style>
-	.rj-card {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 10px;
-		width: 272px;
-		flex-shrink: 0;
-	}
-
-	.rj-card-media {
-		position: relative;
-		display: flex;
-		align-items: flex-start;
-		justify-content: flex-end;
-		width: 100%;
-		/* 272:250 reproduces every frame's media box — 250 at 272, 208 at 226,
-		   174 at 190 — and keeps scaling when the card grows on wide screens. */
-		aspect-ratio: 272 / 250;
-		padding: 10px;
-		border-radius: 5px;
-		overflow: hidden;
-	}
-
-	.rj-card-media-link {
-		position: absolute;
-		inset: 0;
-		display: block;
-		border-radius: 5px;
-	}
-
-	.rj-card-media-link img {
-		width: 100%;
-		height: 100%;
-		object-fit: contain;
-		border-radius: 5px;
-		transition: transform 0.4s var(--rj-ease, ease);
-	}
-
-	.rj-card:hover .rj-card-media-link img {
-		transform: scale(1.04);
-	}
-
-	.rj-card-media-empty {
-		display: block;
-		width: 100%;
-		height: 100%;
-		background: var(--rj-surface, #f4f4f4);
-		border-radius: 5px;
-	}
-
-	.rj-card-wish {
-		position: relative;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 10px;
-		border: 0;
-		border-radius: 25px;
-		background: #f9f9f9;
-		color: var(--rj-ink, #404040);
-		cursor: pointer;
-		transition: background 0.2s ease;
-	}
-
-	.rj-card-wish:hover {
-		background: #fff;
-	}
-
-	.rj-card-wish.is-active {
-		color: var(--rj-gold, #cca646);
-	}
-
-	.rj-card-wish:disabled {
-		cursor: progress;
-	}
-
-	.rj-card-wish--static {
-		pointer-events: none;
-		cursor: default;
-	}
-
-	.rj-card-heart {
-		display: block;
-		width: 30px;
-		height: 30px;
-	}
-
-	.rj-card-spinner {
-		display: block;
-		width: 30px;
-		height: 30px;
-		border: 2px solid rgba(64, 64, 64, 0.25);
-		border-top-color: var(--rj-gold, #cca646);
-		border-radius: 50%;
-		animation: rj-spin 0.7s linear infinite;
-	}
-
-	@keyframes rj-spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
-	.rj-card-info {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 9px;
-		/* 203 / 272 — the info block keeps its share of the card. */
-		width: 74.6324%;
-	}
-
-	.rj-card-swatches {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
+	.rj-card { display: flex; flex-shrink: 0; flex-direction: column; align-items: stretch; gap: 12px; width: 272px; min-width: 0; background: #fff; }
+	.rj-card-media { position: relative; width: 100%; aspect-ratio: 1; overflow: hidden; border: 1px solid var(--rj-card-border, #f5edda); border-radius: 8px; background: #fff; }
+	.rj-card-media-link { position: absolute; inset: 0; display: block; border-radius: inherit; }
+	.rj-card-media-link img { display: block; width: 100%; height: 100%; padding: 20px; object-fit: contain; transition: transform 250ms var(--rj-ease, ease); }
+	.rj-card:hover .rj-card-media-link img { transform: scale(1.03); }
+	.rj-card-media-empty { display: block; width: 100%; height: 100%; background: var(--rj-surface, #f4f4f4); }
+	.rj-card-wish { position: absolute; top: 12px; left: 12px; display: grid; width: 32px; height: 32px; place-items: center; border: 0; border-radius: 50%; background: #fff; color: var(--rj-ink, #404040); }
+	.rj-card-wish--static { pointer-events: none; }
+	.rj-card-gallery-control { position: absolute; z-index: 2; top: 50%; display: grid; width: 32px; height: 32px; place-items: center; padding: 0; border: 0; border-radius: 50%; background: rgb(255 255 255 / 94%); color: var(--rj-ink, #404040); opacity: 0; pointer-events: none; cursor: pointer; transform: translateY(-50%); transition: opacity 160ms ease, background 160ms ease; }
+	.rj-card-gallery-control.is-previous { left: 8px; }
+	.rj-card-gallery-control.is-next { right: 8px; }
+	.rj-card-media:hover .rj-card-gallery-control, .rj-card-media:focus-within .rj-card-gallery-control { opacity: 1; pointer-events: auto; }
+	.rj-card-gallery-control:hover { background: var(--rj-cream, #faf6ea); }
+	.rj-card-gallery-control:disabled { cursor: progress; }
+	.rj-card-media-status { position: absolute; right: 8px; bottom: 8px; left: 8px; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 4px 6px; background: rgb(255 255 255 / 94%); color: var(--rj-ink, #404040); font-size: 11px; line-height: 1.4; text-align: center; }
+	.rj-card-info { display: flex; width: 100%; min-width: 0; flex-direction: column; align-items: stretch; gap: 6px; padding: 0 16px; }
+	.rj-card-price-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 8px; }
+	.rj-card-swatches { display: flex; flex: 0 0 auto; align-items: center; gap: 1px; margin: 0 0 0 auto; padding: 0; list-style: none; }
 	.rj-card-swatches li { display: flex; }
-
-	.rj-card-swatch {
-		width: 31px;
-		height: 31px;
-		padding: 0;
-		border: 0;
-		border-radius: 10px;
-		cursor: pointer;
-	}
-	.rj-card-swatch.selected { outline: 2px solid #cca646; outline-offset: 2px; }
-	.rj-card-swatch:focus-visible { outline: 2px solid #303030; outline-offset: 2px; }
-
-	.rj-card-text {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 5px;
-		width: 100%;
-	}
-
-	.rj-card-name {
-		font-family: 'Sarala', var(--font-body, sans-serif);
-		font-size: 16px;
-		line-height: normal;
-		text-align: center;
-		text-transform: capitalize;
-		color: #303030;
-		text-decoration: none;
-		transition: color 0.18s ease;
-	}
-
-	.rj-card-name:hover {
-		color: var(--rj-gold, #cca646);
-	}
-
-	.rj-card-meta {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-	}
-
-	.rj-card-category {
-		font-family: 'Sarala', var(--font-body, sans-serif);
-		font-size: 14px;
-		line-height: normal;
-		text-transform: capitalize;
-		color: #b1b1b1;
-		white-space: nowrap;
-	}
-
-	.rj-card-rating {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 2px;
-	}
-
-	.rj-card-star {
-		width: 19px;
-		height: 19px;
-		flex-shrink: 0;
-	}
-
-	.rj-card-rating-value {
-		display: flex;
-		align-items: center;
-		height: 19px;
-		font-family: 'Khmer MN', sans-serif;
-		font-size: 20px;
-		line-height: 19px;
-		color: #555;
-		transform: translateY(2px);
-	}
-
-	.rj-card-price {
-		margin: 0;
-		width: 100%;
-		font-family: 'Sarala', var(--font-body, sans-serif);
-		font-size: 22px;
-		font-weight: 700;
-		line-height: normal;
-		text-align: center;
-		color: var(--rj-heading, #202020);
-	}
-
+	.rj-card-swatch { width: 24px; height: 24px; padding: 4px; border: 0; border-radius: 50%; background-color: transparent; background-clip: content-box; cursor: pointer; }
+	.rj-card-swatch.selected { outline: 1px solid var(--rj-ink, #404040); outline-offset: -2px; }
+	.rj-card-swatch:disabled { cursor: progress; opacity: .55; }
+	.rj-card-text { width: 100%; min-width: 0; }
+	.rj-card-name { display: block; width: 100%; overflow: hidden; color: var(--rj-ink, #404040); font-size: 16px; font-weight: 400; line-height: 1.5; text-align: left; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+	.rj-card-name:hover { color: #8b6b29; }
+	.rj-card-meta { display: none; }
+	.rj-card-price { display: flex; flex: 1 1 90px; flex-wrap: wrap; align-items: baseline; gap: 5px 12px; margin: 0; color: var(--rj-ink, #404040); font-size: 16px; font-weight: 400; line-height: 1.4; text-align: left; }
+	.rj-card-mrp { color: var(--rj-ink-2, #606060); font-size: 12px; font-weight: 400; text-decoration: line-through; }
+	.rj-card-discount { margin: 0; color: #8b6b29; font-size: 13px; font-weight: 400; line-height: 1.4; }
+	.rj-card :is(a, button):focus-visible { outline: 2px solid var(--rj-ink, #404040); outline-offset: -3px; }
 	.rj-card--listing { width: 100%; }
-	.rj-card--listing .rj-card-media { max-height: 260px; aspect-ratio: 312 / 260; }
-	.rj-card--listing .rj-card-media-link img { width: min(100%, 260px); margin-inline: auto; }
-	.rj-card--listing .rj-card-info { width: 100%; gap: 8px; }
-	.rj-card--listing .rj-card-swatch { width: 28px; height: 28px; border-radius: 7px; }
-	.rj-card--listing .rj-card-name { font-size: 18px; }
-	.rj-card--listing .rj-card-category { font-size: 13px; }
-	.rj-card--listing .rj-card-star { width: 16px; height: 16px; }
-	.rj-card--listing .rj-card-rating-value { height: 16px; font-size: 17px; line-height: 16px; }
-	.rj-card--listing .rj-card-price { font-size: 24px; }
-
-	/* Tablet 744 — 226 wide, media 208, price 19 (63:40199 / 63:40221). */
-	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
-		.rj-card--default {
-			width: 226px;
-		}
-
-		.rj-card--default .rj-card-info {
-			width: 203px;
-			min-height: 131px;
-		}
-
-		.rj-card--default .rj-card-swatch {
-			width: 28px;
-			height: 28px;
-		}
-
-		.rj-card--default .rj-card-name {
-			display: block;
-			width: 100%;
-			overflow: hidden;
-			text-overflow: ellipsis;
-			white-space: nowrap;
-		}
-
-		.rj-card--wide .rj-card-name {
-			display: block;
-			width: 100%;
-			overflow: hidden;
-			text-overflow: ellipsis;
-			white-space: nowrap;
-		}
-
-		.rj-card--default .rj-card-price {
-			font-size: 19px;
-		}
-	}
-
-	/* Mobile 412 — 190 wide, media 174, info 175 justify-between (77:107021). */
+	@media (max-width: 767px), (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) { .rj-card--default { width: 226px; } }
 	@media (max-width: 639px) {
-		.rj-card {
-			width: 190px;
-		}
-
+		.rj-card { width: 190px; }
 		.rj-card--listing { width: 100%; }
-		.rj-card--listing .rj-card-media { height: auto; }
-		.rj-card--listing .rj-card-name { font-size: 14px; }
-		.rj-card--listing .rj-card-price { font-size: 18px; }
-
-		.rj-card-media {
-			height: 174px;
-		}
-
-		.rj-card-wish {
-			padding: 8px;
-		}
-
-		.rj-card-heart,
-		.rj-card-spinner {
-			width: 22px;
-			height: 22px;
-		}
-
-		.rj-card-info {
-			width: 175px;
-		}
-
-		.rj-card--wide .rj-card-info {
-			height: 122px;
-			justify-content: space-between;
-		}
-
-		.rj-card--wide .rj-card-name {
-			display: -webkit-box;
-			-webkit-box-orient: vertical;
-			-webkit-line-clamp: 2;
-			line-clamp: 2;
-			overflow: hidden;
-			white-space: normal;
-		}
-
-		.rj-card--listing .rj-card-info {
-			width: 100%;
-		}
-
-		.rj-card--listing .rj-card-media {
-			height: auto;
-		}
-
-		.rj-card .rj-card-swatch {
-			width: 40px;
-			height: 40px;
-			border-radius: 10px;
-		}
-
-		.rj-card-name {
-			font-size: 14px;
-		}
-
-		.rj-card-meta {
-			width: 100%;
-			justify-content: space-between;
-			gap: 8px;
-		}
-
-		.rj-card-category {
-			font-size: 13px;
-		}
-
-		.rj-card-price {
-			font-size: 16px;
-		}
+		.rj-card-media-link img { padding: 12px; }
+		.rj-card-info { padding-inline: 10px; }
+		.rj-card-name { font-size: 14px; }
+		.rj-card-discount { font-size: 12px; }
+		.rj-card-wish { top: 8px; left: 8px; }
 	}
+	@media (hover: none) { .rj-card-gallery-control { opacity: 1; pointer-events: auto; } }
+	@media (prefers-reduced-motion: reduce) { .rj-card-media-link img, .rj-card-gallery-control { transition: none; } }
 </style>
