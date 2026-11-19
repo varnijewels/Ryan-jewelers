@@ -3,6 +3,7 @@ import {
 	applyClientFilters,
 	facetOptions,
 	filterProductsByCategory,
+	interleaveProductCategories,
 	isRyanCategoryVisible,
 	productRating,
 	realCatalogUrl,
@@ -16,6 +17,24 @@ const products = [
 ]
 
 describe('Ryan product filters', () => {
+	it('alternates product categories without dropping products or changing their order within a category', () => {
+		const catalogue = ['Ring', 'Ring', 'Ring', 'Pendant', 'Pendant', 'Earrings', 'Earrings', 'Bracelet', 'Necklace'].map((title, id) => ({ id, title }))
+		expect(interleaveProductCategories(catalogue).map((product) => product.id)).toEqual([0, 3, 5, 7, 8, 1, 4, 6, 2])
+		expect(catalogue.map((product) => product.id)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8])
+	})
+
+	it('recognizes admin categories on bridal sets and preserves uncategorized products', () => {
+		const catalogue = [
+			{ id: 'set-1', title: 'Bridal Set', categories: [{ category: { name: 'Rings' } }] },
+			{ id: 'set-2', title: 'Bridal Set', categories: [{ category: { name: 'Rings' } }] },
+			{ id: 'pendant', title: 'Custom piece', tags: [{ name: 'Pendants' }] },
+			{ id: 'other', title: 'Jewelry accessory' }
+		]
+		expect(interleaveProductCategories(catalogue).map((product) => product.id)).toEqual(['set-1', 'pendant', 'other', 'set-2'])
+		expect(interleaveProductCategories([])).toEqual([])
+		expect(interleaveProductCategories(catalogue.slice(0, 2))).toEqual(catalogue.slice(0, 2))
+	})
+
 	it('filters status and metadata and applies local sorts', () => {
 		expect(applyClientFilters(products, new URL('https://shop.test/products?uiStatus=In%2520Stock')).map((p: any) => p.id)).toEqual(['a'])
 		expect(applyClientFilters(products, new URL('https://shop.test/products?uiMaterial=10k%2520Rose%2520gold')).map((p: any) => p.id)).toEqual(['a'])

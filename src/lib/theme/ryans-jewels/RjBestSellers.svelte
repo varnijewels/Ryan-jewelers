@@ -14,11 +14,16 @@
 	 * Products are live API data — an empty list renders a loading or empty state
 	 * rather than placeholder products.
 	 */
-	import RjCarousel from './RjCarousel.svelte'
+	import { onMount } from 'svelte'
+	import { Pause, Play } from '@lucide/svelte'
+	import emblaCarouselSvelte from 'embla-carousel-svelte'
+	import AutoScroll from 'embla-carousel-auto-scroll'
+	import type { EmblaCarouselType } from 'embla-carousel'
+	import RjArrowRule from './RjArrowRule.svelte'
 	import RjCarouselCard from './RjCarouselCard.svelte'
 	import RjSectionHead from './RjSectionHead.svelte'
 	import { bestSellers } from './home-content.js'
-	import { filterProductsByCategory } from './product-filters.js'
+	import { interleaveProductCategories } from './product-filters.js'
 
 	let {
 		products = [],
@@ -26,7 +31,8 @@
 		eyebrow = bestSellers.eyebrow,
 		title = bestSellers.title,
 		emptyText = bestSellers.emptyText,
-		headingId = 'rj-bestsellers-heading'
+		headingId = 'rj-bestsellers-heading',
+		badgeLabel = ''
 	}: {
 		products?: any[]
 		loading?: boolean
@@ -34,26 +40,122 @@
 		title?: string
 		emptyText?: string
 		headingId?: string
+		badgeLabel?: string
 	} = $props()
 
-	let activeCategory = $state('All')
-	const items = $derived(filterProductsByCategory(products || [], activeCategory))
+	const items = $derived(interleaveProductCategories(products || []))
+	let carouselApi = $state<EmblaCarouselType>()
+	const autoScroll = AutoScroll({ speed: 1, startDelay: 1500, playOnInit: false, stopOnMouseEnter: true, stopOnInteraction: true })
+	const carouselConfig = { options: { loop: true, align: 'start' as const }, plugins: [autoScroll] }
+	let paused = $state(false)
+	let hovered = $state(false)
+	let focused = $state(false)
+	let touching = $state(false)
+	let reducedMotion = $state(false)
+	let scrollable = $state(false)
+	let progress = $state(0)
+	let thumbWidth = $state(100)
+
+	onMount(() => {
+		const preference = window.matchMedia('(prefers-reduced-motion: reduce)')
+		const updatePreference = () => {
+			reducedMotion = preference.matches
+			if (reducedMotion) paused = true
+		}
+		updatePreference()
+		preference.addEventListener('change', updatePreference)
+		return () => preference.removeEventListener('change', updatePreference)
+	})
+
+	$effect(() => {
+		const api = carouselApi
+		if (!api) return
+		const refresh = () => {
+			scrollable = api.canScrollNext() || api.canScrollPrev()
+			const slides = api.slideNodes()
+			const span = slides.length > 1 ? slides[1].offsetLeft - slides[0].offsetLeft : slides[0]?.offsetWidth || 1
+			thumbWidth = Math.min(100, Math.max(8, api.rootNode().clientWidth / (span * slides.length) * 100))
+			updateProgress()
+			syncPlayback()
+		}
+		api.on('scroll', updateProgress).on('reInit', refresh)
+		document.addEventListener('visibilitychange', syncPlayback)
+		refresh()
+		return () => {
+			api.off('scroll', updateProgress).off('reInit', refresh)
+			document.removeEventListener('visibilitychange', syncPlayback)
+		}
+	})
+
+	$effect(syncPlayback)
+
+	function updateProgress() {
+		progress = Math.min(1, Math.max(0, carouselApi?.scrollProgress() || 0)) * 100
+	}
+
+	function syncPlayback() {
+		if (!carouselApi) return
+		if (paused || hovered || focused || touching || document.hidden || !scrollable || !items.length) autoScroll.stop()
+		else autoScroll.play()
+	}
+
+	function scrollProducts(direction: -1 | 1) {
+		autoScroll.stop()
+		if (direction < 0) carouselApi?.scrollPrev(reducedMotion)
+		else carouselApi?.scrollNext(reducedMotion)
+		syncPlayback()
+	}
 </script>
 
-<section class="rj-bestsellers" aria-labelledby={headingId}>
+<section
+	class="rj-bestsellers"
+	aria-labelledby={headingId}
+	onmouseenter={() => hovered = true}
+	onmouseleave={() => hovered = false}
+	ontouchstart={() => touching = true}
+	ontouchend={() => touching = false}
+	ontouchcancel={() => touching = false}
+>
 	<div class="rj-bestsellers-inner">
 		<div class="rj-bestsellers-head">
-			<RjSectionHead {eyebrow} {title} id={headingId} active={activeCategory} onchange={(category) => activeCategory = category} />
+			<RjSectionHead {eyebrow} {title} id={headingId} showTabs={false} />
+			<div class="rj-bestsellers-controls">
+				<RjArrowRule gap={20} onprevious={() => scrollProducts(-1)} onnext={() => scrollProducts(1)} previousDisabled={!scrollable || !items.length} nextDisabled={!scrollable || !items.length} />
+				<button class="rj-bestsellers-playback" type="button" aria-label={paused ? 'Resume product scrolling' : 'Pause product scrolling'} disabled={!scrollable || !items.length} onclick={() => { paused = !paused; if (!paused) focused = false }}>
+					{#if paused}<Play size={14} aria-hidden="true" />{:else}<Pause size={14} aria-hidden="true" />{/if}
+				</button>
+			</div>
 		</div>
 
 		{#if items.length}
-			{#key activeCategory}
-				<RjCarousel label={title} showArrows initialOffset={300.5}>
+			<div
+				class="rj-bestsellers-viewport"
+				use:emblaCarouselSvelte={carouselConfig}
+				onemblaInit={(event) => carouselApi = event.detail}
+				onfocusin={() => focused = true}
+				onfocusout={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) focused = false }}
+			>
+				<div class="rj-bestsellers-track">
 					{#each items as product (product?.id || product?.slug)}
-						<RjCarouselCard {product} />
+						<RjCarouselCard {product} {badgeLabel} />
 					{/each}
-				</RjCarousel>
-			{/key}
+				</div>
+			</div>
+			{#if scrollable}
+				<input
+					class="rj-bestsellers-rail"
+					type="range"
+					min="0"
+					max="100"
+					step="any"
+					value={progress}
+					aria-label="{title} scroll position"
+					style="--rj-thumb-width:{thumbWidth}%"
+					onfocus={() => focused = true}
+					onblur={() => focused = false}
+					oninput={(event) => carouselApi?.scrollTo(Math.round(Number(event.currentTarget.value) / 100 * (carouselApi.scrollSnapList().length - 1)), true)}
+				/>
+			{/if}
 		{:else if loading}
 			<div class="rj-bestsellers-skeletons" aria-busy="true">
 				{#each Array(5) as _, i (i)}
@@ -61,7 +163,7 @@
 				{/each}
 			</div>
 		{:else}
-			<p class="rj-bestsellers-empty">{activeCategory === 'All' ? emptyText : `No ${activeCategory.toLowerCase()} are available yet.`}</p>
+			<p class="rj-bestsellers-empty">{emptyText}</p>
 		{/if}
 	</div>
 </section>
@@ -86,9 +188,27 @@
 
 	/* 1:6004 sits 50 above the track (y0 h81, track y131). */
 	.rj-bestsellers-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 24px;
 		padding-right: 61px;
 		margin-bottom: 50px;
 	}
+
+	.rj-bestsellers-head :global(.rj-head) { width: auto; min-width: 0; }
+	.rj-bestsellers-controls { display: flex; flex-shrink: 0; align-items: center; gap: 12px; }
+	.rj-bestsellers-playback { display: grid; width: 28px; height: 30px; place-items: center; padding: 0; border: 0; background: transparent; color: var(--rj-ink, #404040); cursor: pointer; }
+	.rj-bestsellers-playback:hover { color: var(--rj-gold, #cca646); }
+	.rj-bestsellers-playback:disabled { opacity: .25; cursor: default; }
+	.rj-bestsellers-playback:focus-visible { outline: 2px solid var(--rj-gold, #cca646); outline-offset: 2px; }
+	.rj-bestsellers-viewport { width: 100%; overflow: hidden; }
+	.rj-bestsellers-track { display: flex; align-items: flex-start; gap: var(--rj-track-gap, 25px); width: 100%; padding-left: var(--rj-track-start, 0px); touch-action: pan-y pinch-zoom; will-change: transform; }
+	.rj-bestsellers-track > :global(:last-child) { margin-right: var(--rj-track-gap, 25px); }
+	.rj-bestsellers-rail { appearance: none; width: calc(100% - var(--rj-rail-start, 0px) - var(--rj-rail-end, 0px)); height: 16px; flex-shrink: 0; margin: 48px var(--rj-rail-end, 0px) 0 var(--rj-rail-start, 0px); background: linear-gradient(#f9f9f9, #f9f9f9) center / 100% 2px no-repeat; cursor: pointer; }
+	.rj-bestsellers-rail::-webkit-slider-thumb { appearance: none; width: var(--rj-thumb-width); height: 2px; border: 0; border-radius: 2px; background: #ccc; }
+	.rj-bestsellers-rail::-moz-range-thumb { width: var(--rj-thumb-width); height: 2px; border: 0; border-radius: 2px; background: #ccc; }
+	.rj-bestsellers-rail:focus-visible { outline: 2px solid var(--rj-gold, #cca646); outline-offset: 2px; }
 
 	.rj-bestsellers-skeletons {
 		display: flex;
@@ -170,6 +290,9 @@
 			gap: 20px;
 		}
 
+		.rj-bestsellers-track { --rj-track-gap: 20px; }
+		.rj-bestsellers-rail { margin-top: 23px; }
+
 		.rj-bestsellers-skeleton {
 			width: 261px;
 			height: 311px;
@@ -191,13 +314,8 @@
 		}
 
 		.rj-bestsellers-head {
-			width: 1318px;
-			padding-right: 0;
+			padding-right: 25px;
 			margin-bottom: 50px;
-		}
-
-		.rj-bestsellers :global(.rj-carousel-track) {
-			scroll-snap-type: none;
 		}
 	}
 
@@ -216,13 +334,15 @@
 		}
 
 		.rj-bestsellers-head {
+			gap: 12px;
 			padding: 0 16px;
 			margin-bottom: 22px;
 		}
 
-		.rj-bestsellers :global(.rj-carousel-arrows) {
-			display: none;
-		}
+		.rj-bestsellers-controls { gap: 8px; }
+		.rj-bestsellers-rail { margin-top: 9px; background-size: 100% 4px; }
+		.rj-bestsellers-rail::-webkit-slider-thumb { height: 4px; }
+		.rj-bestsellers-rail::-moz-range-thumb { height: 4px; }
 
 		.rj-bestsellers-skeletons {
 			gap: 20px;

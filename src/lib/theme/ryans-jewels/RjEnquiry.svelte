@@ -7,8 +7,13 @@
 
 	let name = $state('')
 	let contact = $state('')
-	let description = $state('')
+	let { description = $bindable('') }: { description?: string } = $props()
 	let loading = $state(false)
+	const designSteps = [
+		{ title: 'Share your idea', text: 'Tell us about your style, occasion, and budget.' },
+		{ title: 'Explore your options', text: 'Discuss the design, stones, and setting with our team.' },
+		{ title: 'Confirm the details', text: 'Review the design, price, and timing before your piece is made.' }
+	]
 
 	const EMAIL = /[^\s,;]+@[^\s,;]+\.[^\s,;]+/
 	const PHONE = /\+?\d[\d\s-]{7,}\d/
@@ -39,13 +44,17 @@
 	}
 </script>
 
-<section class="rj-enq" aria-labelledby="rj-enq-heading">
+<section class="rj-enq" id="rj-enq" aria-labelledby="rj-enq-heading">
 
 	<div class="rj-enq-inner">
 		<div class="rj-enq-story">
 			<p class="rj-enq-eyebrow">CUSTOM DESIGN</p>
 			<h2 id="rj-enq-heading">Have a design in mind?</h2>
 			<p class="rj-enq-intro">Tell us what you'd like to create. Our Salisbury team will get in touch to talk through the design, stones, and setting.</p>
+			<div class="rj-enq-process" aria-labelledby="rj-design-steps-heading">
+				<h3 id="rj-design-steps-heading">How Custom Jewelry Works</h3>
+				<ol>{#each designSteps as step, index}<li><span class="design-step-number" aria-hidden="true">0{index + 1}</span><div><h4>{step.title}</h4><p>{step.text}</p></div></li>{/each}</ol>
+			</div>
 			<img class="rj-enq-store" src="/ryans-jewels/store/store-interior.webp" alt="Jewelry displays inside our Salisbury store" loading="lazy" width="700" height="560" />
 			<p class="rj-enq-call">Prefer to talk in person? <a href="/contact-us">Visit our store</a> or call <a href={ryanContact.phoneHref}>{ryanContact.phone}</a>.</p>
 		</div>
@@ -114,7 +123,7 @@
 </section>
 
 <style>
- .rj-enq { padding: 40px 48px 60px; background: #fff; color: #353535; }
+ .rj-enq { padding: 40px 48px 60px; background: #fff; color: #353535; scroll-margin-top: 150px; }
  .rj-enq-inner { max-width: 1344px; margin: auto; display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #eae6dd; }
  .rj-enq-story { padding: 38px 40px 28px; background: #f8f7f3; }
  .rj-enq-eyebrow { font-size: 10px; letter-spacing: 2px; color: #9a7d3c; margin: 0 0 18px; }
@@ -146,6 +155,13 @@
  .rj-enq-eyebrow { letter-spacing: 1px; margin-bottom: 14px; }
  .rj-enq-intro { max-width: 480px; font-size: 14px; line-height: 1.7; }
  .rj-enq-store { display: block; width: 100%; height: 210px; object-fit: cover; object-position: center 65%; margin: 25px 0 16px; }
+ .rj-enq-process { max-width: 480px; margin-top: 28px; }
+ .rj-enq-process h3 { margin: 0 0 18px; color: #40392e; font: 500 17px/1.5 var(--font-body, sans-serif); }
+ .rj-enq-process ol { display: grid; gap: 15px; margin: 0; padding: 0; list-style: none; }
+ .rj-enq-process li { display: flex; align-items: flex-start; gap: 13px; }
+ .design-step-number { display: grid; width: 32px; height: 32px; flex: 0 0 32px; place-items: center; border: 1px solid #e5d6b3; border-radius: 50%; background: var(--rj-cream, #faf6ea); color: #8b6b29; font-size: 10px; }
+ .rj-enq-process h4 { margin: 0 0 3px; color: #494034; font: 600 13px/1.4 var(--font-body, sans-serif); }
+ .rj-enq-process li p { margin: 0; color: #70685b; font-size: 12px; line-height: 1.7; }
  .rj-enq-call { font-size: 12px; line-height: 1.7; color: #666; margin: 0; }
  .rj-enq-call a { color: #444; text-underline-offset: 3px; }
  .rj-enq-form { padding: 0; gap: 24px; }

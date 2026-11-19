@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ChevronRight, CircleHelp, Gem, Heart, MapPin, Menu, MessageCircle, PackageCheck, Search, ShoppingBag, UserRound } from '@lucide/svelte'
+	import { ChevronRight, CircleHelp, Heart, MapPin, Menu, MessageCircle, PackageCheck, Search, ShoppingBag, UserRound } from '@lucide/svelte'
 	import { page } from '$app/state'
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu'
 	import { AuthButton } from '$lib/core/components/index.js'
@@ -12,6 +12,7 @@
 	import RjAnnouncementBar from './RjAnnouncementBar.svelte'
 	import RjProfileDropdown from './RjProfileDropdown.svelte'
 	import RjCartDrawer from './RjCartDrawer.svelte'
+	import RjRingBuilderIcon from './RjRingBuilderIcon.svelte'
 	import { menuChildren, menuHref, menuLabel, resolveAdminMenu } from './admin-menu.js'
 
 	let {
@@ -79,7 +80,7 @@
 			<div class="rj-tools">
 				<div class="rj-shortcuts">
 					<a class="rj-shortcut rj-ring-builder" href="/ring-builder" title="Create your ring">
-						<Gem size={20} aria-hidden="true" /><span>Ring Builder</span>
+						<RjRingBuilderIcon /><span>Ring Builder</span>
 					</a>
 
 					<details class="rj-search-toggle">
@@ -398,12 +399,12 @@
 		display: flex;
 		align-items: center;
 		justify-content: flex-end;
-		gap: 16px;
+		gap: 10px;
 	}
 	.rj-shortcuts {
 		display: flex;
 		align-items: center;
-		gap: 12px;
+		gap: 10px;
 		flex-shrink: 0;
 	}
 	.rj-shortcut {
@@ -424,10 +425,12 @@
 		text-decoration: underline;
 		text-underline-offset: 4px;
 	}
+	.rj-ring-builder { transition: color 350ms ease; }
+	.rj-ring-builder:hover, .rj-ring-builder:focus-visible { color: var(--rj-gold, #cca646); text-decoration: none; }
 	.rj-actions {
 		display: flex;
 		align-items: center;
-		gap: 12px;
+		gap: 10px;
 		flex-shrink: 0;
 	}
 	.rj-account,

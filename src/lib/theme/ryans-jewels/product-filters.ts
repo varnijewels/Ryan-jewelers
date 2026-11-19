@@ -58,25 +58,42 @@ export function withoutDemoProducts<T extends Record<string, any>>(products: T[]
 	})
 }
 
+const productCategoryPatterns: Record<string, RegExp> = {
+	Rings: /\brings?\b/i,
+	Pendants: /\bpendants?\b/i,
+	Earrings: /\bearrings?\b/i,
+	Bracelets: /\bbracelets?\b/i,
+	Necklaces: /\bnecklaces?\b/i
+}
+
+function productCategoryText(product: any) {
+	return [
+		product?.title, product?.name, product?.category?.name, product?.categoryName, product?.collection?.name,
+		...(product?.categoryHierarchy || []).map((item: any) => item?.name),
+		...(product?.categories || []).map((item: any) => item?.category?.name || item?.name),
+		...(product?.tags || []).map((item: any) => item?.name ?? item)
+	].filter(Boolean).join(' ')
+}
+
 export function filterProductsByCategory<T>(products: T[] = [], category = 'All') {
-	const pattern = ({ Rings: /\brings?\b/i, Pendants: /\bpendants?\b/i, Earrings: /\bearrings?\b/i } as Record<string, RegExp>)[category]
-	return pattern
-		? products.filter((product: any) =>
-				pattern.test(
-					[
-						product?.title,
-						product?.name,
-						product?.category?.name,
-						product?.categoryName,
-						product?.collection?.name,
-						...(product?.categoryHierarchy || []).map((item: any) => item?.name),
-						...(product?.tags || []).map((item: any) => item?.name ?? item)
-					]
-						.filter(Boolean)
-						.join(' ')
-				)
-			)
-		: products
+	const pattern = productCategoryPatterns[category]
+	return pattern ? products.filter((product) => pattern.test(productCategoryText(product))) : products
+}
+
+export function interleaveProductCategories<T>(products: T[] = []) {
+	const groups = new Map<string, T[]>()
+	for (const product of products) {
+		const text = productCategoryText(product)
+		const category = Object.keys(productCategoryPatterns).find((key) => productCategoryPatterns[key].test(text)) || 'Other'
+		if (!groups.has(category)) groups.set(category, [])
+		groups.get(category)!.push(product)
+	}
+	const queues = [...groups.values()]
+	const result: T[] = []
+	for (let index = 0; index < Math.max(0, ...queues.map((queue) => queue.length)); index++) {
+		for (const queue of queues) if (index < queue.length) result.push(queue[index])
+	}
+	return result
 }
 
 export function facetOptions(allFilters: Record<string, Record<string, number>> | undefined, keys: string[], fallback?: RegExp) {

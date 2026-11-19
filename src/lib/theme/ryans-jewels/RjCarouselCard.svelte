@@ -2,13 +2,13 @@
 	import { ProductCardRenderer } from '$lib/core/composables/index.js'
 	import RjProductCard from './RjProductCard.svelte'
 
-	let { product, size = 'md' }: { product: any; size?: 'md' | 'lg' } = $props()
+	let { product, size = 'md', badgeLabel = '' }: { product: any; size?: 'md' | 'lg'; badgeLabel?: string } = $props()
 </script>
 
 {#if product}
 	<ProductCardRenderer {product} aspectRatio="1:1">
 		{#snippet content()}
-			<div class="rj-tile rj-tile--{size}"><RjProductCard {product} size="listing" /></div>
+			<div class="rj-tile rj-tile--{size}"><RjProductCard {product} {badgeLabel} size="listing" /></div>
 		{/snippet}
 	</ProductCardRenderer>
 {/if}

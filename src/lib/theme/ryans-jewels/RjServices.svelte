@@ -20,7 +20,7 @@
 </section>
 
 <style>
-	.rj-home-services { max-width: 1440px; margin: 0 auto; padding: 52px 48px; color: #292724; }
+	.rj-home-services { width: 100%; margin: 0; padding: 52px 40px; color: #292724; }
 	header { display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; margin-bottom: 28px; }
 	.eyebrow { margin: 0 0 12px; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .14em; color: #8b6b29; }
 	h2 { margin: 0; font: 400 clamp(28px, 2.5vw, 38px)/1.2 var(--font-heading, serif); letter-spacing: -.02em; }
@@ -35,7 +35,7 @@
 	.service-card:hover img { transform: scale(1.025); }
 	.service-card:hover .service-link { color: #8b6b29; }
 	a:focus-visible { outline: 2px solid #aa873a; outline-offset: 5px; }
-	@media (max-width: 900px) { .rj-home-services { padding: 40px 24px; } .service-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 20px; } }
-	@media (max-width: 639px) { .rj-home-services { padding: 34px 20px; } header { align-items: flex-start; flex-direction: column; gap: 18px; } h2 { font-size: 29px; } .service-grid { gap: 26px 16px; } .service-image { aspect-ratio: 1.1; } h3 { font-size: 14px; margin-top: 13px; } .service-card p { font-size: 12px; } }
+	@media (max-width: 900px) { .rj-home-services { padding: 40px; } .service-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 20px; } }
+	@media (max-width: 639px) { .rj-home-services { padding: 34px 24px; } header { align-items: flex-start; flex-direction: column; gap: 18px; } h2 { font-size: 29px; } .service-grid { gap: 26px 16px; } .service-image { aspect-ratio: 1.1; } h3 { font-size: 14px; margin-top: 13px; } .service-card p { font-size: 12px; } }
 	@media (prefers-reduced-motion: reduce) { img { transition: none; } }
 </style>

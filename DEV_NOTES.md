@@ -1,5 +1,13 @@
 # Development Notes
 
+## Homepage updates — November 19, 2026
+
+- Added ring-box playback, diamond exploration, collection spotlights, store visit, attributed reviews and homepage FAQs; refined product and Instagram carousels, image hover views and the Ring Builder icon.
+- Bundled all new images and videos, including the five ring-box media files, and added an asset-presence regression test. Fixed Instagram controls overflowing at 320px.
+- Verified production build, 169 internal destinations, homepage images/layout at 1920/768/390/320px, image hover/fallback behavior, Instagram controls, 36 checkout tests and 7 ring-box tests.
+- Repository-wide verification is not clean: Svelte check reports 688 errors and 329 warnings; the unit run has 12 unresolved legacy suites and 2 failed assertions (186 passed). The header browser check fails its keyboard-focus color assertion.
+- Live payments and form delivery were not tested. The active local checkout is `/Users/bhaktidesign7/LocalProjects/ryan-jewels`.
+
 ## Product details latest Figma refinements (not pushed)
 
 - Implemented the Reviews tab from Figma node `1:22022`: exact 1320×534 desktop frame, live API review cards/average/count, responsive layout, working View More, style-number copy, and the existing API-backed Write Review modal.

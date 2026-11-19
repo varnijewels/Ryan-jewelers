@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ChevronLeft, ChevronRight, Heart, LoaderCircle } from '@lucide/svelte'
+	import { ChevronLeft, ChevronRight, Crown, Heart, LoaderCircle } from '@lucide/svelte'
 	import { onMount } from 'svelte'
 	import { page } from '$app/state'
 	import { formatPrice } from '$lib/core/utils/index.js'
@@ -13,13 +13,15 @@
 		aspectRatio = '1:1',
 		size = 'default',
 		showSwatches = true,
-		imageOverride = ''
+		imageOverride = '',
+		badgeLabel = ''
 	}: {
 		product: any
 		aspectRatio?: string
 		size?: 'default' | 'wide' | 'listing'
 		showSwatches?: boolean
 		imageOverride?: string
+		badgeLabel?: string
 	} = $props()
 
 	const currencyCode = $derived(page?.data?.store?.currency?.code || '')
@@ -138,7 +140,7 @@
 </script>
 
 <article class="rj-card rj-card--{size}" data-testid="product-card-{product?.id}">
-	<div bind:this={mediaElement} class="rj-card-media" role="group" aria-label="{title} images" aria-busy={detailsLoading || !!metalLoading} onmouseenter={() => { void ensureDetails() }} onfocusin={() => { void ensureDetails() }}>
+	<div bind:this={mediaElement} class="rj-card-media" class:has-ribbon={!!badgeLabel} role="group" aria-label="{title} images" aria-busy={detailsLoading || !!metalLoading} onmouseenter={() => { void ensureDetails() }} onfocusin={() => { void ensureDetails() }}>
 		<a class="rj-card-media-link" {href} aria-label={title || 'View product'}>
 			{#if displayedImage}
 				<img src={listingImage(displayedImage)} alt={title} loading="lazy" decoding="async" fetchpriority="low" />
@@ -146,6 +148,7 @@
 				<span class="rj-card-media-empty" aria-hidden="true"></span>
 			{/if}
 		</a>
+		{#if badgeLabel}<span class="rj-card-ribbon"><span class="rj-card-ribbon-face"><Crown size={12} strokeWidth={1.4} aria-hidden="true" />{badgeLabel}</span></span>{/if}
 		<span class="rj-card-wish rj-card-wish--static" aria-hidden="true"><Heart size={16} strokeWidth={1.25} aria-hidden="true" /></span>
 		{#if canBrowse}
 			<button class="rj-card-gallery-control is-previous" type="button" aria-label="Previous image of {title}" disabled={detailsLoading || !!metalLoading} onclick={(event) => { event.preventDefault(); event.stopPropagation(); void moveImage(-1) }}>{#if detailsLoading || metalLoading}<LoaderCircle size={14} class="animate-spin" aria-hidden="true" />{:else}<ChevronLeft size={18} strokeWidth={1.5} aria-hidden="true" />{/if}</button>
@@ -190,6 +193,10 @@
 	.rj-card-media-empty { display: block; width: 100%; height: 100%; background: var(--rj-surface, #f4f4f4); }
 	.rj-card-wish { position: absolute; top: 12px; left: 12px; display: grid; width: 32px; height: 32px; place-items: center; border: 0; border-radius: 50%; background: #fff; color: var(--rj-ink, #404040); }
 	.rj-card-wish--static { pointer-events: none; }
+	.rj-card-ribbon { position: absolute; z-index: 3; top: 12px; left: 0; pointer-events: none; }
+	.rj-card-ribbon::after { content: ''; position: absolute; top: 100%; left: 0; width: 7px; height: 7px; background: #8b6b29; clip-path: polygon(0 0, 100% 0, 100% 100%); }
+	.rj-card-ribbon-face { display: flex; min-height: 26px; align-items: center; gap: 6px; padding: 5px 19px 5px 10px; background: linear-gradient(110deg, #f5e3ac, var(--rj-gold, #cca646)); color: #51370f; clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 50%, 100% 100%, 0 100%); font-size: 10px; font-weight: 600; line-height: 1.5; letter-spacing: .055em; text-transform: uppercase; }
+	.rj-card-media.has-ribbon .rj-card-wish { right: 12px; left: auto; }
 	.rj-card-gallery-control { position: absolute; z-index: 2; top: 50%; display: grid; width: 32px; height: 32px; place-items: center; padding: 0; border: 0; border-radius: 50%; background: rgb(255 255 255 / 94%); color: var(--rj-ink, #404040); opacity: 0; pointer-events: none; cursor: pointer; transform: translateY(-50%); transition: opacity 160ms ease, background 160ms ease; }
 	.rj-card-gallery-control.is-previous { left: 8px; }
 	.rj-card-gallery-control.is-next { right: 8px; }
@@ -222,6 +229,7 @@
 		.rj-card-name { font-size: 14px; }
 		.rj-card-discount { font-size: 12px; }
 		.rj-card-wish { top: 8px; left: 8px; }
+		.rj-card-media.has-ribbon .rj-card-wish { right: 8px; left: auto; }
 	}
 	@media (hover: none) { .rj-card-gallery-control { opacity: 1; pointer-events: auto; } }
 	@media (prefers-reduced-motion: reduce) { .rj-card-media-link img, .rj-card-gallery-control { transition: none; } }

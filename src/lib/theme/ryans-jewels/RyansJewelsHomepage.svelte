@@ -18,10 +18,17 @@
 	import RjJewelryEdit from './RjJewelryEdit.svelte'
 	import RjSocial from './RjSocial.svelte'
 	import RjStore from './RjStore.svelte'
+	import RjStoreVisit from './RjStoreVisit.svelte'
+	import RjCustomerReviews from './RjCustomerReviews.svelte'
+	import RjHomeFaq from './RjHomeFaq.svelte'
+	import RjEngagementExplore from './RjEngagementExplore.svelte'
+	import RjDiamondCollection from './RjDiamondCollection.svelte'
+	import RjCollectionSpotlights from './RjCollectionSpotlights.svelte'
 	import RjServices from './RjServices.svelte'
 	import RjEnquiry from './RjEnquiry.svelte'
 
 
+	let enquiryDescription = $state('')
 	let {
 		featuredProducts = [],
 		trendingProducts = [],
@@ -67,7 +74,8 @@
 	<RjStore />
 
 	<!-- 8 — best sellers carousel (1:6003 / 63:40324 / 77:107262) -->
-	<RjBestSellers products={featuredProducts} {loading} />
+	<RjBestSellers products={featuredProducts} {loading} badgeLabel="Best Seller" />
+	<RjEngagementExplore />
 
 
 
@@ -75,14 +83,20 @@
 	<!-- 12 — wide "Glamorous Gifts" banner (1:6201 / 63:40625 / 77:107518) -->
 	<RjJewelryEdit />
 	<RjWideBanner campaign />
+	<RjDiamondCollection onEnquire={(message) => { if (!enquiryDescription.includes(message)) enquiryDescription += (enquiryDescription ? '\n\n' : '') + message }} />
+	<RjBestSellers products={trendingProducts} {loading} title="Trending Designs" headingId="rj-trending-heading" emptyText="Trending designs will appear here soon." />
+	<RjCollectionSpotlights />
 
 
 	<!-- 14 — enquiry form (1:6426 / 63:40742 / 77:107636) -->
-	<RjEnquiry />
+	<RjEnquiry bind:description={enquiryDescription} />
 	<RjServices />
+	<RjStoreVisit />
+	<RjCustomerReviews />
 
 	<!-- 15 — FAQ accordion (1:6431 / 63:40782 / 77:107676) -->
 	<RjSocial />
+	<RjHomeFaq />
 
 </div>
 

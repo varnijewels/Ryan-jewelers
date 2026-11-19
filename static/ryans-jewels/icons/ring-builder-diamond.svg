@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="left" x1="3" y1="13" x2="17" y2="28" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#DDE2E7"/><stop offset="1" stop-color="#77828E"/>
+    </linearGradient>
+    <linearGradient id="right" x1="29" y1="14" x2="16" y2="27" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8C98A5"/><stop offset=".6" stop-color="#E6EBEF"/><stop offset="1" stop-color="#B9C1C9"/>
+    </linearGradient>
+  </defs>
+  <path d="M8.5 5.5H23.5L30 13.5L16 28.5L2 13.5Z" fill="#F8FAFC"/>
+  <path d="M2 13.5L8.5 5.5L12 13.5Z" fill="#CDD5DD"/>
+  <path d="M8.5 5.5H16L12 13.5Z" fill="#FFF9EC"/>
+  <path d="M16 5.5L20 13.5H12Z" fill="#E1E7EC"/>
+  <path d="M16 5.5H23.5L20 13.5Z" fill="#FFF"/>
+  <path d="M23.5 5.5L30 13.5H20Z" fill="#AFBAC5"/>
+  <path d="M2 13.5H12L16 28.5Z" fill="url(#left)"/>
+  <path d="M12 13.5H20L16 28.5Z" fill="#FDFEFF"/>
+  <path d="M20 13.5H30L16 28.5Z" fill="url(#right)"/>
+  <path d="M8.5 5.5H23.5L30 13.5L16 28.5L2 13.5Z" stroke="#636D77" stroke-width=".9" stroke-linejoin="round"/>
+  <path d="M2 13.5H30M8.5 5.5L12 13.5L16 28.5L20 13.5L23.5 5.5M12 13.5L16 5.5L20 13.5" stroke="#8A949E" stroke-width=".65" stroke-linejoin="round"/>
+  <path d="M9.4 6.3H14.5L12.1 11.3Z" fill="#FFF" fill-opacity=".8"/>
+</svg>

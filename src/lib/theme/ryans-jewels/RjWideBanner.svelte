@@ -90,7 +90,7 @@
 {/if}
 
 <style>
-	.rj-campaign { position: relative; margin: 40px auto; width: calc(100% - 96px); max-width: 1440px; background: #f4f0e9; color: #292724; }
+	.rj-campaign { position: relative; margin: 40px; width: calc(100% - 80px); background: #f4f0e9; color: #292724; }
 	.rj-campaign picture { display: block; }
 	.rj-campaign picture img { display: block; width: 100%; height: clamp(360px, 33vw, 480px); object-fit: cover; object-position: center; }
 	.rj-campaign-copy { position: absolute; top: 50%; left: 5%; width: 36%; transform: translateY(-50%); }
@@ -100,9 +100,8 @@
 	.rj-campaign-copy a { display: inline-flex; gap: 24px; align-items: center; padding-bottom: 7px; border-bottom: 1px solid currentColor; color: inherit; text-decoration: none; font: 500 13px/1.5 var(--font-body, sans-serif); }
 	.rj-campaign-copy a:hover { color: #977626; }
 	.rj-campaign-copy a:focus-visible { outline: 2px solid #977626; outline-offset: 4px; }
-	@media (max-width: 900px) { .rj-campaign { width: calc(100% - 40px); } }
 	@media (max-width: 639px) {
-		.rj-campaign { width: 100%; margin: 24px 0; }
+		.rj-campaign { width: calc(100% - 48px); margin: 24px; }
 		.rj-campaign picture img { height: auto; aspect-ratio: 1.2; }
 		.rj-campaign-copy { position: static; width: auto; transform: none; padding: 26px 22px 30px; }
 		.rj-campaign-copy h2 { font-size: 34px; }

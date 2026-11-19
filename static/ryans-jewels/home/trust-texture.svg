@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="600" viewBox="0 0 1600 600" preserveAspectRatio="none">
+  <defs>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="12" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+    <filter id="veins" x="-15%" y="-30%" width="130%" height="160%">
+      <feTurbulence type="fractalNoise" baseFrequency=".009 .018" numOctaves="3" seed="7" result="stone"/>
+      <feDisplacementMap in="SourceGraphic" in2="stone" scale="42" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <linearGradient id="softness">
+      <stop stop-color="#fff" stop-opacity=".9"/>
+      <stop offset=".35" stop-color="#fff" stop-opacity=".3"/>
+      <stop offset=".65" stop-color="#fff" stop-opacity=".3"/>
+      <stop offset="1" stop-color="#fff" stop-opacity=".9"/>
+    </linearGradient>
+    <mask id="soft"><path fill="url(#softness)" d="M0 0h1600v600H0z"/></mask>
+  </defs>
+  <path filter="url(#grain)" opacity=".065" d="M0 0h1600v600H0z"/>
+  <g mask="url(#soft)" fill="none" stroke="#b49b69" filter="url(#veins)">
+    <path opacity=".045" stroke-width="11" d="M-100 550C120 505 165 310 360 235S585 74 660-90M960 690c70-166 186-175 285-315S1430 80 1690 90"/>
+    <path opacity=".18" stroke-width="1.1" d="M-100 550C120 505 165 310 360 235S585 74 660-90M960 690c70-166 186-175 285-315S1430 80 1690 90"/>
+    <path opacity=".12" stroke-width=".8" d="M-70 295c153-9 201-103 240-173S297 32 370-80M1220 680c-15-146 60-181 175-247s133-118 278-167M-20 620c137-87 161-116 194-211s113-103 175-133M1380 610c12-90 48-140 138-169"/>
+  </g>
+</svg>
