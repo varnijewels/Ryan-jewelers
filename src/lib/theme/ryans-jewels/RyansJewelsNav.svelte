@@ -37,7 +37,7 @@
 
 	const activeUser = $derived(userState?.user?.role ? userState.user : (page.data as any)?.user)
 	const isLoggedIn = $derived(!!activeUser?.role)
-	const resolvedMenu = $derived(resolveAdminMenu(catalogMegaMenu, [], nav.home, []))
+	const resolvedMenu = $derived(resolveAdminMenu([...catalogMegaMenu, ...nav.information], [], nav.home, []))
 	const homeLabel = $derived(menuLabel(resolvedMenu.home))
 	const homeHref = '/'
 </script>

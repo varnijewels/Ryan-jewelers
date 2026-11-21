@@ -16,6 +16,7 @@ function outline(shape: string, angle: number): [number, number] {
 	const z = Math.sin(angle)
 	switch (shape) {
 		case 'Oval': return [x * .8, z * 1.16]
+		case 'Asscher':
 		case 'Emerald':
 		case 'Radiant': {
 			const corners = [[1, .68], [.68, 1], [-.68, 1], [-1, .68], [-1, -.68], [-.68, -1], [.68, -1], [1, -.68]]
@@ -23,7 +24,7 @@ function outline(shape: string, angle: number): [number, number] {
 			const start = corners[Math.floor(segment) % 8]
 			const end = corners[(Math.floor(segment) + 1) % 8]
 			const fraction = segment - Math.floor(segment)
-			return [(start[0] + (end[0] - start[0]) * fraction) * (shape === 'Emerald' ? .74 : .85), (start[1] + (end[1] - start[1]) * fraction) * 1.1]
+			return [(start[0] + (end[0] - start[0]) * fraction) * (shape === 'Asscher' ? 1 : shape === 'Emerald' ? .74 : .85), (start[1] + (end[1] - start[1]) * fraction) * (shape === 'Asscher' ? 1 : 1.1)]
 		}
 		case 'Princess': return [Math.sign(x) * Math.abs(x) ** .15 * .85, Math.sign(z) * Math.abs(z) ** .15 * .85]
 		case 'Cushion': return [Math.sign(x) * Math.abs(x) ** .5 * .92, Math.sign(z) * Math.abs(z) ** .5]
@@ -35,7 +36,7 @@ function outline(shape: string, angle: number): [number, number] {
 }
 
 export function createDiamondGeometry(shape: string) {
-	const count = shape === 'Emerald' || shape === 'Radiant' ? 8 : 32
+	const count = ['Asscher', 'Emerald'].includes(shape) ? 8 : 32
 	const layers = [
 		{ y: .38, radius: .53 }, { y: .2, radius: .8 },
 		{ y: .015, radius: 1 }, { y: -.015, radius: 1 },

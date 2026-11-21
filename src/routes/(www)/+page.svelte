@@ -18,7 +18,7 @@
 	import Slider from '$lib/components/home/slider.svelte'
 	import Blocks from '$lib/components/page-blocks/blocks.svelte'
 	import { canonicalProductPath } from '$lib/theme/ryans-jewels/seo.js'
-	import { realCatalogUrl, withoutDemoProducts } from '$lib/theme/ryans-jewels/product-filters.js'
+	import { homepageProductSections, realCatalogUrl, withoutDemoProducts } from '$lib/theme/ryans-jewels/product-filters.js'
 	import { instagramStrip } from '$lib/theme/ryans-jewels/footer-content.js'
 	import { searchService } from '$lib/core/services/index.js'
 
@@ -59,10 +59,11 @@
 	const featuredCategories = $derived(homepageModule?.featuredCategories || [])
 	let storefrontProducts = $state(data?.storefrontProducts || [])
 	let storefrontProductsLoading = $state(activeTheme === 'ryans-jewels' && !storefrontProducts.length)
-	const featuredProducts = $derived(activeTheme === 'ryans-jewels' ? storefrontProducts : homepageModule?.featuredProducts || [])
-	const trendingProducts = $derived(activeTheme === 'ryans-jewels' ? storefrontProducts : homepageModule?.trendingProducts || [])
+	const ryanProducts = $derived(homepageProductSections(storefrontProducts))
+	const featuredProducts = $derived(activeTheme === 'ryans-jewels' ? ryanProducts.featured : homepageModule?.featuredProducts || [])
+	const trendingProducts = $derived(activeTheme === 'ryans-jewels' ? ryanProducts.trending : homepageModule?.trendingProducts || [])
 	const structuredProducts = $derived(activeTheme === 'ryans-jewels'
-		? storefrontProducts.slice(0, 5).map((product: any) => ({
+		? featuredProducts.slice(0, 5).map((product: any) => ({
 			url: `${sveltePage.url.origin}${canonicalProductPath(product)}`,
 			name: product.title,
 			image: product.thumbnail ? [product.thumbnail] : [],

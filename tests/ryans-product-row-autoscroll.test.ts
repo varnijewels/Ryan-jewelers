@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import RjProductRow from '../src/lib/theme/ryans-jewels/RjProductRow.svelte'
 
 vi.mock('$app/state', () => ({ page: { data: { store: { currency: { code: 'USD' } } } } }))
-vi.mock('$lib/core/utils/index.js', () => ({ formatPrice: (value: number) => `$${value}` }))
+vi.mock('$lib/core/utils/index.js', () => ({ cn: (...values: any[]) => values.filter(Boolean).join(' '), formatPrice: (value: number) => `$${value}` }))
 
 const products = ['Ring', 'Ring', 'Ring', 'Pendant', 'Pendant', 'Pendant', 'Earrings', 'Earrings'].map((category, index) => ({ id: `${index}`, slug: `product-${index}`, title: `${category} ${index}`, price: 80, thumbnail: `/${index}.jpg` }))
 const preference = { matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }
@@ -125,7 +125,7 @@ describe('Ryan reference continuous product scrolling', () => {
 		await fireEvent.click(screen.getByRole('button', { name: 'Next products' }))
 		expect(next).toHaveBeenCalledWith(true)
 		await fireEvent.click(screen.getByRole('button', { name: 'Resume product scrolling' }))
-		preference.addEventListener.mock.calls[0][1]()
+		for (const [, listener] of preference.addEventListener.mock.calls) listener()
 		await tick()
 		expect(autoScroll.isPlaying()).toBe(false)
 	})

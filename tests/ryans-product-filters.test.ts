@@ -3,6 +3,7 @@ import {
 	applyClientFilters,
 	facetOptions,
 	filterProductsByCategory,
+	homepageProductSections,
 	interleaveProductCategories,
 	isRyanCategoryVisible,
 	productRating,
@@ -17,6 +18,41 @@ const products = [
 ]
 
 describe('Ryan product filters', () => {
+	it('gives featured and trending separate live products with category variety and a 12-product limit', () => {
+		const catalogue = Array.from({ length: 36 }, (_, id) => ({
+			id, slug: `design-${id}`, title: id < 12 ? 'Diamond Ring' : id < 24 ? 'Diamond Pendant' : 'Diamond Earrings', price: id + 100
+		}))
+		const original = [...catalogue]
+		const { featured, trending } = homepageProductSections(catalogue)
+		expect(featured).toHaveLength(12)
+		expect(trending).toHaveLength(12)
+		expect(trending.every((product) => !featured.some((item) => item.id === product.id))).toBe(true)
+		for (const section of [featured, trending]) {
+			expect(new Set(section.map((product) => product.title)).size).toBe(3)
+			expect(section.every((product) => catalogue.includes(product))).toBe(true)
+		}
+		expect(catalogue).toEqual(original)
+	})
+
+	it('shares a small catalog without repeating products or inventing a trending fallback', () => {
+		const catalogue = Array.from({ length: 5 }, (_, id) => ({ id, slug: `design-${id}`, title: 'Diamond Ring' }))
+		const { featured, trending } = homepageProductSections(catalogue)
+		expect(featured).toHaveLength(3)
+		expect(trending).toHaveLength(2)
+		expect([...featured, ...trending]).toEqual(catalogue)
+		expect(homepageProductSections(catalogue.slice(0, 1))).toEqual({ featured: catalogue.slice(0, 1), trending: [] })
+		expect(homepageProductSections()).toEqual({ featured: [], trending: [] })
+	})
+
+	it('keeps the same product URL out of both homepage sections when catalog results overlap', () => {
+		const catalogue = Array.from({ length: 4 }, (_, id) => ({ id, slug: `design-${id}`, title: 'Diamond Ring' }))
+		const duplicate = { ...catalogue[0], id: 99 }
+		const { featured, trending } = homepageProductSections([...catalogue, duplicate])
+		const all = [...featured, ...trending]
+		expect(all).toHaveLength(4)
+		expect(new Set(all.map((product) => product.slug)).size).toBe(4)
+	})
+
 	it('alternates product categories without dropping products or changing their order within a category', () => {
 		const catalogue = ['Ring', 'Ring', 'Ring', 'Pendant', 'Pendant', 'Earrings', 'Earrings', 'Bracelet', 'Necklace'].map((title, id) => ({ id, title }))
 		expect(interleaveProductCategories(catalogue).map((product) => product.id)).toEqual([0, 3, 5, 7, 8, 1, 4, 6, 2])

@@ -1,15 +1,32 @@
 <script lang="ts">
 	/**
-	 * Floating help widget pinned over the hero.
+	 * Floating help widget pinned to the viewport.
 	 * Source: 1:6500 — pill (h45, r5, px12 py9, gap14, drop-shadow -2px 2px 5px rgba(187,187,187,.25))
 	 * above a 70px round button (r35, px13 py10) holding the 45x42 logo mark.
 	 * Tablet uses the same component at 63:41090.
 	 */
+	import { onMount } from 'svelte'
 	import { ryansJewelsHome } from './home-content.js'
 
 	const { chat } = ryansJewelsHome
+	let visible = $state(false)
+
+	onMount(() => {
+		const sound = new Audio('/ryans-jewels/chat-chime.wav')
+		sound.volume = 0.35
+		const timer = window.setTimeout(() => {
+			visible = true
+			// Browsers may block sound until the visitor interacts with the page.
+			if (window.matchMedia('(min-width: 640px)').matches) void sound.play().catch(() => {})
+		}, 5000)
+		return () => {
+			window.clearTimeout(timer)
+			sound.pause()
+		}
+	})
 </script>
 
+{#if visible}
 <div class="rj-chat">
 	<a class="rj-chat-pill" href={chat.href}>
 		<span>{chat.label}</span>
@@ -21,10 +38,11 @@
 		<span class="rj-chat-mark"><img src={chat.logo} alt="" /></span>
 	</a>
 </div>
+{/if}
 
 <style>
 	.rj-chat {
-		position: absolute;
+		position: fixed;
 		right: 31px;
 		bottom: 45px;
 		z-index: 20;

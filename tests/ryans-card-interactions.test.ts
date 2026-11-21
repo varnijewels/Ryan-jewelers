@@ -1,9 +1,12 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/svelte'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/svelte'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { tick } from 'svelte'
 import RjProductCard from '../src/lib/theme/ryans-jewels/RjProductCard.svelte'
 
+vi.mock('svelte/transition', () => ({ fly: () => ({ duration: 0 }) }))
+
 vi.mock('$app/state', () => ({ page: { data: { store: { id: 'store-1', currency: { code: 'USD' } } } } }))
-vi.mock('$lib/core/utils/index.js', () => ({
+vi.mock('$lib/core/utils/index.js', () => ({ cn: (...values: any[]) => values.filter(Boolean).join(' '),
 	formatPrice: (value: number, currency: string) => new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(value)
 }))
 
@@ -118,5 +121,118 @@ describe('Ryan card image controls and metals', () => {
 		await fireEvent.click(screen.getByRole('button', { name: 'Select Rose Gold' }))
 		await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('This metal is not available for this product.'))
 		expect(screen.getByRole('button', { name: 'Select Rose Gold' })).toHaveAttribute('aria-pressed', 'false')
+	})
+})
+
+
+describe('Ryan card hover photo slideshow', () => {
+	const pointer = { matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() }
+	const motion = { matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }
+	let hidden = false
+	let decode = vi.fn(async () => {})
+	const photo = () => screen.getByRole('img', { name: 'Diamond Ring' }).getAttribute('src')
+	const elapse = async (time: number) => { await vi.advanceTimersByTimeAsync(time); await tick() }
+	async function hoverCard(item = product) {
+		const view = render(RjProductCard, { product: item })
+		const card = view.container.querySelector('article')!
+		await fireEvent.mouseEnter(card)
+		return { ...view, card }
+	}
+
+	beforeEach(() => {
+		vi.useFakeTimers()
+		vi.clearAllMocks()
+		pointer.matches = true
+		motion.matches = false
+		hidden = false
+		decode = vi.fn(async () => {})
+		vi.spyOn(document, 'hidden', 'get').mockImplementation(() => hidden)
+		vi.stubGlobal('matchMedia', vi.fn((query: string) => query.includes('prefers-reduced-motion') ? motion : pointer))
+		vi.stubGlobal('Image', class { src = ''; decode = decode })
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => product }))
+	})
+
+	afterEach(() => {
+		cleanup()
+		vi.useRealTimers()
+		vi.restoreAllMocks()
+	})
+
+	it('advances one photo every 1.5 seconds while hovered and wraps without changing product links or prices', async () => {
+		await hoverCard()
+		await elapse(1499)
+		expect(photo()).toBe('/front.jpg')
+		await elapse(1)
+		expect(photo()).toBe('/side.jpg')
+		await elapse(1500)
+		expect(photo()).toBe('/hand.jpg')
+		await elapse(1500)
+		expect(photo()).toBe('/front.jpg')
+		expect(screen.getByTestId('product-card-selling-price')).toHaveTextContent('$80.00')
+		for (const link of screen.getAllByRole('link', { name: 'Diamond Ring' })) expect(link).toHaveAttribute('href', '/products/diamond-ring')
+	})
+
+	it('discards a pending photo load after the pointer leaves', async () => {
+		let finish!: () => void
+		decode.mockImplementationOnce(() => new Promise<void>((resolve) => { finish = resolve }))
+		const { card } = await hoverCard()
+		await elapse(1500)
+		expect(photo()).toBe('/front.jpg')
+		await fireEvent.mouseLeave(card)
+		finish()
+		await elapse(5000)
+		expect(photo()).toBe('/front.jpg')
+		expect(decode).toHaveBeenCalledTimes(1)
+	})
+
+	it('stops for focus and hidden tabs and removes playback listeners on unmount', async () => {
+		const { card, unmount } = await hoverCard()
+		await elapse(1500)
+		expect(photo()).toBe('/side.jpg')
+		await fireEvent.focusIn(card)
+		await elapse(3000)
+		expect(photo()).toBe('/side.jpg')
+		await fireEvent.focusOut(card, { relatedTarget: document.body })
+		hidden = true
+		await fireEvent(document, new Event('visibilitychange'))
+		await elapse(3000)
+		expect(photo()).toBe('/side.jpg')
+		hidden = false
+		await fireEvent(document, new Event('visibilitychange'))
+		unmount()
+		await elapse(3000)
+		expect(decode).toHaveBeenCalledTimes(1)
+		expect(pointer.removeEventListener).toHaveBeenCalledWith('change', expect.any(Function))
+		expect(motion.removeEventListener).toHaveBeenCalledWith('change', expect.any(Function))
+	})
+
+	it.each(['touch', 'reduced motion'])('keeps %s manual while retaining the photo arrows', async (preference) => {
+		pointer.matches = preference !== 'touch'
+		motion.matches = preference === 'reduced motion'
+		await hoverCard()
+		await elapse(5000)
+		expect(photo()).toBe('/front.jpg')
+		expect(decode).not.toHaveBeenCalled()
+		await fireEvent.click(screen.getByRole('button', { name: 'Next image of Diamond Ring' }))
+		expect(photo()).toBe('/side.jpg')
+	})
+
+	it('does not animate a genuine single-photo product', async () => {
+		const single = { ...product, images: '/front.jpg' }
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => single }))
+		await hoverCard(single)
+		await fireEvent.mouseEnter(screen.getByRole('group', { name: 'Diamond Ring images' }))
+		await elapse(5000)
+		expect(photo()).toBe('/front.jpg')
+		expect(decode).not.toHaveBeenCalled()
+		expect(screen.queryByRole('button', { name: 'Next image of Diamond Ring' })).not.toBeInTheDocument()
+	})
+
+	it('keeps the current photo when the next image fails to load', async () => {
+		decode.mockRejectedValueOnce(new Error('image unavailable'))
+		await hoverCard()
+		await elapse(7500)
+		expect(photo()).toBe('/front.jpg')
+		expect(decode).toHaveBeenCalledTimes(1)
 	})
 })

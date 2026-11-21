@@ -9,7 +9,7 @@ const defaults: Ring3DOptions = { style: 0, side: 0, crown: 0, shape: 'Round', c
 describe('Ring 3D geometry', () => {
 	it('builds finite, distinct faceted geometry for every diamond shape', () => {
 		const signatures = new Set<string>()
-		for (const shape of ['Round', 'Oval', 'Emerald', 'Radiant', 'Pear', 'Princess', 'Cushion', 'Marquise', 'Heart']) {
+		for (const shape of ['Asscher', 'Round', 'Oval', 'Emerald', 'Radiant', 'Pear', 'Princess', 'Cushion', 'Marquise', 'Heart']) {
 			const geometry = createDiamondGeometry(shape)
 			const positions = Array.from(geometry.getAttribute('position').array)
 			expect(positions.every(Number.isFinite)).toBe(true)
@@ -19,7 +19,7 @@ describe('Ring 3D geometry', () => {
 			signatures.add(positions.map((value) => value.toFixed(3)).join(','))
 			geometry.dispose()
 		}
-		expect(signatures.size).toBe(9)
+		expect(signatures.size).toBe(10)
 	})
 
 	it('supports every band, detail and crown, and applies carat and metal selections', () => {

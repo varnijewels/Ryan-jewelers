@@ -9,6 +9,8 @@ globalThis.matchMedia =
 	globalThis.matchMedia ||
 	(() => ({
 		matches: false,
+		addEventListener: () => {},
+		removeEventListener: () => {},
 		addListener: () => {},
 		removeListener: () => {}
 	}))

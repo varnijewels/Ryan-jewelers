@@ -109,6 +109,7 @@
 
 <section
 	class="rj-bestsellers"
+	class:has-ribbon={!!badgeLabel}
 	aria-labelledby={headingId}
 	onmouseenter={() => hovered = true}
 	onmouseleave={() => hovered = false}
@@ -203,6 +204,9 @@
 	.rj-bestsellers-playback:disabled { opacity: .25; cursor: default; }
 	.rj-bestsellers-playback:focus-visible { outline: 2px solid var(--rj-gold, #cca646); outline-offset: 2px; }
 	.rj-bestsellers-viewport { width: 100%; overflow: hidden; }
+	/* Show the fold in the gutter while keeping recycled slides inside the section. */
+	.has-ribbon .rj-bestsellers-inner { overflow-x: clip; }
+	.has-ribbon .rj-bestsellers-viewport { position: relative; overflow: visible; clip-path: inset(0 0 0 -10px); }
 	.rj-bestsellers-track { display: flex; align-items: flex-start; gap: var(--rj-track-gap, 25px); width: 100%; padding-left: var(--rj-track-start, 0px); touch-action: pan-y pinch-zoom; will-change: transform; }
 	.rj-bestsellers-track > :global(:last-child) { margin-right: var(--rj-track-gap, 25px); }
 	.rj-bestsellers-rail { appearance: none; width: calc(100% - var(--rj-rail-start, 0px) - var(--rj-rail-end, 0px)); height: 16px; flex-shrink: 0; margin: 48px var(--rj-rail-end, 0px) 0 var(--rj-rail-start, 0px); background: linear-gradient(#f9f9f9, #f9f9f9) center / 100% 2px no-repeat; cursor: pointer; }
@@ -321,6 +325,7 @@
 
 	/* Mobile 412 — full-bleed section, head padded 16, cards + rail inset 15. */
 	@media (max-width: 639px) {
+		.has-ribbon .rj-bestsellers-viewport { padding-left: 8px; }
 		.rj-bestsellers {
 			padding: 25px 0;
 		}

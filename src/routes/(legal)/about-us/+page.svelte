@@ -1,887 +1,253 @@
 <script lang="ts">
+	import { ArrowRight, ArrowUpRight, ChevronRight, Diamond, HeartHandshake, MapPin, PenTool, Phone } from '@lucide/svelte'
 	import type { Page } from '$lib/core/types/index.js'
 	import { SeoHeader } from '$lib/core/components/index.js'
 	import Blocks from '$lib/components/page-blocks/blocks.svelte'
+	import RjStoryMoments from '$lib/theme/ryans-jewels/RjStoryMoments.svelte'
 	import { reveal } from '$lib/core/actions/reveal.js'
-	import RjWideBanner from '$lib/theme/ryans-jewels/RjWideBanner.svelte'
+	import { ryanContact } from '$lib/theme/ryans-jewels/contact-content.js'
 	import { ryansSeoText } from '$lib/theme/ryans-jewels/seo.js'
 
 	interface Props {
-		data: {
-			page: Page
-			theme?: { name: string }
-		}
+		data: { page: Page; theme?: { name: string } }
 	}
-
 	const { data }: Props = $props()
 	const isRyans = $derived(data?.theme?.name === 'ryans-jewels')
-	const ryanDescription =
-		'Discover the Ryan Jewelers story, our thoughtful craftsmanship and the values behind our lab-grown diamond jewelry.'
-
-	const stats = [
-		{ value: '15+', label: 'Years of experience' },
-		{ value: '260+', label: 'Original designs' },
-		{ value: '30K', label: 'Product reviews' }
+	const ryanDescription = 'Meet Ryan Jewelers in Salisbury, Maryland. Explore our approach to lab-grown diamond jewelry, custom design and personal jewelry care.'
+	const chapters = [
+		{ label: 'Our story', href: '#our-story' },
+		{ label: 'Our approach', href: '#our-values' },
+		{ label: 'The details', href: '#our-craft' },
+		{ label: 'Visit our store', href: '#discover-ryan' }
 	]
-
-	const craftSteps = [
-		{
-			number: '01',
-			title: 'Designed with intention',
-			text: 'Every piece begins with a thoughtful sketch, balancing modern expression with timeless proportion.',
-			icon: '/ryans-jewels/home/stat-pen-tool.svg'
-		},
-		{
-			number: '02',
-			title: 'Crafted with patience',
-			text: 'Materials, settings and finishes are carefully considered so every detail feels beautiful and enduring.',
-			icon: '/ryans-jewels/home/stat-timer.svg'
-		},
-		{
-			number: '03',
-			title: 'Checked with care',
-			text: 'Each design is reviewed for comfort, character and quality before it becomes part of your story.',
-			icon: '/ryans-jewels/home/stat-clipboard.svg'
-		}
-	]
-
 	const values = [
-		{
-			title: 'Exceptional craft',
-			text: 'Details matter. We bring precision and care to every design, setting and finish.'
-		},
-		{
-			title: 'Timeless design',
-			text: 'Jewelry should outlive a trend and remain meaningful through every chapter of life.'
-		},
-		{
-			title: 'Conscious choices',
-			text: 'Luxury feels better when beauty, quality and thoughtful choices come together.'
-		}
+		{ icon: HeartHandshake, title: 'Personal, from the start', text: 'A milestone, a gift, or something just for you. Tell us what you have in mind, and explore the possibilities with our team.' },
+		{ icon: Diamond, title: 'Room to find your favorite', text: 'Get a closer look at the stones, settings and metals. Ask questions, try pieces on, and find the details that feel right.' },
+		{ icon: PenTool, title: 'A relationship beyond the piece', text: 'From a custom idea to cleaning, inspection and repairs, we are here to help you care for the jewelry you love.' }
 	]
 </script>
 
 <SeoHeader
-	metaTitle={ryansSeoText(data?.page?.metaTitle, 'About Ryan Jewelers')}
+	metaTitle={isRyans ? 'About Ryan Jewelers | Our Story & Salisbury Store' : ryansSeoText(data?.page?.metaTitle, 'About Ryan Jewelers')}
 	metaDescription={isRyans ? ryanDescription : ryansSeoText(data?.page?.metaDescription, ryanDescription)}
 />
 
 {#if isRyans}
 	<div class="rj-about">
-		<h1 class="sr-only">About Ryan Jewelers</h1>
-		<RjWideBanner
-			eyebrow="About Ryan Jewelers"
-			heading="Made with meaning. Worn with love."
-			subheading="Discover the story, craftsmanship and values behind jewelry made for life's most meaningful moments."
-			ctaLabel="Discover our journey"
-			ctaHref="#our-story"
-			imageAlt="Model wearing Ryan Jewelers diamond necklaces"
-			centered
-		/>
-
-		<nav class="rj-about-jump" aria-label="About Ryan Jewelers sections">
-			<a href="#our-story">Our story</a>
-			<a href="#our-craft">Our craftsmanship</a>
-			<a href="#our-values">What guides us</a>
-			<a href="#discover-ryan">Discover Ryan</a>
+		<nav class="rj-about-breadcrumb" aria-label="Breadcrumb">
+			<ol><li><a href="/">Home</a><ChevronRight size={13} strokeWidth={1.4} aria-hidden="true" /></li><li aria-current="page">About Us</li></ol>
 		</nav>
 
-		<section id="our-story" class="rj-about-story" aria-labelledby="rj-about-story-title" data-reveal use:reveal>
-			<div class="rj-about-story-media">
-				<figure class="rj-about-story-main">
-					<img
-						src="/ryans-jewels/home/lookbook-side.jpg"
-						alt="Ryan Jewelers diamond jewelry styled for a timeless look"
-						loading="lazy"
-					/>
-				</figure>
-				<figure class="rj-about-story-inset">
-					<img
-						src="/ryans-jewels/home/hero-desktop.png"
-						alt="A close view of a Ryan Jewelers diamond ring"
-						loading="lazy"
-					/>
-				</figure>
-				<span class="rj-about-story-line" aria-hidden="true"></span>
+		<section class="rj-about-hero" aria-labelledby="rj-about-title">
+			<div class="rj-about-hero-copy">
+				<p class="rj-about-eyebrow">About Ryan Jewelers</p>
+				<h1 id="rj-about-title">More than a piece.<br />Part of your story.</h1>
+				<p class="rj-about-intro">For the big question. The everyday moments. And everything that makes a piece of jewelry yours.</p>
+				<div class="rj-about-actions">
+					<a class="rj-about-button is-gold" href="#our-story">Get to know us <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" /></a>
+					<a class="rj-about-link" href="/contact-us">Visit our store <ArrowUpRight size={16} strokeWidth={1.5} aria-hidden="true" /></a>
+				</div>
+				<p class="rj-about-local"><MapPin size={15} strokeWidth={1.4} aria-hidden="true" /> Your jeweler in Salisbury, Maryland</p>
 			</div>
+			<div class="rj-about-hero-photo">
+				<picture>
+					<source srcset="/ryans-jewels/home/campaign/oval-halo-hand-v1.avif" type="image/avif" />
+					<img src="/ryans-jewels/home/campaign/oval-halo-hand-v1.webp" alt="An oval halo diamond ring worn on the hand, against soft ivory fabric" width="1100" height="1375" fetchpriority="high" decoding="async" />
+				</picture>
+			</div>
+		</section>
 
+		<nav class="rj-about-chapters" aria-label="About Ryan Jewelers sections">
+			{#each chapters as chapter, index}<a href={chapter.href}><span aria-hidden="true">0{index + 1}</span>{chapter.label}<ArrowUpRight size={14} strokeWidth={1.4} aria-hidden="true" /></a>{/each}
+		</nav>
+
+		<section id="our-story" class="rj-about-story rj-about-section" aria-labelledby="rj-about-story-title" use:reveal>
+			<figure class="rj-about-story-photo">
+				<img src="/ryans-jewels/store/store-interior.webp" alt="Jewelry displays inside the Ryan Jewelers store" width="700" height="560" loading="lazy" decoding="async" />
+				<figcaption><span class="rj-about-dot" aria-hidden="true"></span>A closer look, a personal conversation.</figcaption>
+			</figure>
 			<div class="rj-about-story-copy">
-				<p class="rj-about-kicker">More Than Adornment</p>
-				<h2 id="rj-about-story-title">Made for moments worth remembering.</h2>
-				<p class="rj-about-lead">
-					We believe true luxury is personal. It is the piece chosen for a milestone, worn every day, and passed on with a story of its own.
-				</p>
-				<p>
-					At Ryan Jewelers, every collection brings together thoughtful design, careful craftsmanship and an enduring sense of beauty. Our purpose is simple: to help you find jewelry that feels unmistakably yours.
-				</p>
+				<p class="rj-about-eyebrow">Rooted in Salisbury</p>
+				<h2 id="rj-about-story-title">A familiar face.<br />A personal experience.</h2>
+				<p>Jewelry is personal. It marks a beginning, carries a memory, or simply becomes the piece you reach for every morning.</p>
+				<p>At Ryan Jewelers, we help you find that connection. Visit us at {ryanContact.location} to explore lab-grown diamond designs and fine jewelry, talk through an idea, or give a favorite piece a little care.</p>
+				<p>From your first question to the final choice, our Salisbury team is here to help you find what feels like you.</p>
+				<a class="rj-about-link" href="/contact-us">Say hello to our team <ArrowUpRight size={16} strokeWidth={1.5} aria-hidden="true" /></a>
 			</div>
 		</section>
 
-		<section class="rj-about-manifesto" aria-label="Ryan Jewelers philosophy" data-reveal use:reveal>
-			<p>Designed for every chapter. Crafted for every story. Made to remain yours.</p>
-		</section>
-
-		<section class="rj-about-stats" aria-label="Ryan Jewelers in numbers" data-reveal use:reveal>
-			<ul>
-				{#each stats as stat}
-					<li>
-						<strong>{stat.value}</strong>
-						<span>{stat.label}</span>
-					</li>
+		<section id="our-values" class="rj-about-values rj-about-section" aria-labelledby="rj-about-values-title" use:reveal>
+			<div class="rj-about-values-heading">
+				<p class="rj-about-eyebrow">The Ryan approach</p>
+				<h2 id="rj-about-values-title">Good jewelry begins<br />with a good conversation.</h2>
+				<p>Beautiful pieces are only part of the experience. How you find them matters, too.</p>
+			</div>
+			<ul class="rj-about-values-list">
+				{#each values as value}
+					<li><value.icon size={25} strokeWidth={1.2} aria-hidden="true" /><div><h3>{value.title}</h3><p>{value.text}</p></div></li>
 				{/each}
 			</ul>
 		</section>
 
-		<section id="our-craft" class="rj-about-craft" aria-labelledby="rj-about-craft-title" data-reveal use:reveal>
-			<div class="rj-about-section-heading">
-				<p class="rj-about-kicker">The Art Behind Every Piece</p>
-				<h2 id="rj-about-craft-title">Crafted with purpose, from first line to final polish.</h2>
-				<p>Our process is built around considered design, patient craftsmanship and uncompromising attention to detail.</p>
+		<section id="our-craft" class="rj-about-details rj-about-section" aria-labelledby="rj-about-details-title" use:reveal>
+			<div class="rj-about-details-copy">
+				<p class="rj-about-eyebrow">It's all in the details</p>
+				<h2 id="rj-about-details-title">The little things.<br />The lasting favorites.</h2>
+				<p>The shape of a stone. The warmth of the metal. The way a piece sits when you put it on. Finding your jewelry is about discovering the details you love.</p>
+				<p>Explore engagement rings, wedding bands, earrings and pendants. Or bring an idea of your own, and start a conversation about a custom design.</p>
+				<a class="rj-about-button" href="/products">Explore our jewelry <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" /></a>
+				<a class="rj-about-link" href="/#rj-enq">Let's create something personal <ArrowUpRight size={16} strokeWidth={1.5} aria-hidden="true" /></a>
 			</div>
-
-			<ol class="rj-about-steps">
-				{#each craftSteps as step}
-					<li>
-						<div class="rj-about-step-top">
-							<img src={step.icon} alt="" aria-hidden="true" />
-							<span>{step.number}</span>
-						</div>
-						<h3>{step.title}</h3>
-						<p>{step.text}</p>
-					</li>
-				{/each}
-			</ol>
-		</section>
-
-		<section class="rj-about-quote" aria-label="Our belief" data-reveal use:reveal>
-			<div class="rj-about-quote-copy">
-				<img src="/ryans-jewels/home/star.svg" alt="" aria-hidden="true" />
-				<blockquote>“True luxury is personal, meaningful and made to last.”</blockquote>
-				<p>Our promise, in every Ryan Jewelers piece.</p>
-			</div>
-			<div class="rj-about-quote-media" aria-hidden="true">
-				<img src="/ryans-jewels/home/banner-model.png" alt="" loading="lazy" />
+			<div class="rj-about-details-gallery">
+				<figure><img src="/ryans-jewels/about/oval-pear-lifestyle-v3.webp" alt="An oval diamond ring with pear-shaped side stones worn on a hand beside an ivory linen sleeve" width="1122" height="1402" loading="lazy" decoding="async" /><figcaption>A moment worth keeping.</figcaption></figure>
+				<figure><img src="/ryans-jewels/about/gold-huggie-lifestyle-v3.webp" alt="A yellow gold twisted diamond huggie earring worn on a natural earlobe" width="1122" height="1402" loading="lazy" decoding="async" /><figcaption>A little everyday brilliance.</figcaption></figure>
 			</div>
 		</section>
 
-		<section id="our-values" class="rj-about-values" aria-labelledby="rj-about-values-title" data-reveal use:reveal>
-			<div class="rj-about-section-heading rj-about-section-heading--left">
-				<p class="rj-about-kicker">What Guides Us</p>
-				<h2 id="rj-about-values-title">Beauty with meaning.</h2>
-			</div>
+		<RjStoryMoments />
 
-			<div class="rj-about-value-grid">
-				{#each values as value, index}
-					<article>
-						<span>0{index + 1}</span>
-						<h3>{value.title}</h3>
-						<p>{value.text}</p>
-					</article>
-				{/each}
-			</div>
+		<section class="rj-about-care" aria-labelledby="rj-about-care-title" use:reveal>
+			<div><p class="rj-about-eyebrow">Here for the years ahead</p><h2 id="rj-about-care-title">The piece is just the beginning.</h2></div>
+			<div class="rj-about-care-copy"><p>A new idea. A broken clasp. An old favorite that needs a fresh shine. Explore custom jewelry, repairs, cleaning and inspection with our team.</p><a class="rj-about-link" href="/services">Discover our services <ArrowUpRight size={16} strokeWidth={1.5} aria-hidden="true" /></a></div>
 		</section>
 
-		{#if data?.page?.layouts?.length}
-			<div class="rj-about-blocks"><Blocks layouts={data.page.layouts} /></div>
-		{/if}
+		{#if data?.page?.layouts?.length}<div class="rj-about-blocks"><Blocks layouts={data.page.layouts} /></div>{/if}
 
-		<section id="discover-ryan" class="rj-about-cta" aria-labelledby="rj-about-cta-title" data-reveal use:reveal>
-			<p class="rj-about-kicker">Find Your Piece</p>
-			<h2 id="rj-about-cta-title">Your story deserves something extraordinary.</h2>
-			<p>Explore our collections or create a piece that is uniquely yours.</p>
-			<div class="rj-about-cta-actions">
-				<a class="rj-about-button rj-about-button--gold" href="/products">Explore the collection</a>
-				<a class="rj-about-button rj-about-button--outline" href="/products">Customize your jewelry</a>
+		<section id="discover-ryan" class="rj-about-visit rj-about-section" aria-labelledby="rj-about-visit-title" use:reveal>
+			<div class="rj-about-visit-photo"><img src="/ryans-jewels/store/salisbury-storefront-wide-v1.webp" alt="Ryan Jewelers storefront at The Centre at Salisbury" width="2400" height="1800" loading="lazy" decoding="async" /></div>
+			<div class="rj-about-visit-copy">
+				<p class="rj-about-eyebrow">We'd love to meet you</p>
+				<h2 id="rj-about-visit-title">Come in.<br />Find your next favorite.</h2>
+				<p>See the details up close, try on the pieces you love, and let us help you make them part of your story.</p>
+				<address><MapPin size={20} strokeWidth={1.3} aria-hidden="true" /><div><strong>{ryanContact.location}</strong><span>{ryanContact.address}</span><span>{ryanContact.city}</span></div></address>
+				<div class="rj-about-actions"><a class="rj-about-button is-gold" href="/contact-us">Plan your visit <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" /></a><a class="rj-about-phone" href={ryanContact.phoneHref}><Phone size={16} strokeWidth={1.4} aria-hidden="true" />{ryanContact.phone}</a></div>
+				<a class="rj-about-link" href={ryanContact.directionsHref} target="_blank" rel="noopener noreferrer">Get directions <ArrowUpRight size={16} strokeWidth={1.5} aria-hidden="true" /><span class="sr-only"> (opens in a new tab)</span></a>
 			</div>
 		</section>
 	</div>
 {:else}
 	<section class="mt-20">
 		<div class="container mx-auto flex max-w-7xl flex-col px-4 md:px-10">
-			<div class="mx-auto flex max-w-max flex-col items-center py-5 text-center text-3xl font-bold sm:items-start sm:py-10 sm:text-4xl">
-				<h1>About Us</h1>
-				<hr class="mt-2.5 w-20 border-t-4 border-zinc-900 opacity-50" />
-			</div>
+			<div class="mx-auto flex max-w-max flex-col items-center py-5 text-center text-3xl font-bold sm:items-start sm:py-10 sm:text-4xl"><h1>About Us</h1><hr class="mt-2.5 w-20 border-t-4 border-zinc-900 opacity-50" /></div>
 			<div class="prose-lg prose-p:my-0 prose-li:my-0">{@html data?.page?.content}</div>
 		</div>
 	</section>
-
 	<Blocks layouts={data.page.layouts} />
 {/if}
 
 <style>
-	.rj-about {
-		color: var(--rj-ink, #404040);
-		background: #fff;
-		font-family: 'Sarala', var(--font-body, sans-serif);
-		overflow: hidden;
-	}
-
-	.rj-about h2,
-	.rj-about h3,
-	.rj-about p,
-	.rj-about blockquote,
-	.rj-about figure {
-		margin: 0;
-	}
-
-	.rj-about-kicker {
-		font-family: 'Sarala', var(--font-body, sans-serif);
-		font-size: 20px;
-		font-weight: 400;
-		line-height: 1.5;
-		letter-spacing: normal;
-		color: var(--rj-gold, #cca646);
-	}
-
-	.rj-about-jump {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: clamp(28px, 5vw, 76px);
-		min-height: 60px;
-		padding: 12px 24px;
-		border-bottom: 1px solid var(--rj-line, #e5e5e5);
-		background: rgba(255, 255, 255, 0.96);
-	}
-
-	.rj-about-jump a {
-		position: relative;
-		padding: 8px 0;
-		font-family: 'Sarala', var(--font-body, sans-serif);
-		font-size: 15px;
-		font-weight: 400;
-		color: var(--rj-ink, #404040);
-		text-decoration: none;
-		white-space: nowrap;
-	}
-
-	.rj-about-jump a::after {
-		content: '';
-		position: absolute;
-		left: 0;
-		bottom: 2px;
-		width: 100%;
-		height: 1px;
-		background: var(--rj-gold, #cca646);
-		transform: scaleX(0);
-		transform-origin: right;
-		transition: transform 0.25s var(--rj-ease, ease);
-	}
-
-	.rj-about-jump a:hover::after,
-	.rj-about-jump a:focus-visible::after {
-		transform: scaleX(1);
-		transform-origin: left;
-	}
-
-	.rj-about-story {
-		display: grid;
-		grid-template-columns: minmax(360px, 0.92fr) minmax(420px, 1fr);
-		align-items: center;
-		gap: clamp(60px, 7vw, 100px);
-		max-width: 1280px;
-		margin: 0 auto;
-		padding: 80px 60px 90px;
-		scroll-margin-top: 100px;
-	}
-
-	.rj-about-story-media {
-		position: relative;
-		min-height: 650px;
-	}
-
-	.rj-about-story-main {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 73%;
-		height: 590px;
-		border-radius: 10px;
-		overflow: hidden;
-	}
-
-	.rj-about-story-inset {
-		position: absolute;
-		right: 0;
-		bottom: 0;
-		width: 44%;
-		height: 330px;
-		padding: 9px;
-		border-radius: 10px;
-		background: #fff;
-		box-shadow: 0 18px 50px rgba(42, 34, 20, 0.14);
-	}
-
-	.rj-about-story-main img,
-	.rj-about-story-inset img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-	}
-
-	.rj-about-story-main img {
-		object-position: center 24%;
-	}
-
-	.rj-about-story-inset img {
-		object-position: center 44%;
-		border-radius: 5px;
-	}
-
-	.rj-about-story-line {
-		position: absolute;
-		left: -24px;
-		bottom: 55px;
-		width: 110px;
-		height: 1px;
-		background: var(--rj-gold, #cca646);
-	}
-
-	.rj-about-story-copy {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 24px;
-	}
-
-	.rj-about-story-copy h2,
-	.rj-about-section-heading h2,
-	.rj-about-cta h2 {
-		font-family: 'Rozha One', var(--font-heading, serif);
-		font-size: clamp(32px, 3.2vw, 42px);
-		font-weight: 400;
-		line-height: 1.2;
-		letter-spacing: normal;
-		color: var(--rj-heading, #202020);
-	}
-
-	.rj-about-story-copy > p:not(.rj-about-kicker),
-	.rj-about-section-heading > p:last-child {
-		font-family: 'Sarala', var(--font-body, sans-serif);
-		font-size: 16px;
-		line-height: 29px;
-		letter-spacing: 0.32px;
-		color: #707070;
-	}
-
-	.rj-about-story-copy .rj-about-lead {
-		font-size: 17px;
-		line-height: 29px;
-		color: var(--rj-ink, #404040);
-	}
-
-	.rj-about-manifesto {
-		display: grid;
-		place-items: center;
-		min-height: 150px;
-		padding: 34px 24px;
-		background: var(--rj-gold, #cca646);
-		text-align: center;
-	}
-
-	.rj-about-manifesto p {
-		max-width: 850px;
-		font-family: 'Rozha One', var(--font-heading, serif);
-		font-size: clamp(25px, 2.6vw, 38px);
-		font-weight: 400;
-		line-height: 1.35;
-		color: #fff;
-	}
-
-	.rj-about-stats {
-		background: var(--rj-cream, #faf6ea);
-		border-block: 1px solid var(--rj-rule, #e1d6be);
-	}
-
-	.rj-about-stats ul {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		max-width: 1120px;
-		margin: 0 auto;
-		padding: 38px 24px;
-		list-style: none;
-	}
-
-	.rj-about-stats li {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 4px;
-		padding: 6px 20px;
-		text-align: center;
-	}
-
-	.rj-about-stats li + li {
-		border-left: 1px solid var(--rj-rule, #e1d6be);
-	}
-
-	.rj-about-stats strong {
-		font-family: 'Rozha One', var(--font-heading, serif);
-		font-size: 42px;
-		font-weight: 400;
-		line-height: 1.1;
-		color: var(--rj-heading, #202020);
-	}
-
-	.rj-about-stats span {
-		font-family: 'Sarala', var(--font-body, sans-serif);
-		font-size: 14px;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--rj-ink-2, #606060);
-	}
-
-	.rj-about-values {
-		max-width: 1320px;
-		margin: 0 auto;
-		padding: 80px 60px;
-	}
-
-	.rj-about-craft {
-		max-width: none;
-		margin: 0;
-		padding: 80px max(60px, calc((100% - 1200px) / 2));
-		background: var(--rj-cream, #faf6ea);
-	}
-
-	.rj-about-craft .rj-about-section-heading h2 {
-		color: var(--rj-heading, #202020);
-	}
-
-	.rj-about-craft .rj-about-section-heading > p:last-child {
-		color: var(--rj-ink-2, #606060);
-	}
-
-	.rj-about-section-heading {
-		max-width: 760px;
-		margin: 0 auto 50px;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 18px;
-		text-align: center;
-	}
-
-	.rj-about-section-heading--left {
-		align-items: flex-start;
-		margin: 0 0 50px;
-		text-align: left;
-	}
-
-	.rj-about-steps,
-	.rj-about-value-grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 24px;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-
-	.rj-about-steps li {
-		min-height: 285px;
-		padding: 34px;
-		border: 1px solid var(--rj-rule, #e1d6be);
-		border-radius: 5px;
-		background: #fff;
-		transition: transform 0.3s var(--rj-ease, ease), box-shadow 0.3s var(--rj-ease, ease), border-color 0.3s ease;
-	}
-
-	.rj-about-steps li:hover {
-		transform: translateY(-7px);
-		border-color: var(--rj-gold, #cca646);
-		box-shadow: 0 12px 30px rgba(64, 64, 64, 0.08);
-	}
-
-	.rj-about-step-top {
-		display: flex;
-		align-items: flex-start;
-		justify-content: space-between;
-		margin-bottom: 46px;
-	}
-
-	.rj-about-step-top img {
-		width: 42px;
-		height: 42px;
-		object-fit: contain;
-	}
-
-	.rj-about-step-top span,
-	.rj-about-value-grid article > span {
-		font-family: 'Sarala', var(--font-body, sans-serif);
-		font-size: 13px;
-		letter-spacing: 0.14em;
-		color: var(--rj-gold, #cca646);
-	}
-
-	.rj-about-steps h3,
-	.rj-about-value-grid h3 {
-		margin-bottom: 14px;
-		font-family: 'Rozha One', var(--font-heading, serif);
-		font-size: 27px;
-		font-weight: 400;
-		line-height: 1.25;
-		color: var(--rj-heading, #202020);
-	}
-
-	.rj-about-steps h3 {
-		color: var(--rj-heading, #202020);
-	}
-
-	.rj-about-steps li > p,
-	.rj-about-value-grid article > p {
-		font-family: 'Sarala', var(--font-body, sans-serif);
-		font-size: 16px;
-		line-height: 1.7;
-		color: #707070;
-	}
-
-	.rj-about-steps li > p {
-		color: var(--rj-ink-2, #606060);
-	}
-
-	.rj-about-quote {
-		position: relative;
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(330px, 0.55fr);
-		min-height: 420px;
-		background: var(--rj-cream, #faf6ea);
-		overflow: hidden;
-	}
-
-	.rj-about-quote-copy {
-		align-self: center;
-		max-width: 790px;
-		padding: 80px clamp(50px, 9vw, 140px);
-	}
-
-	.rj-about-quote-copy > img {
-		width: 26px;
-		margin-bottom: 26px;
-	}
-
-	.rj-about-quote blockquote {
-		font-family: 'Rozha One', var(--font-heading, serif);
-		font-size: clamp(34px, 3.6vw, 48px);
-		font-weight: 400;
-		line-height: 1.18;
-		color: var(--rj-heading, #202020);
-	}
-
-	.rj-about-quote-copy p {
-		margin-top: 28px;
-		font-family: 'Sarala', var(--font-body, sans-serif);
-		font-size: 15px;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--rj-gold, #cca646);
-	}
-
-	.rj-about-quote-media {
-		position: relative;
-		min-height: 420px;
-		background: var(--rj-surface, #f4f4f4);
-	}
-
-	.rj-about-quote-media img {
-		position: absolute;
-		right: -2%;
-		bottom: 0;
-		width: min(560px, 120%);
-		max-width: none;
-	}
-
-	.rj-about-values {
-		padding-top: 80px;
-		padding-bottom: 80px;
-	}
-
-	.rj-about-value-grid {
-		gap: 0;
-		border-top: 1px solid var(--rj-line, #e5e5e5);
-		border-bottom: 1px solid var(--rj-line, #e5e5e5);
-	}
-
-	.rj-about-value-grid article {
-		min-height: 250px;
-		padding: 38px 40px;
-	}
-
-	.rj-about-value-grid article + article {
-		border-left: 1px solid var(--rj-line, #e5e5e5);
-	}
-
-	.rj-about-value-grid article > span {
-		display: block;
-		margin-bottom: 42px;
-	}
-
-	.rj-about-cta {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		padding: 70px 24px 80px;
-		border-block: 1px solid var(--rj-rule, #e1d6be);
-		background: var(--rj-cream, #faf6ea);
-		text-align: center;
-	}
-
-	.rj-about-cta h2 {
-		max-width: 760px;
-		margin-top: 18px;
-		color: var(--rj-heading, #202020);
-	}
-
-	.rj-about-cta > p:not(.rj-about-kicker) {
-		margin-top: 20px;
-		font-family: 'Sarala', var(--font-body, sans-serif);
-		font-size: 17px;
-		color: var(--rj-ink-2, #606060);
-	}
-
-	.rj-about-cta-actions {
-		display: flex;
-		gap: 14px;
-		margin-top: 38px;
-	}
-
-	.rj-about-button {
-		min-width: 205px;
-		padding: 15px 24px;
-		border: 1px solid var(--rj-gold, #cca646);
-		border-radius: 2px;
-		font-family: 'Sarala', var(--font-body, sans-serif);
-		font-size: 16px;
-		font-weight: 700;
-		line-height: 24px;
-		text-decoration: none;
-		transition: background 0.22s ease, color 0.22s ease, transform 0.22s var(--rj-ease, ease);
-	}
-
-	.rj-about-button:hover {
-		transform: translateY(-2px);
-	}
-
-	.rj-about-button--gold {
-		background: var(--rj-gold, #cca646);
-		color: #fff;
-	}
-
-	.rj-about-button--outline {
-		background: #fff;
-		color: var(--rj-heading, #202020);
-	}
-
-	.rj-about-button--outline:hover {
-		background: var(--rj-gold, #cca646);
-	}
-
-	@media (max-width: 1023px) {
-		.rj-about-story {
-			grid-template-columns: 1fr 1fr;
-			gap: 55px;
-			padding: 60px 40px 70px;
-		}
-
-		.rj-about-story-media {
-			min-height: 560px;
-		}
-
-		.rj-about-story-main {
-			height: 500px;
-		}
-
-		.rj-about-story-inset {
-			height: 270px;
-		}
-
-		.rj-about-values {
-			padding: 60px 40px;
-		}
-
-		.rj-about-craft {
-			padding: 60px 40px;
-		}
-
-		.rj-about-steps {
-			gap: 16px;
-		}
-
-		.rj-about-steps li {
-			padding: 28px 24px;
-		}
-
-		.rj-about-quote-copy {
-			padding: 60px 40px;
-		}
-
-		.rj-about-value-grid article {
-			padding: 32px 26px;
-		}
-	}
-
-	@media (max-width: 767px) {
-		.rj-about-jump {
-			justify-content: flex-start;
-			gap: 28px;
-			min-height: 62px;
-			overflow-x: auto;
-			scrollbar-width: none;
-		}
-
-		.rj-about-jump::-webkit-scrollbar {
-			display: none;
-		}
-
-		.rj-about-story {
-			display: flex;
-			flex-direction: column;
-			gap: 40px;
-			padding: 50px 20px 60px;
-		}
-
-		.rj-about-story-media {
-			width: 100%;
-			min-height: 420px;
-		}
-
-		.rj-about-story-main {
-			width: 78%;
-			height: 360px;
-		}
-
-		.rj-about-story-inset {
-			width: 47%;
-			height: 210px;
-		}
-
-		.rj-about-story-line {
-			left: -10px;
-			bottom: 28px;
-			width: 70px;
-		}
-
-		.rj-about-story-copy h2,
-		.rj-about-section-heading h2,
-		.rj-about-cta h2 {
-			font-size: 30px;
-		}
-
-		.rj-about-story-copy .rj-about-lead {
-			font-size: 16px;
-		}
-
-		.rj-about-stats ul {
-			grid-template-columns: 1fr;
-			padding: 22px 24px;
-		}
-
-		.rj-about-stats li {
-			padding: 24px 12px;
-		}
-
-		.rj-about-stats li + li {
-			border-top: 1px solid var(--rj-rule, #e1d6be);
-			border-left: 0;
-		}
-
-		.rj-about-stats strong {
-			font-size: 34px;
-		}
-
-		.rj-about-values {
-			padding: 50px 20px;
-		}
-
-		.rj-about-craft {
-			padding: 50px 20px;
-		}
-
-		.rj-about-section-heading {
-			align-items: flex-start;
-			margin-bottom: 42px;
-			text-align: left;
-		}
-
-		.rj-about-steps,
-		.rj-about-value-grid {
-			grid-template-columns: 1fr;
-		}
-
-		.rj-about-steps li {
-			min-height: 0;
-			padding: 28px;
-		}
-
-		.rj-about-step-top {
-			margin-bottom: 36px;
-		}
-
-		.rj-about-quote {
-			display: flex;
-			min-height: 0;
-			flex-direction: column;
-		}
-
-		.rj-about-quote-copy {
-			padding: 50px 20px 44px;
-		}
-
-		.rj-about-quote blockquote {
-			font-size: 34px;
-		}
-
-		.rj-about-quote-media {
-			position: relative;
-			min-height: 320px;
-			width: 100%;
-		}
-
-		.rj-about-quote-media img {
-			right: 50%;
-			width: min(360px, 90vw);
-			transform: translateX(50%);
-		}
-
-		.rj-about-value-grid {
-			border-bottom: 0;
-		}
-
-		.rj-about-value-grid article {
-			min-height: 0;
-			padding: 30px 4px;
-			border-bottom: 1px solid var(--rj-line, #e5e5e5);
-		}
-
-		.rj-about-value-grid article + article {
-			border-left: 0;
-		}
-
-		.rj-about-value-grid article > span {
-			margin-bottom: 24px;
-		}
-
-		.rj-about-cta {
-			padding: 50px 20px 60px;
-		}
-
-		.rj-about-cta-actions {
-			width: 100%;
-			max-width: 390px;
-			flex-direction: column;
-		}
-
-		.rj-about-button {
-			width: 100%;
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.rj-about-steps li,
-		.rj-about-button,
-		.rj-about-jump a::after {
-			transition: none;
-		}
-	}
+	.rj-about { --about-gutter: 40px; --about-accent: #795a20; color: var(--rj-ink, #404040); background: #fff; }
+	.rj-about :is(h1, h2, h3, p, figure) { margin: 0; }
+	.rj-about h2 { color: var(--rj-heading, #202020); font-size: clamp(25px, 2.3vw, 34px); font-weight: 400; line-height: 1.3; letter-spacing: 0; text-wrap: balance; }
+	.rj-about p { font-size: 16px; line-height: 1.75; }
+	.rj-about .rj-about-eyebrow { color: var(--about-accent); font-size: 11px; font-weight: 500; line-height: 1.5; letter-spacing: .14em; text-transform: uppercase; }
+	.rj-about a { text-decoration: none; }
+	.rj-about a:focus-visible { outline: 2px solid currentColor; outline-offset: 5px; }
+	.rj-about-section { padding: 88px var(--about-gutter); scroll-margin-top: 160px; }
+	.rj-about-breadcrumb { padding: 5px var(--about-gutter); border-bottom: 1px solid var(--rj-card-border, #f5edda); }
+	.rj-about-breadcrumb ol { display: flex; align-items: center; gap: 12px; margin: 0; padding: 0; list-style: none; color: var(--rj-ink-2, #606060); font-size: 12px; }
+	.rj-about-breadcrumb li { display: flex; align-items: center; gap: 12px; }
+	.rj-about-breadcrumb a { display: inline-flex; min-height: 44px; align-items: center; color: inherit; }
+	.rj-about-breadcrumb a:hover { color: var(--about-accent); }
+	.rj-about-hero { display: grid; grid-template-columns: 1fr 1fr; background: var(--rj-cream, #faf6ea); }
+	.rj-about-hero-copy { display: flex; min-height: 580px; flex-direction: column; align-items: flex-start; justify-content: center; padding: 64px clamp(40px, 5vw, 88px); }
+	.rj-about-hero h1 { margin: 20px 0 24px; color: var(--rj-heading, #202020); font-size: clamp(36px, 4.2vw, 64px); font-weight: 400; line-height: 1.14; letter-spacing: -.025em; }
+	.rj-about-intro { max-width: 390px; color: var(--rj-ink-2, #606060); }
+	.rj-about-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+	.rj-about-hero .rj-about-actions { margin-top: 30px; }
+	.rj-about .rj-about-local { display: flex; align-items: center; gap: 8px; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--rj-rule, #e1d6be); color: var(--rj-ink-2, #606060); font-size: 12px; }
+	.rj-about-hero-photo { position: relative; min-width: 0; }
+	.rj-about-hero-photo picture, .rj-about-hero-photo img { position: absolute; inset: 0; width: 100%; height: 100%; }
+	.rj-about-hero-photo img { object-fit: cover; object-position: 50% 42%; }
+	.rj-about-button { display: inline-flex; min-height: 46px; align-items: center; justify-content: center; gap: 20px; padding: 12px 22px; border: 1px solid var(--rj-gold, #cca646); border-radius: 3px; background: transparent; color: #51370f; font-size: 13px; line-height: 1.5; transition: background-color 220ms ease, border-color 220ms ease; }
+	.rj-about-button.is-gold { background: var(--rj-gold, #cca646); color: #33270f; }
+	.rj-about-button:hover { border-color: #ac8735; background: color-mix(in srgb, var(--rj-gold, #cca646) 20%, #fff); }
+	.rj-about-button.is-gold:hover { background: #d9bb70; }
+	.rj-about-link { display: inline-flex; min-height: 44px; align-items: center; gap: 16px; border-bottom: 1px solid var(--rj-rule, #e1d6be); color: var(--about-accent); font-size: 13px; line-height: 1.5; }
+	.rj-about-link :global(svg), .rj-about-button :global(svg) { flex-shrink: 0; transition: transform 220ms var(--rj-ease, ease); }
+	.rj-about-link:hover :global(svg), .rj-about-button:hover :global(svg) { transform: translateX(3px); }
+	.rj-about-chapters { display: grid; grid-template-columns: repeat(4, 1fr); padding: 0 var(--about-gutter); border-bottom: 1px solid var(--rj-rule, #e1d6be); }
+	.rj-about-chapters a { display: flex; min-height: 76px; align-items: center; gap: 14px; padding: 16px 24px; color: var(--rj-ink, #404040); font-size: 13px; transition: background-color 220ms ease; }
+	.rj-about-chapters a:first-child { padding-left: 0; }
+	.rj-about-chapters a + a { border-left: 1px solid var(--rj-card-border, #f5edda); }
+	.rj-about-chapters a > span { color: var(--about-accent); font-size: 10px; }
+	.rj-about-chapters a :global(svg) { margin-left: auto; color: var(--about-accent); }
+	.rj-about-chapters a:hover { background: var(--rj-cream, #faf6ea); }
+	.rj-about-story { display: grid; grid-template-columns: 1.05fr 1fr; align-items: center; gap: clamp(40px, 7vw, 120px); }
+	.rj-about-story-photo img { display: block; width: 100%; aspect-ratio: 1.25; object-fit: cover; }
+	.rj-about-story-photo figcaption { display: flex; align-items: center; gap: 8px; padding: 16px 0; border-bottom: 1px solid var(--rj-rule, #e1d6be); color: var(--rj-ink-2, #606060); font-size: 12px; }
+	.rj-about-dot { width: 5px; height: 5px; flex-shrink: 0; border-radius: 50%; background: var(--rj-gold, #cca646); }
+	.rj-about-story-copy, .rj-about-details-copy, .rj-about-visit-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 22px; }
+	.rj-about-story-copy > p:not(.rj-about-eyebrow), .rj-about-details-copy > p:not(.rj-about-eyebrow), .rj-about-visit-copy > p:not(.rj-about-eyebrow) { max-width: 52ch; color: var(--rj-ink-2, #606060); }
+	.rj-about-values { display: grid; grid-template-columns: 1fr 1.1fr; align-items: start; gap: clamp(48px, 8vw, 140px); background: var(--rj-cream, #faf6ea); }
+	.rj-about-values-heading { position: sticky; top: 166px; display: flex; flex-direction: column; gap: 22px; }
+	.rj-about-values-heading > p:last-child { max-width: 36ch; color: var(--rj-ink-2, #606060); }
+	.rj-about-values-list { margin: 0; padding: 0; list-style: none; }
+	.rj-about-values-list li { display: grid; grid-template-columns: 26px 1fr; gap: 22px; padding: 28px 0; border-top: 1px solid var(--rj-rule, #e1d6be); }
+	.rj-about-values-list li:last-child { padding-bottom: 0; }
+	.rj-about-values-list li > :global(svg) { color: var(--about-accent); }
+	.rj-about h3 { color: var(--rj-heading, #202020); font-size: 18px; font-weight: 500; line-height: 1.4; letter-spacing: 0; }
+	.rj-about-values-list p { margin-top: 12px; color: var(--rj-ink-2, #606060); font-size: 15px; }
+	.rj-about-details { display: grid; grid-template-columns: .85fr 1.3fr; align-items: center; gap: clamp(40px, 6vw, 100px); }
+	.rj-about-details-gallery { display: grid; grid-template-columns: 1fr 1fr; align-items: start; gap: 20px; }
+	.rj-about-details-gallery figure:last-child { margin-top: 90px; }
+	.rj-about-details-gallery img { display: block; width: 100%; aspect-ratio: .74; object-fit: cover; }
+	.rj-about-details-gallery figcaption { padding-top: 14px; color: var(--rj-ink-2, #606060); font-size: 12px; line-height: 1.5; }
+	.rj-about-care { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 80px; padding: 60px var(--about-gutter); background: #2e2b25; color: #f9f7f0; }
+	.rj-about-care .rj-about-eyebrow { margin-bottom: 16px; color: #e5cf96; }
+	.rj-about-care h2 { color: #fff; }
+	.rj-about-care-copy { max-width: 540px; }
+	.rj-about-care-copy > p { color: #ebe7df; font-size: 15px; }
+	.rj-about-care .rj-about-link { margin-top: 18px; border-color: #77664a; color: #f4d994; }
+	.rj-about-visit { display: grid; grid-template-columns: 1.12fr 1fr; align-items: center; gap: clamp(40px, 7vw, 120px); background: var(--rj-cream, #faf6ea); }
+	.rj-about-visit-photo { min-width: 0; }
+	.rj-about-visit-photo img { display: block; width: 100%; aspect-ratio: 1.18; object-fit: cover; object-position: 52% 52%; }
+	.rj-about-visit address { display: flex; gap: 14px; margin: 2px 0 4px; font-size: 14px; font-style: normal; line-height: 1.8; }
+	.rj-about-visit address > :global(svg) { flex-shrink: 0; margin-top: 4px; color: var(--about-accent); }
+	.rj-about-visit address :is(strong, span) { display: block; }
+	.rj-about-visit address strong { margin-bottom: 3px; font-weight: 500; }
+	.rj-about-phone { display: inline-flex; min-height: 44px; align-items: center; gap: 8px; color: var(--rj-ink, #404040); font-size: 13px; }
+	.rj-about-phone:hover { color: var(--about-accent); }
+	.rj-about-blocks { padding: 0 var(--about-gutter); }
+	@media (min-width: 1800px) { .rj-about-hero-copy { min-height: 680px; }.rj-about-section { padding-block: 110px; } }
+	@media (max-width: 1199px) { .rj-about { --about-gutter: 32px; }.rj-about-section { padding-block: 64px; scroll-margin-top: 240px; }.rj-about-hero-copy { min-height: 510px; padding: 44px 32px; }.rj-about-hero h1 { font-size: clamp(36px, 4.2vw, 50px); }.rj-about-values-heading { position: static; }.rj-about-details { grid-template-columns: 1fr 1.1fr; gap: 40px; }.rj-about-details-gallery { gap: 12px; }.rj-about-details-gallery figure:last-child { margin-top: 60px; }.rj-about-care { gap: 40px; } }
+	@media (max-width: 899px) { .rj-about-hero-copy { min-height: 500px; }.rj-about-hero h1 { font-size: 38px; }.rj-about-hero .rj-about-actions { gap: 8px 18px; }.rj-about-story, .rj-about-values, .rj-about-details, .rj-about-visit { gap: 36px; }.rj-about-story { grid-template-columns: 1fr 1fr; align-items: start; }.rj-about-values { grid-template-columns: .9fr 1.1fr; }.rj-about-details { grid-template-columns: 1fr; }.rj-about-details-copy { max-width: 620px; }.rj-about-details-gallery { gap: 24px; }.rj-about-details-gallery img { aspect-ratio: 1; }.rj-about-details-gallery figure:last-child { margin-top: 48px; }.rj-about-visit { grid-template-columns: 1fr 1fr; }.rj-about-visit-photo img { aspect-ratio: .8; } }
+	@media (max-width: 639px) {
+		.rj-about { --about-gutter: 24px; }
+		.rj-about-section { padding-block: 52px; }
+		.rj-about p { font-size: 15px; line-height: 1.75; }
+		.rj-about .rj-about-eyebrow { font-size: 10px; }
+		.rj-about-hero { grid-template-columns: 1fr; }
+		.rj-about-hero-copy { min-height: 0; padding: 44px var(--about-gutter) 36px; }
+		.rj-about-hero h1 { margin-block: 18px 20px; font-size: clamp(33px, 9.2vw, 46px); }
+		.rj-about-intro { max-width: 34ch; }
+		.rj-about-hero .rj-about-actions { margin-top: 24px; gap: 10px 20px; }
+		.rj-about .rj-about-local { margin-top: 28px; font-size: 11px; }
+		.rj-about-hero-photo { aspect-ratio: 1.18; }
+		.rj-about-hero-photo img { object-position: 50% 43%; }
+		.rj-about-button { gap: 14px; padding-inline: 18px; font-size: 12px; }
+		.rj-about-link { gap: 12px; font-size: 12px; }
+		.rj-about-chapters { grid-template-columns: 1fr 1fr; }
+		.rj-about-chapters a { min-height: 58px; gap: 10px; padding: 12px; font-size: 12px; }
+		.rj-about-chapters a:nth-child(odd) { padding-left: 0; border-left: 0; }
+		.rj-about-chapters a:nth-child(-n+2) { border-bottom: 1px solid var(--rj-card-border, #f5edda); }
+		.rj-about-story, .rj-about-values, .rj-about-details, .rj-about-visit, .rj-about-care { grid-template-columns: 1fr; }
+		.rj-about-story-photo figcaption { padding-block: 12px; font-size: 11px; }
+		.rj-about-story-copy, .rj-about-details-copy, .rj-about-visit-copy { gap: 18px; }
+		.rj-about-values { gap: 30px; }
+		.rj-about-values-heading { gap: 18px; }
+		.rj-about-values-list li { gap: 18px; padding-block: 24px; }
+		.rj-about h3 { font-size: 17px; }
+		.rj-about-values-list p { margin-top: 10px; font-size: 14px; }
+		.rj-about-details-gallery { gap: 14px; }
+		.rj-about-details-gallery img { aspect-ratio: .74; }
+		.rj-about-details-gallery figure:last-child { margin-top: 36px; }
+		.rj-about-details-gallery figcaption { font-size: 11px; }
+		.rj-about-care { gap: 24px; padding-block: 44px; }
+		.rj-about-care-copy > p { font-size: 14px; }
+		.rj-about-visit-photo img { aspect-ratio: 1.15; }
+		.rj-about-visit address { font-size: 13px; }
+		.rj-about-visit .rj-about-actions { gap: 8px 18px; }
+	}
+	@media (prefers-reduced-motion: reduce) { .rj-about a, .rj-about a :global(svg) { transition: none; }.rj-about-link:hover :global(svg), .rj-about-button:hover :global(svg) { transform: none; } }
 </style>

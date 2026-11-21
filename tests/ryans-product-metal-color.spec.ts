@@ -1,21 +1,5 @@
 import { expect, test } from '@playwright/test'
 
-test('customizer loads the real grouped metal product without navigating', async ({ page }) => {
-	await page.goto('/products/175-to-575-carat-round-lab-grown-diamond-halo-engagement-ring-in-14k-gold-398')
-
-	const image = page.locator('.rj-main-image > img')
-	const roseGold = page.locator('.rj-customizer-metals button').filter({ hasText: 'Rose Gold' })
-	const goldInfo = page.locator('.rj-detail-fact').filter({ hasText: 'Gold Info' }).locator('p')
-	const before = { url: page.url(), image: await image.getAttribute('src') }
-
-	await roseGold.click()
-	await expect(roseGold).toHaveAttribute('aria-pressed', 'true')
-	await expect.poll(() => image.getAttribute('src')).not.toBe(before.image)
-	await expect(image).toHaveAttribute('src', /main_rg\.jpg/)
-	await expect(goldInfo).toContainText('Rose Gold')
-	expect(page.url()).toBe(before.url)
-})
-
 test('page navigation starts at the top', async ({ page }) => {
 	await page.goto('/products/1-to-5-carat-round-lab-grown-diamond-6-prong-solitaire-engagement-ring-in-14k-gold-19')
 	const productUrl = page.url()

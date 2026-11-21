@@ -96,6 +96,17 @@ export function interleaveProductCategories<T>(products: T[] = []) {
 	return result
 }
 
+// shortcut: homepage picks use catalog order; use a dedicated ranking feed when available.
+export function homepageProductSections<T extends { id?: string | number; slug?: string }>(products: T[] = []) {
+	const unique = [...new Map(products.map((product) => [product.slug || product.id, product])).values()]
+	const catalogue = interleaveProductCategories(unique)
+	const split = Math.min(12, Math.ceil(catalogue.length / 2))
+	return {
+		featured: catalogue.slice(0, split),
+		trending: catalogue.slice(split, split + 12)
+	}
+}
+
 export function facetOptions(allFilters: Record<string, Record<string, number>> | undefined, keys: string[], fallback?: RegExp) {
 	const options = new Map<string, number>()
 	for (const key of keys) {

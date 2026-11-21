@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import RjProductCard from '../src/lib/theme/ryans-jewels/RjProductCard.svelte'
 
 vi.mock('$app/state', () => ({ page: { data: { store: { currency: { code: 'USD' } } } } }))
-vi.mock('$lib/core/utils/index.js', () => ({
+vi.mock('$lib/core/utils/index.js', () => ({ cn: (...values: any[]) => values.filter(Boolean).join(' '),
 	formatPrice: (value: number, currency: string) => new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(value)
 }))
 
@@ -14,7 +14,7 @@ describe('Ryan product card prices', () => {
 		render(RjProductCard, { product })
 		expect(screen.getByTestId('product-card-selling-price')).toHaveTextContent('$80.00')
 		expect(screen.getByTestId('product-card-mrp')).toHaveTextContent('$100.00')
-		expect(screen.getByTestId('product-card-discount')).toHaveTextContent('20% off on product')
+		expect(screen.getByTestId('product-card-discount')).toHaveTextContent('Save 20%')
 		expect(screen.getByRole('img', { name: 'Diamond Ring' })).toHaveAttribute('src', '/ring.jpg')
 		expect(screen.queryByRole('button', { name: 'Select Yellow Gold' })).not.toBeInTheDocument()
 	})
@@ -29,7 +29,7 @@ describe('Ryan product card prices', () => {
 	it('keeps a real zero selling price and a valid discount', () => {
 		render(RjProductCard, { product: { ...product, price: 0 } })
 		expect(screen.getByTestId('product-card-selling-price')).toHaveTextContent('$0.00')
-		expect(screen.getByTestId('product-card-discount')).toHaveTextContent('100% off on product')
+		expect(screen.getByTestId('product-card-discount')).toHaveTextContent('Save 100%')
 	})
 
 	it('preserves optional metal selection controls', () => {

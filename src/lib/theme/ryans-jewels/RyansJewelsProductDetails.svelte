@@ -16,6 +16,8 @@
 	import { ryansSeoText } from './seo.js'
 	import RjWideBanner from './RjWideBanner.svelte'
 	import RjImageViewer from './RjImageViewer.svelte'
+	import PincodeCheck from '$lib/components/product-catalogue/pincode-check.svelte'
+	import StoreCheck from '../../../routes/(www)/products/[slug]/components/store-check.svelte'
 	import { addSelectionToCart } from './cart-flow.js'
 	let addingToCart = $state(false)
 	import { adjacentProductImage, variationControls, nonVariationAttributes, diamondImageForShape, discountPercent, groupedProductForAttribute, groupedProductForSelections, groupedValuesForAttribute, metalColorImage, metalColorTone, productAttributeValue, productDetailParagraphs, productImages, toggleStoredId, variantForOption, variantForSelections } from './product-details.logic.js'
@@ -115,6 +117,8 @@
 	const productOptions = $derived(Array.isArray(product?.options) ? product.options : productState.productOptions || [])
 	const optionCards = $derived(variationControls(product))
 	const otherAttributes = $derived(nonVariationAttributes(product))
+	const stoneControl = $derived(optionCards.find((option) => /(stone|diamond)\s*type|type.*(stone|diamond)/i.test(option.title.replaceAll('_', ' '))))
+	const shapeControl = $derived(optionCards.find((option) => /(stone|diamond).*shape|shape.*(stone|diamond)|diamond\s*cut/i.test(option.title.replaceAll('_', ' '))))
 	let Social = $state<Component | null>(null)
 	let changingVariation = $state(false)
 	function lazySocial(node: HTMLElement) {
@@ -150,8 +154,6 @@
 		const values = adminValues(metalColorOption, metalColorAggregationKey, metalColor)
 		return [...['yellow', 'rose', 'white'].flatMap((tone) => values.filter((value) => metalColorTone(value) === tone)), ...values.filter((value) => !['yellow', 'rose', 'white'].includes(metalColorTone(value)))]
 	})
-	const caratWeightValues = $derived(adminValues(caratWeightOption, caratWeightAggregationKey, caratWeight).sort((left, right) => parseFloat(String(left)) - parseFloat(String(right))))
-	const ringSizeValues = $derived(adminValues(ringSizeOption, ringSizeAggregationKey, ringSize).sort((left, right) => parseFloat(String(left)) - parseFloat(String(right))))
 	const stoneShapeValues = $derived(adminValues(stoneShapeOption, stoneShapeAggregationKey, stoneShape))
 	const stoneTypeValues = $derived(adminValues(stoneTypeOption, stoneTypeAggregationKey, stoneType))
 	const customizationInitial = $derived({ metal: metalColor, carat: caratWeight, size: ringSize, cut: stoneShape, stone: stoneType })
@@ -298,10 +300,6 @@
 		}
 	}
 
-	function showRingView() {
-		activeImage = images[1] || images[0] || activeImage
-		setTimeout(() => document.querySelector('.rj-gallery')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
-	}
 
 	async function shareProduct() {
 		try {
@@ -386,16 +384,16 @@
 				<h1>{product.title}</h1>
 			</div>
 
-			{#if optionCards.length}
+			{#if optionCards.length || stoneShapeValues.length || stoneTypeValues.length}
 				<div class="rj-variation-controls" aria-label="Product variations" aria-busy={changingVariation}>
-					{#each optionCards as option}
+					{#each optionCards.filter((option) => option !== shapeControl && option !== stoneControl).sort((a, b) => Number(/ring\s*size|^size$/i.test(a.title.replaceAll('_', ' '))) - Number(/ring\s*size|^size$/i.test(b.title.replaceAll('_', ' ')))) as option}
 						<fieldset>
 							<legend>{option.title.replaceAll('_', ' ')}</legend>
 							<div class="rj-variation-values">
 								{#if /ring\s*size|^size$/i.test(option.title.replaceAll('_', ' '))}
-									<select aria-label={option.title.replaceAll('_', ' ')} value={selectedValue(option)} disabled={changingVariation} onchange={(event) => selectOption(option, event.currentTarget.value)}>
-										{#each [...option.values].sort((a, b) => String(a.value).localeCompare(String(b.value), undefined, { numeric: true })) as value}<option value={value.value}>{value.value}</option>{/each}
-									</select>
+									{#each [...option.values].sort((a, b) => String(a.value).localeCompare(String(b.value), undefined, { numeric: true })) as value}
+										<button class="rj-ring-size" type="button" class:selected={selectedValue(option) === value.value} aria-pressed={selectedValue(option) === value.value} disabled={changingVariation || option.values.length < 2} onclick={() => selectOption(option, value.value)}>{value.value}</button>
+									{/each}
 								{:else}
 								{#each option.values as value}
 									<button type="button" class:selected={selectedValue(option) === value.value} class:metal-stamp={/metal[\s_]*stamp|purity|karat/i.test(option.title)} aria-pressed={selectedValue(option) === value.value} disabled={changingVariation || option.values.length < 2} onclick={() => selectOption(option, value.value)}>
@@ -407,8 +405,31 @@
 							</div>
 						</fieldset>
 					{/each}
+					{#if shapeControl?.values.length || stoneShapeValues.length}
+						<fieldset>
+							<legend>Select Diamond Shape</legend>
+							<div class="rj-variation-values rj-diamond-shapes">
+								{#each shapeControl ? shapeControl.values.map((item) => item.value) : stoneShapeValues as value}
+									<button type="button" class:selected={(shapeControl ? selectedValue(shapeControl) : stoneShape) === value} aria-pressed={(shapeControl ? selectedValue(shapeControl) : stoneShape) === value} disabled={changingVariation} onclick={() => shapeControl ? selectOption(shapeControl, value) : applyCustomization({ ...customizationInitial, cut: value })}>
+										{#if diamondImageForShape(value)}<img src={diamondImageForShape(value)} alt="" />{/if}<span>{value}</span>
+									</button>
+								{/each}
+							</div>
+						</fieldset>
+					{/if}
+					{#if stoneControl?.values.length || stoneTypeValues.length}
+						<fieldset>
+							<legend>Select Stone Type</legend>
+							<div class="rj-variation-values rj-stone-types">
+								{#each stoneControl ? stoneControl.values.map((item) => item.value) : stoneTypeValues as value}
+									<button type="button" class:selected={(stoneControl ? selectedValue(stoneControl) : stoneType) === value} aria-pressed={(stoneControl ? selectedValue(stoneControl) : stoneType) === value} disabled={changingVariation} onclick={() => stoneControl ? selectOption(stoneControl, value) : applyCustomization({ ...customizationInitial, stone: value })}>{value}</button>
+								{/each}
+							</div>
+						</fieldset>
+					{/if}
 				</div>
 			{/if}
+
 
 			<div class="rj-price-row">
 				<strong>{formatPrice(price, currency)}</strong>
@@ -441,6 +462,26 @@
 				</div>
 			</div>
 
+			<div class="rj-restored-services">
+				<section aria-labelledby="rj-delivery-title">
+					<h2 id="rj-delivery-title">Delivery Options</h2>
+					{#if productState.wareHousePluginEnabled && productState.isIndianPincodesPluginEnabled}
+						<PincodeCheck />
+					{:else}<p>Contact us to confirm delivery to your location.</p><a href="/contact-us">Check delivery options</a>{/if}
+				</section>
+				<section aria-labelledby="rj-store-title">
+					<h2 id="rj-store-title">Store Availability</h2>
+					{#if productState.wareHousePluginEnabled && productState.warehouses?.length > 0}<StoreCheck />
+					{:else}<p>Contact our team to confirm store stock and pickup options.</p><a href="/contact-us">Enquire about availability</a>{/if}
+				</section>
+				<section aria-labelledby="rj-return-title">
+					<h2 id="rj-return-title">Returns &amp; Exchanges</h2>
+					{#if productState.returnPlugin?.active && productState.returnPlugin?.html}
+						<div>{@html productState.returnPlugin.html}</div>
+					{:else}<p>Please confirm this product's return and exchange eligibility with our team.</p><a href="/contact-us">Ask about returns</a>{/if}
+				</section>
+			</div>
+
 			<div class="rj-service-row">
 				<div><img src="/ryans-jewels/product/free-shipping.svg" alt="" /><span><b>Free Shipping</b><small>Free shipping on eligible orders</small></span></div>
 				<div><img src="/ryans-jewels/product/support.svg" alt="" /><span><b>24/7 Support</b><small>Help whenever you need it</small></span></div>
@@ -464,6 +505,12 @@
 		</div>
 		{#if activeTab === 'details'}
 			<div class="rj-detail-body" role="tabpanel">
+				<div class="rj-detail-facts">
+					<div class="rj-detail-fact"><h3><img src="/ryans-jewels/product/detail-gold.svg" alt="" />Gold Info</h3><p>{goldInfo}</p></div>
+					<div class="rj-detail-fact"><h3><img src="/ryans-jewels/product/detail-diamond.svg" alt="" />Diamond Info</h3><p>{diamondInfo}</p>{#if diamondMeta}<p>{diamondMeta}</p>{/if}</div>
+					<div class="rj-detail-fact"><h3><img src="/ryans-jewels/product/detail-dimension.svg" alt="" />Dimensions</h3><p>{dimensionInfo}</p></div>
+					<div class="rj-detail-fact"><h3>Style No.</h3><p>{detailSku}</p><button class="rj-feature-button" type="button" onclick={() => copyDetail(String(detailSku))}>Copy Style No.</button></div>
+				</div>
 				{#if otherAttributes.length}
 					<div class="rj-other-attributes">
 						<h2>Specifications</h2>
@@ -614,14 +661,27 @@
 <LoginModal bind:show={productState.showLoginModal} />
 
 <style>
+	.rj-feature-button { align-self: start; padding: 9px 14px; border: 1px solid #c8a446; border-radius: 3px; background: #fcf8ed; color: #404040; cursor: pointer; }
+	.rj-feature-button:focus-visible { outline: 2px solid #9c771c; outline-offset: 3px; }
+	.rj-restored-services { display: grid; gap: 18px; margin-top: 24px; }
+	.rj-restored-services section { padding-top: 16px; border-top: 1px solid #eee; }
+	.rj-restored-services h2 { margin: 0 0 8px; font-size: 16px; }
+	.rj-restored-services p { margin: 0 0 8px; color: #666; font-size: 13px; }
+	.rj-restored-services a { color: #80602b; text-decoration: underline; font-size: 13px; }
+
 	.rj-variation-controls { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; margin: 0; }
 	.rj-variation-controls fieldset { min-width: 0; padding: 0; border: 0; margin: 0; }
 	.rj-variation-controls legend { font-size: 13px; color: #666; margin-bottom: 8px; }
 	.rj-variation-values { display: flex; flex-wrap: wrap; gap: 6px; }
-	.rj-variation-values select { width: 100%; max-width: 240px; min-height: 40px; padding: 8px 32px 8px 11px; border: 1px solid #c8a446; border-radius: 2px; background: #fcf8ed; color: #333; font-size: 14px; }
-	.rj-variation-values select:focus-visible { outline: 2px solid #9c771c; outline-offset: 3px; }
 	.rj-variation-values button { display: inline-flex; align-items: center; gap: 9px; min-height: 42px; border: 1px solid #ddd; background: white; color: #333; padding: 8px 11px; font-size: 13px; border-radius: 2px; cursor: pointer; }
 	.rj-variation-values button.metal-stamp { border-radius: 999px; min-width: 62px; justify-content: center; padding-inline: 17px; }
+	.rj-variation-values:has(.rj-ring-size) { gap: 9px; }
+	.rj-variation-values button.rj-ring-size { justify-content: center; min-width: 48px; min-height: 40px; padding: 8px 12px; border-radius: 4px; font-size: 13px; }
+	.rj-variation-values button.rj-ring-size.selected { border-color: #cca646; background: #fff9eb; box-shadow: inset 0 0 0 1px #cca646; }
+	.rj-stone-types button { border-radius: 4px; }
+	.rj-diamond-shapes button { border-radius: 4px; }
+	.rj-diamond-shapes button img { width: 25px; height: 25px; object-fit: contain; }
+	.rj-diamond-shapes button.selected { border-color: #cca646; background: #fff9eb; box-shadow: inset 0 0 0 1px #cca646; }
 	.metal-swatch { width: 23px; height: 23px; flex-shrink: 0; border-radius: 50%; border: 1px solid rgb(0 0 0 / 12%); box-shadow: inset 0 0 0 2px rgb(255 255 255 / 35%); }
 	.metal-swatch[data-metal='white'] { background: linear-gradient(135deg, #b9bdc2 0%, #fafafa 42%, #d7dadf 63%, #aeb3b9 100%); }
 	.metal-swatch[data-metal='yellow'] { background: linear-gradient(135deg, #b99545 0%, #f6e5a4 42%, #d8b65f 65%, #aa8035 100%); }

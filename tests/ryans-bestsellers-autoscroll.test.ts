@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import RjBestSellers from '../src/lib/theme/ryans-jewels/RjBestSellers.svelte'
 
 vi.mock('$app/state', () => ({ page: { data: { store: { currency: { code: 'USD' } } } } }))
-vi.mock('$lib/core/utils/index.js', () => ({ formatPrice: (value: number) => `$${value}` }))
+vi.mock('$lib/core/utils/index.js', () => ({ cn: (...values: any[]) => values.filter(Boolean).join(' '), formatPrice: (value: number) => `$${value}` }))
 vi.mock('$lib/core/composables/index.js', async () => ({ ProductCardRenderer: (await import('./mocks/product-card-renderer.svelte')).default }))
 
 const products = ['Ring', 'Ring', 'Ring', 'Pendant', 'Pendant', 'Earrings', 'Bracelet', 'Necklace'].map((category, index) => ({ id: `${index}`, slug: `product-${index}`, title: `${category} ${index}`, price: 80, thumbnail: `/${index}.jpg` }))

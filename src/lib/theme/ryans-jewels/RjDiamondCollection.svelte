@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte'
+	import RjDiamondPreview from './RjDiamondPreview.svelte'
 	import { ArrowRight, ArrowUpRight } from '@lucide/svelte'
 	import { diamondShapes } from './home-content.js'
 
@@ -82,6 +83,7 @@
 							<defs><clipPath id="rj-diamond-cutout"><path d={cutout.path} /></clipPath></defs>
 							<image href="/ryans-jewels/shapes/real/{shape.key}.jpg" width={cutout.size} height={cutout.size} clip-path="url(#rj-diamond-cutout)" />
 						</svg>
+						<RjDiamondPreview shape={shape.label} />
 						<span class="gem-sparkle sparkle-one" aria-hidden="true">✧</span>
 						<span class="gem-sparkle sparkle-two" aria-hidden="true">✧</span>
 					</div>
@@ -106,18 +108,18 @@
 </section>
 
 <style>
-	.rj-diamond-collection { --collection-display: 'Helvetica Neue', Arial, sans-serif; position: relative; width: 100%; margin: 0 0 50px; overflow: hidden; background: #080807; color: #f2efe8; }
+	.rj-diamond-collection { --collection-display: 'Helvetica Neue', Arial, sans-serif; position: relative; width: 100%; margin: 0 0 50px; overflow: hidden; background: #e9e7e2; color: #292824; }
 	.collection-marquee { display: flex; height: 86px; align-items: center; overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 20%, #000 80%, transparent); }
 	.marquee-track { display: flex; width: max-content; animation: diamond-marquee 70s linear infinite; will-change: transform; }
 	.marquee-group { display: flex; flex: 0 0 auto; align-items: center; gap: 70px; padding-right: 70px; }
 	.marquee-item { display: flex; flex: 0 0 auto; align-items: center; gap: 70px; white-space: nowrap; }
-	.marquee-item > span { color: #c7c5c0; font: 500 14px/1.5 var(--font-body, sans-serif); text-transform: uppercase; }
+	.marquee-item > span { color: #595750; font: 500 14px/1.5 var(--font-body, sans-serif); text-transform: uppercase; }
 	.marquee-item > svg { color: #a58950; opacity: .7; }
 	.collection-marquee:hover .marquee-track { animation-play-state: paused; }
 	.collection-stage { position: relative; height: calc(100svh - 180px); min-height: 620px; max-height: 800px; }
 	.collection-intro { position: absolute; z-index: 2; top: 15%; left: 80px; max-width: 260px; }
-	.collection-intro h2 { display: flex; flex-direction: column; gap: 2px; margin: 0; color: #a7a6a2; font: 300 clamp(29px, 2.1vw, 38px)/1.15 var(--collection-display); letter-spacing: -.045em; }
-	.collection-intro h2 em { color: #bd964c; font-style: normal; font-weight: 300; }
+	.collection-intro h2 { display: flex; flex-direction: column; gap: 2px; margin: 0; color: #595750; font: 300 clamp(29px, 2.1vw, 38px)/1.15 var(--collection-display); letter-spacing: -.045em; }
+	.collection-intro h2 em { color: #80602b; font-style: normal; font-weight: 300; }
 	.collection-intro h2, .collection-intro h2 > span, .collection-intro h2 > em { font-family: var(--collection-display) !important; font-weight: 300 !important; }
 	.diamond-display { position: absolute; z-index: 2; top: 45%; left: 0; right: 0; transform: translateY(-50%); }
 	.gem-art { position: relative; width: min(440px, 48vw); aspect-ratio: 1; margin: auto; perspective: 1000px; }
@@ -128,22 +130,22 @@
 	.reveal-2 .diamond-preview { animation: diamond-focus 950ms cubic-bezier(.16, 1, .3, 1) both; }
 	.gem-sparkle { position: absolute; color: #cdb680; pointer-events: none; opacity: 0; animation: facet-sparkle 850ms ease-out 200ms both; }
 	.sparkle-one { top: 18%; left: 20%; font-size: 34px; }.sparkle-two { bottom: 21%; right: 18%; font-size: 22px; animation-delay: 380ms; }
-	.diamond-arrow { position: absolute; z-index: 4; top: 50%; display: grid; width: 100px; height: 48px; place-items: center; padding: 0; border: 0; background: transparent; color: #777773; transform: translateY(-50%); cursor: pointer; transition: color .2s, opacity .2s; }
-	.diamond-arrow:hover { color: #e6d5b7; }.previous { left: 65px; }.next { right: 65px; }
+	.diamond-arrow { position: absolute; z-index: 4; top: 50%; display: grid; width: 100px; height: 48px; place-items: center; padding: 0; border: 0; background: transparent; color: #65635e; transform: translateY(-50%); cursor: pointer; transition: color .2s, opacity .2s; }
+	.diamond-arrow:hover { color: #80602b; }.previous { left: 65px; }.next { right: 65px; }
 	.collection-details { position: absolute; z-index: 3; inset: 0; pointer-events: none; }
 	.collection-details dl { margin: 0; }.collection-details dl > div { position: absolute; }
 	.detail-cut { top: 42%; right: calc(50% + 190px); }.detail-colour { top: 23%; left: calc(50% + 190px); }.detail-feeling { top: 61%; left: calc(50% + 200px); }
-	.collection-details dt { margin-bottom: 5px; color: #70706b; font: 300 12px/1.5 var(--font-body, sans-serif); letter-spacing: -.02em; text-transform: uppercase; }
-	.collection-details dd { margin: 0; color: #e0dfda; font: 500 13px/1.5 var(--font-body, sans-serif); text-transform: uppercase; }
-	.diamond-count { position: absolute; bottom: 28px; left: 80px; margin: 0; color: #5e5b51; font: 10px/1.5 var(--font-body, sans-serif); letter-spacing: .15em; }.diamond-count > span { color: #a48b57; }
+	.collection-details dt { margin-bottom: 5px; color: #64625c; font: 300 12px/1.5 var(--font-body, sans-serif); letter-spacing: -.02em; text-transform: uppercase; }
+	.collection-details dd { margin: 0; color: #292824; font: 500 13px/1.5 var(--font-body, sans-serif); text-transform: uppercase; }
+	.diamond-count { position: absolute; bottom: 28px; left: 80px; margin: 0; color: #64625c; font: 10px/1.5 var(--font-body, sans-serif); letter-spacing: .15em; }.diamond-count > span { color: #80602b; }
 	.diamond-caption { position: absolute; z-index: 1; left: 0; right: 0; top: calc(45% + 210px); pointer-events: none; text-align: center; }
 	.diamond-caption p { margin: 0; animation: caption-reveal 650ms cubic-bezier(.16, 1, .3, 1) both; }
-	.caption-the, .caption-name { color: #41413c; font: 300 clamp(44px, 5.6vw, 96px)/1.12 var(--collection-display); letter-spacing: -.065em; }.caption-the { margin-right: .18em; }
+	.caption-the, .caption-name { color: #c2bfb7; font: 300 clamp(44px, 5.6vw, 96px)/1.12 var(--collection-display); letter-spacing: -.065em; }.caption-the { margin-right: .18em; }
 	.collection-footer { display: flex; justify-content: flex-end; padding: 10px 65px 40px; }
 	.collection-actions { display: flex; align-items: center; gap: 32px; }
 	.collection-actions a { display: inline-flex; align-items: center; justify-content: center; gap: 14px; min-height: 42px; font: 12px/1.5 var(--font-body, sans-serif); text-decoration: none; }
-	.shop-shape { padding: 10px 28px; border: 1px solid #d3d1c9; border-radius: 99px; color: #f2efe8; text-transform: uppercase; transition: color .25s, background .25s; }.shop-shape:hover { background: #f2efe8; color: #141410; }
-	.enquire-diamond { color: #b39963; }.enquire-diamond:hover { color: #e2c88e; }
+	.shop-shape { padding: 10px 28px; border: 1px solid #77736a; border-radius: 99px; color: #292824; text-transform: uppercase; transition: color .25s, background .25s; }.shop-shape:hover { background: #f2efe8; color: #141410; }
+	.enquire-diamond { color: #80602b; }.enquire-diamond:hover { color: #57401b; }
 	.rj-diamond-collection :is(a, button):focus-visible { outline: 2px solid #c2a568; outline-offset: 5px; }
 	@keyframes diamond-marquee { to { transform: translateX(-50%); } }
 	@keyframes diamond-prism { 0% { opacity: 0; clip-path: polygon(48% 0, 52% 0, 58% 100%, 42% 100%); transform: rotate(calc(var(--diamond-direction) * -10deg)) scale(.92); filter: blur(6px) brightness(1.2); } 65% { opacity: 1; } 100% { opacity: 1; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); transform: scale(1.1); filter: none; } }

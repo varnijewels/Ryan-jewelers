@@ -160,7 +160,7 @@
 	)
 	const ryanHomeItem = $derived(ryanAllMenuItems.find((item) => /^home$/i.test(menuLabel(item) || '')) || null)
 	const ryanOfferItem = $derived(ryanAllMenuItems.find((item) => /best offers?|offers?/i.test(menuLabel(item) || '')) || null)
-	const ryanSidebarItems = $derived([{ label: 'Home', href: '/', arrow: false }, ...catalogNavigation.map((item) => ({ label: item.name, href: item.href, arrow: true }))])
+	const ryanSidebarItems = $derived([{ label: 'Home', href: '/', arrow: false }, ...catalogNavigation.map((item) => ({ label: item.name, href: item.href, arrow: true })), ...ryanNav.information.map((item) => ({ ...item, arrow: false }))])
 
 	$effect(() => {
 		if (!navModule.openSidebar) ryanSidebarView = 'root'
@@ -459,7 +459,7 @@
 											if (submenu) {
 												event.preventDefault()
 												ryanSidebarView = submenu
-											} else navModule.openSidebar = false
+											} else closeRyanSidebar(event)
 										}}
 									>
 										<span>{item.label}</span>

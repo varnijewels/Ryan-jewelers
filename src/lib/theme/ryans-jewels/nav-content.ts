@@ -38,6 +38,7 @@ export interface RyansJewelsNavContent {
 		divider: string
 		register: string
 	}
+	information: RyansJewelsNavLink[]
 	home: RyansJewelsNavLink
 	offers: RyansJewelsNavLink
 }
@@ -85,6 +86,10 @@ export const ryansJewelsNavContent: RyansJewelsNavContent = {
 		divider: ' or ',
 		register: 'register'
 	},
+	information: [
+		{ label: 'About Us', href: '/about-us' },
+		{ label: 'Contact Us', href: '/contact-us' }
+	],
 	home: { label: 'Home', href: '/' },
 	offers: { label: 'Best Offers', href: '/best-offers' }
 }
